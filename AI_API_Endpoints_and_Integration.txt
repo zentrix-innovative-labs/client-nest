@@ -1,0 +1,55 @@
+AI API Endpoints and Integration Guide
+=====================================
+
+This document lists all available AI service endpoints and provides instructions for integrating them into the main backend API.
+
+------------------------------------------------------------
+
+AI Endpoints (to be included under `/api/ai/`):
+
+1. AI Task Management
+---------------------
+GET    /api/ai/tasks/                - List all AI tasks for the current user
+GET    /api/ai/tasks/{id}/           - Retrieve details for a specific AI task
+GET    /api/ai/tasks/usage_stats/    - Get AI usage statistics for the current user
+
+2. Content Generation
+---------------------
+POST   /api/ai/content/                      - Generate content (generic endpoint)
+POST   /api/ai/content/generate_post/        - Generate a social media post
+POST   /api/ai/content/generate_caption/     - Generate an image caption
+POST   /api/ai/content/generate_hashtags/    - Generate hashtags
+
+3. Sentiment Analysis
+---------------------
+POST   /api/ai/sentiment/                    - Analyze sentiment (generic endpoint)
+POST   /api/ai/sentiment/analyze_comment/    - Analyze comment sentiment
+POST   /api/ai/sentiment/analyze_feedback/   - Analyze feedback sentiment
+
+4. Content Optimization
+-----------------------
+POST   /api/ai/optimization/                 - Optimize content (generic endpoint)
+POST   /api/ai/optimization/optimize/        - Optimize content for engagement, reach, etc.
+
+------------------------------------------------------------
+
+Integration Instructions
+========================
+
+1. In the main Django project URL configuration (usually `backend/mukiisa_backend/urls.py`), add the following line to `urlpatterns`:
+
+    path('api/ai/', include('ai_integration.urls')),
+
+   This will expose all the above endpoints under `/api/ai/`.
+
+2. Ensure the `ai_integration` app is listed in `INSTALLED_APPS` in `settings.py`.
+
+3. After updating the URLs, restart the backend server to apply changes.
+
+4. All endpoints require authentication (token/session). Ensure the frontend or API client sends the appropriate credentials.
+
+5. For endpoint details (request/response format), refer to the backend/ai_integration/views.py and serializers.
+
+------------------------------------------------------------
+
+If you have questions or need further details, contact the AI integration team. 
