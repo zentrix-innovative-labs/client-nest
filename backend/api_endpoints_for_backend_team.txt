@@ -1,0 +1,51 @@
+AI Endpoints for Backend Team
+============================
+
+Below are the required endpoints for AI integration, as implemented and tested. The backend team should ensure these are exposed, documented, and connected to the frontend and other services as needed.
+
+---
+
+**1. AI Task Endpoints**
+
+- `GET /api/ai/tasks/`
+  - List all AI tasks for the current user (history, status, etc.)
+- `GET /api/ai/tasks/{id}/`
+  - Get details for a specific AI task
+- `GET /api/ai/tasks/usage-stats/`
+  - Get usage statistics (requests, tokens, cost, etc.) for the current user
+
+**2. Content Generation Endpoints**
+
+- `POST /api/ai/content/generate-post/`
+  - Generate a social media post (requires: `prompt`, `platform`, `tone`, `language`)
+- `POST /api/ai/content/generate-caption/`
+  - Generate a caption for an image/video
+- `POST /api/ai/content/generate-hashtags/`
+  - Generate relevant hashtags for a post
+
+**3. Sentiment Analysis Endpoints**
+
+- `POST /api/ai/sentiment/analyze-comment/`
+  - Analyze the sentiment of a comment (requires: `text`, `language`)
+- `POST /api/ai/sentiment/analyze-feedback/`
+  - Analyze the sentiment of customer feedback
+
+**4. Content Optimization Endpoints**
+
+- `POST /api/ai/optimization/optimize/`
+  - Optimize content for engagement, reach, etc. (requires: `content`, `platform`, `optimization_type`)
+
+---
+
+**General Notes:**
+- All endpoints require authentication (401 for unauthenticated requests).
+- All endpoints expect and return JSON.
+- Async processing is handled via Celery; responses return a `task_id` and `status` for tracking.
+- Usage, cost, and quota are tracked per user and available via `/api/ai/tasks/usage-stats/`.
+- See `ai_integration/urls.py` and `views.py` for details on request/response formats.
+
+**Action for Backend Team:**
+- Ensure all above endpoints are exposed at `/api/ai/`.
+- Connect these endpoints to the frontend and any other required services.
+- Document request/response formats for frontend and QA teams.
+- Coordinate with the AI team for any custom logic or new endpoint needs. 

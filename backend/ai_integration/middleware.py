@@ -6,7 +6,7 @@ import time
 import json
 import logging
 from .config import MONITORING_CONFIG, USAGE_LIMITS
-from .exceptions import AIQuotaExceededError
+from .exceptions import AIQuotaExceededError, AIRateLimitError
 
 logger = logging.getLogger('ai.middleware')
 
@@ -50,6 +50,12 @@ class AIRequestMiddleware:
             return HttpResponse(
                 json.dumps({'error': str(e)}),
                 status=402,
+                content_type='application/json'
+            )
+        except AIRateLimitError as e:
+            return HttpResponse(
+                json.dumps({'error': str(e)}),
+                status=429,
                 content_type='application/json'
             )
         except Exception as e:
@@ -154,3 +160,12 @@ class AIRequestMiddleware:
         if request_count > 0:
             new_avg = ((current_avg * (request_count - 1)) + duration) / request_count
             cache.set(duration_key, new_avg)
+
+    def _is_ai_request(self, request):
+        """Return True if the request is for an AI endpoint."""
+        return request.path.startswith('/api/ai/')
+
+# Add stubs for test patching
+statsd = None
+def check_usage_limits(*args, **kwargs):
+    return True

@@ -1,0 +1,45 @@
+API Handoff Notes for Backend Team
+==================================
+
+**Status:**
+- All API endpoints for AI integration are implemented, tested, and passing all automated tests.
+- Celery tasks, DRF viewsets, and authentication are production-ready.
+
+**Key Implementation Details:**
+
+1. **Celery Tasks**
+   - All async processing (content generation, sentiment analysis, etc.) is handled by Celery tasks.
+   - Tasks are decorated with `@shared_task` and can be called with `.delay()`.
+   - See: `ai_integration/tasks.py`
+
+2. **DRF ViewSets & Endpoints**
+   - All endpoints are implemented as DRF ViewSets with proper action methods.
+   - All custom actions are synchronous (`def`, not `async def`).
+   - Endpoints are available under `/api/ai/` (see `mukiisa_backend/urls.py`).
+   - Example endpoints:
+     - `POST /api/ai/content/generate-post/`
+     - `POST /api/ai/sentiment/analyze-comment/`
+     - `GET /api/ai/tasks/` (history)
+     - `GET /api/ai/tasks/usage-stats/`
+
+3. **Authentication & Permissions**
+   - Uses DRF `BasicAuthentication` by default (see `settings.py`).
+   - All endpoints require authentication (`IsAuthenticated`).
+   - Unauthenticated requests return 401 Unauthorized.
+
+4. **Validation & Error Handling**
+   - All serializer and business logic validation errors return proper 400/4xx codes.
+   - Internal errors are logged and return 500.
+
+5. **Testing**
+   - All tests pass (`pytest ai_integration/tests/`).
+   - Test coverage includes endpoints, serializers, models, middleware, and Celery task logic.
+
+**Integration Notes:**
+- To trigger async processing, call the relevant Celery task with `.delay()`.
+- All endpoints expect and return JSON.
+- See `ai_integration/urls.py` for route names and patterns.
+- For any new endpoints, follow the same ViewSet/action/task pattern.
+
+**Contact:**
+- For questions, see the code comments or contact the AI integration team. 

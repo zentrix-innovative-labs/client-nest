@@ -14,6 +14,8 @@ def handle_task_save(sender, instance, created, **kwargs):
         # Update user's concurrent request count
         if created:
             concurrent_key = f'ai:concurrent:{instance.user.id}'
+            if not cache.get(concurrent_key):
+                cache.set(concurrent_key, 0)
             cache.incr(concurrent_key, 1)
             cache.expire(concurrent_key, 300)  # 5 minutes timeout
 

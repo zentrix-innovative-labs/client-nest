@@ -1,23 +1,27 @@
 from django.test import TestCase
-from django.contrib.auth import get_user_model
 from django.utils import timezone
-from ..models import AIModel, AITask
-
-User = get_user_model()
 
 class AIModelTests(TestCase):
     """Test cases for AIModel"""
 
     def setUp(self):
+        from django.contrib.auth import get_user_model
+        from ..models import AIModel, AITask
         self.model_data = {
             'name': 'Test Model',
             'description': 'Test Description',
             'version': '1.0'
         }
+        self.user = get_user_model().objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
         self.model = AIModel.objects.create(**self.model_data)
 
     def test_model_creation(self):
         """Test AIModel creation"""
+        from ..models import AIModel
         self.assertEqual(self.model.name, self.model_data['name'])
         self.assertEqual(self.model.description, self.model_data['description'])
         self.assertEqual(self.model.version, self.model_data['version'])
@@ -26,11 +30,13 @@ class AIModelTests(TestCase):
 
     def test_model_str_representation(self):
         """Test AIModel string representation"""
+        from ..models import AIModel
         expected_str = f"{self.model_data['name']} v{self.model_data['version']}"
         self.assertEqual(str(self.model), expected_str)
 
     def test_model_update(self):
         """Test AIModel update"""
+        from ..models import AIModel
         new_version = '2.0'
         old_updated_at = self.model.updated_at
 
@@ -51,6 +57,9 @@ class AITaskTests(TestCase):
     """Test cases for AITask"""
 
     def setUp(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        from ..models import AIModel, AITask
         # Create test user
         self.user = User.objects.create_user(
             username='testuser',
@@ -76,6 +85,7 @@ class AITaskTests(TestCase):
 
     def test_task_creation(self):
         """Test AITask creation"""
+        from ..models import AITask
         self.assertEqual(self.task.model, self.task_data['model'])
         self.assertEqual(self.task.user, self.task_data['user'])
         self.assertEqual(self.task.input_data, self.task_data['input_data'])
@@ -86,11 +96,13 @@ class AITaskTests(TestCase):
 
     def test_task_str_representation(self):
         """Test AITask string representation"""
+        from ..models import AITask
         expected_str = f"{self.model.name} task for {self.user.username} at {self.task.created_at}"
         self.assertEqual(str(self.task), expected_str)
 
     def test_task_status_update(self):
         """Test AITask status update"""
+        from ..models import AITask
         new_status = 'completed'
         output_data = {'result': 'test result'}
         old_updated_at = self.task.updated_at
@@ -112,6 +124,7 @@ class AITaskTests(TestCase):
 
     def test_task_status_choices(self):
         """Test AITask status choices"""
+        from ..models import AITask
         valid_statuses = ['pending', 'processing', 'completed', 'failed']
 
         for status in valid_statuses:
@@ -121,6 +134,7 @@ class AITaskTests(TestCase):
 
     def test_task_with_large_data(self):
         """Test AITask with large input/output data"""
+        from ..models import AITask
         large_input_data = {
             'type': 'test',
             'prompt': 'x' * 1000,  # Large prompt

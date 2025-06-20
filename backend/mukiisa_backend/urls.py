@@ -31,4 +31,5 @@ router.register(r'engagements', EngagementViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/ai/', include('ai_integration.urls')),
 ]
