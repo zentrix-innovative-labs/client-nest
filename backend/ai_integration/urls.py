@@ -28,6 +28,4 @@ urlpatterns = [
 # Sentiment Analysis:
 # - POST /api/ai/sentiment/ - Analyze sentiment (generic endpoint)
 # - POST /api/ai/sentiment/analyze-comment/ - Analyze comment sentiment
-# - POST /api/ai/sentiment/analyze-feedback/ - Analyze feedback sentiment
-# - POST /api/ai/sentiment/analyze_comment/ - Analyze comment sentiment
-# - POST /api/ai/sentiment/analyze_feedback/ - Analyze feedback sentiment
+# - POST /api/ai/sentiment/analyzefeedback/ - Analyze feedback sentiment
