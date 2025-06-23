@@ -144,6 +144,7 @@ def cleanup_expired_tasks():
         created_at__lt=cutoff_date
     ).delete()
 
+@shared_task(bind=True, max_retries=3)
 def process_content_optimization(self, user_id: int, user_tier: str, content: str, platform: str, optimization_type: str = 'engagement', priority: str = 'normal') -> Dict[str, Any]:
     """Celery task for processing content optimization requests"""
     try:

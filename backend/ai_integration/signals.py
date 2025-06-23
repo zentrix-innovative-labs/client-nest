@@ -2,7 +2,7 @@ from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.core.cache import cache
 from django.conf import settings
-from .models import AITask
+from .models import AITask, AIModel
 import logging
 
 logger = logging.getLogger('ai.signals')
@@ -69,7 +69,7 @@ def handle_task_delete(sender, instance, **kwargs):
         logger.error(f'Error in handle_task_delete signal: {str(e)}')
 
 # Signal to update model version on training completion
-@receiver(post_save, sender='ai_integration.AIModel')
+@receiver(post_save, sender=AIModel)
 def handle_model_update(sender, instance, created, **kwargs):
     """Handle AI model update events"""
     try:

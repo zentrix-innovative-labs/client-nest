@@ -172,6 +172,6 @@ class ContentOptimizationViewSet(viewsets.ViewSet):
             )
 
     @action(detail=False, methods=['post'])
-    async def optimize(self, request):
+    def optimize(self, request):
         """Optimize content for engagement, reach, etc."""
-        return await self.create(request)
+        return self.create(request)
