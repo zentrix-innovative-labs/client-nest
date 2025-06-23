@@ -6,7 +6,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
-COPY ../ai_services ./ai_services
+COPY ai_services ./ai_services
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
