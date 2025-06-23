@@ -1,19 +1,20 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SocialAccountViewSet, PostAnalyticsViewSet, XConnectionTestView, XPostTestView
-from .instagram_auth import InstagramAuthView, InstagramCallbackView
-from .x_auth import XAuthView, XCallbackView
+from .views import (
+    PostViewSet, CommentViewSet, EngagementViewSet, 
+    HashtagViewSet, MediaFileViewSet
+)
 
+# Create router for ViewSets
 router = DefaultRouter()
-router.register(r'accounts', SocialAccountViewSet, basename='social-account')
-router.register(r'analytics', PostAnalyticsViewSet, basename='post-analytics')
+router.register(r'posts', PostViewSet, basename='post')
+router.register(r'comments', CommentViewSet, basename='comment')
+router.register(r'engagements', EngagementViewSet, basename='engagement')
+router.register(r'hashtags', HashtagViewSet, basename='hashtag')
+router.register(r'media', MediaFileViewSet, basename='media')
 
+# URL patterns for the social media app
 urlpatterns = [
+    # Include router URLs
     path('', include(router.urls)),
-    path('instagram/auth/', InstagramAuthView.as_view(), name='instagram_auth'),
-    path('instagram/callback/', InstagramCallbackView.as_view(), name='instagram_callback'),
-    path('x/auth/', XAuthView.as_view(), name='x_auth'),
-    path('x/callback/', XCallbackView.as_view(), name='x_callback'),
-    path('x/test-connection/', XConnectionTestView.as_view(), name='x_test_connection'),
-    path('x/test-post/', XPostTestView.as_view(), name='x_test_post'),
 ] 
