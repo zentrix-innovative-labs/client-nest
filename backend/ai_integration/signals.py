@@ -43,7 +43,7 @@ def handle_task_save(sender, instance, created, **kwargs):
             logger.error(
                 f'AI task failed - ID: {instance.id}, '
                 f'Model: {instance.model.name}, '
-                f'Error: {instance.output_data.get("error", "Unknown error")}'
+                f'Error: {(instance.output_data.get("error", "Unknown error") if isinstance(instance.output_data, dict) else "Unknown error")}'
             )
 
     except Exception as e:
