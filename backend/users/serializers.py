@@ -14,4 +14,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class SocialMediaAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialMediaAccount
-        fields = ('id', 'user', 'platform', 'account_id', 'access_token', 'created_at', 'updated_at') 
+        fields = ('id', 'user', 'platform', 'account_id', 'access_token', 'created_at', 'updated_at')
+        extra_kwargs = {
+            'access_token': {'write_only': True}  # SECURITY IMPROVEMENT: access_token is write-only
+        } 
