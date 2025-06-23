@@ -24,11 +24,24 @@ class AIIntegrationConfig(AppConfig):
                 every=1,
                 period=IntervalSchedule.DAYS,
             )
-            PeriodicTask.objects.get_or_create(
+            periodic_task, created = PeriodicTask.objects.get_or_create(
                 name='cleanup_expired_tasks',
-                task='ai_integration.tasks.cleanup_expired_tasks',
-                interval=schedule,
+                defaults={
+                    'task': 'ai_integration.tasks.cleanup_expired_tasks',
+                    'interval': schedule,
+                }
             )
+            if not created:
+                # Update the task and interval if needed
+                updated = False
+                if periodic_task.task != 'ai_integration.tasks.cleanup_expired_tasks':
+                    periodic_task.task = 'ai_integration.tasks.cleanup_expired_tasks'
+                    updated = True
+                if periodic_task.interval != schedule:
+                    periodic_task.interval = schedule
+                    updated = True
+                if updated:
+                    periodic_task.save()
 
         except Exception as e:
             import logging
