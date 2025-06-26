@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'users',
     'social_media',
     'ai_integration',
-    'analytics',
+   # 'analytics',
     'rest_framework_simplejwt',
     'django_rest_passwordreset',
     'drf_spectacular',
@@ -91,7 +91,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'client-nest'),
+           'NAME': os.environ.get('DB_NAME', 'postgres'),
         'USER': os.environ.get('DB_USER', 'postgres'),
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),  # Set this in your .env file
         'HOST': os.environ.get('DB_HOST', 'localhost'),
@@ -156,6 +156,7 @@ AUTH_USER_MODEL = 'users.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -201,9 +202,3 @@ EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@client-nest.local')
-
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'Client-Nest API',
-    'DESCRIPTION': 'API documentation for Client-Nest.\n\nAuthentication endpoints:\n- Register: POST /api/auth/register/register/\n- Login: POST /api/auth/token/\n- Refresh: POST /api/auth/token/refresh/\n- Password Reset: POST /api/password_reset/',
-    'VERSION': '1.0.0',
-}
