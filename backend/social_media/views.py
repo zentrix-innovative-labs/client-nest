@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from .x_service import XService
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .facebook_service import FacebookService
+import requests
 
 # Create your views here.
 
@@ -221,3 +222,32 @@ class FacebookConnectionTestView(APIView):
                 'status': 'error',
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class FacebookPostView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        content = request.data.get('content')
+        if not content:
+            return Response({'error': 'No content provided'}, status=400)
+
+        fb_account = SocialAccount.objects.filter(
+            user=request.user,
+            platform='facebook',
+            is_active=True
+        ).first()
+
+        if not fb_account:
+            return Response({'error': 'No active Facebook account found'}, status=404)
+
+        access_token = fb_account.access_token
+        url = "https://graph.facebook.com/me/feed"
+        data = {
+            'message': content,
+            'access_token': access_token
+        }
+        response = requests.post(url, data=data)
+        if response.status_code == 200:
+            return Response({'status': 'success', 'response': response.json()})
+        else:
+            return Response({'status': 'error', 'response': response.json()}, status=response.status_code)
