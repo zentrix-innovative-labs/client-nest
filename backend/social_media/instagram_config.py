@@ -1,10 +1,11 @@
 from django.conf import settings
+import os
 
 # Instagram Basic Display API Configuration
 INSTAGRAM_CONFIG = {
-    'CLIENT_ID': '',  # We'll get this from Instagram Basic Display API
-    'CLIENT_SECRET': '',  # We'll get this from Instagram Basic Display API
-    'REDIRECT_URI': 'http://localhost:8000/api/social/instagram/callback/',
+    'CLIENT_ID': os.getenv('INSTAGRAM_CLIENT_ID', ''),
+    'CLIENT_SECRET': os.getenv('INSTAGRAM_CLIENT_SECRET', ''),
+    'REDIRECT_URI': os.getenv('INSTAGRAM_REDIRECT_URI', 'http://localhost:8000/api/social/instagram/callback/'),
     'SCOPE': [
         'user_profile',
         'user_media'
