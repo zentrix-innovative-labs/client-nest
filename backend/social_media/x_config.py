@@ -1,5 +1,8 @@
 """
 X (Twitter) API Configuration
+
+Note: Access tokens are stored per-user in the database (SocialAccount model),
+not in environment variables. Only API_KEY and API_SECRET are needed for OAuth flow.
 """
 
 import os
@@ -7,8 +10,6 @@ import os
 X_CONFIG = {
     'API_KEY': os.getenv('X_API_KEY'),
     'API_SECRET': os.getenv('X_API_SECRET'),
-    'ACCESS_TOKEN': os.getenv('X_ACCESS_TOKEN'),
-    'ACCESS_TOKEN_SECRET': os.getenv('X_ACCESS_TOKEN_SECRET'),
     'REDIRECT_URI': os.getenv('X_REDIRECT_URI', 'http://localhost:8000/api/social/x/callback/'),
 }
 

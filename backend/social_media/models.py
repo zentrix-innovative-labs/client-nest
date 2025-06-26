@@ -7,7 +7,6 @@ class SocialAccount(models.Model):
     PLATFORM_CHOICES = [
         ('facebook', 'Facebook'),
         ('instagram', 'Instagram'),
-        ('twitter', 'Twitter'),
         ('x', 'X')
     ]
 
