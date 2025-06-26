@@ -17,6 +17,7 @@ from .serializers import (
 from rest_framework.throttling import UserRateThrottle
 from users.views import IsOwnerOrReadOnly
 from users.models import SocialMediaAccount
+from users.serializers import SocialMediaAccountSerializer
 import tweepy
 import logging
 
@@ -41,7 +42,7 @@ class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     throttle_classes = [SocialMediaRateThrottle]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['author__username', 'post_type', 'visibility', 'hashtags__name']
+    filterset_fields = ['author__username', 'post_type', 'visibility']
     search_fields = ['content', 'author__username', 'hashtags__name']
     ordering_fields = ['created_at', 'like_count', 'comment_count']
     ordering = ['-created_at']
@@ -537,3 +538,21 @@ class MediaFileViewSet(viewsets.ModelViewSet):
                 logger.warning(f"Could not extract image metadata: {e}")
         
         media_file.save()
+
+class SocialMediaAccountViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for managing user's linked social media accounts.
+    list: List all social accounts for the authenticated user
+    create: Link a new social account
+    retrieve: Get details of a linked account
+    update: Update credentials for a linked account
+    destroy: Unlink a social account
+    """
+    serializer_class = SocialMediaAccountSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return SocialMediaAccount.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

@@ -192,6 +192,7 @@ class PostUpdateSerializer(serializers.ModelSerializer):
 class EngagementSerializer(serializers.ModelSerializer):
     """Serializer for engagement tracking"""
     user = UserSerializer(read_only=True)
+    ip_address = serializers.IPAddressField(protocol='both', required=False, allow_null=True)
     
     class Meta:
         model = Engagement

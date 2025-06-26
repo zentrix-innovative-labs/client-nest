@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'analytics',
     'rest_framework_simplejwt',
     'django_rest_passwordreset',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -174,6 +175,7 @@ REST_FRAMEWORK = {
         'anon': '100/hour',
         'user': '1000/hour',
     },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 from datetime import timedelta
@@ -199,3 +201,9 @@ EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@client-nest.local')
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Client-Nest API',
+    'DESCRIPTION': 'API documentation for Client-Nest.\n\nAuthentication endpoints:\n- Register: POST /api/auth/register/register/\n- Login: POST /api/auth/token/\n- Refresh: POST /api/auth/token/refresh/\n- Password Reset: POST /api/password_reset/',
+    'VERSION': '1.0.0',
+}
