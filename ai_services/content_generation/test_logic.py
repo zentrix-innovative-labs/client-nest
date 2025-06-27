@@ -39,12 +39,12 @@ class TestContentGenerator:
         # Arrange: Configure the mock to return a successful response
         mock_deepseek_client.generate_content.return_value = SAMPLE_SUCCESS_RESPONSE
         generator = ContentGenerator(mock_deepseek_client)
-
-        # Act
+        user = {"id": 1, "name": "Test User"}
         result = generator.generate_post(
             topic="AI for small business marketing",
             platform="linkedin",
-            tone="professional"
+            tone="professional",
+            user=user
         )
         
         # Assert: Check that the result is correctly parsed and structured
@@ -63,9 +63,8 @@ class TestContentGenerator:
         response_data['content'] = long_content
         mock_deepseek_client.generate_content.return_value = json.dumps(response_data)
         generator = ContentGenerator(mock_deepseek_client)
-        
-        # Act
-        result = generator.generate_post(topic="Long topic", platform="twitter", tone="casual")
+        user = {"id": 1, "name": "Test User"}
+        result = generator.generate_post(topic="Long topic", platform="twitter", tone="casual", user=user)
         
         # Assert
         assert len(result['content']) <= 280
@@ -77,9 +76,8 @@ class TestContentGenerator:
         raw_response = "This is not valid JSON."
         mock_deepseek_client.generate_content.return_value = raw_response
         generator = ContentGenerator(mock_deepseek_client)
-        
-        # Act
-        result = generator.generate_post(topic="Test error", platform="linkedin", tone="professional")
+        user = {"id": 1, "name": "Test User"}
+        result = generator.generate_post(topic="Test error", platform="linkedin", tone="professional", user=user)
         
         # Assert: Check that the error is handled gracefully
         assert 'error' in result
