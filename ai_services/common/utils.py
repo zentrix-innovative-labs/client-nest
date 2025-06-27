@@ -9,7 +9,10 @@ def truncate_text(text, max_length):
     """
     if len(text) <= max_length:
         return text
-    return text[:text.rfind(' ', 0, max_length)] + '...'
+    last_space = text.rfind(' ', 0, max_length)
+    if last_space == -1:
+        return text[:max_length] + '...'
+    return text[:last_space] + '...'
 
 def calculate_readability_score(text):
     """
