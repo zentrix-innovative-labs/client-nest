@@ -8,6 +8,13 @@ from datetime import datetime
 from requests_oauthlib import OAuth1Session
 import logging
 
+logger = logging.getLogger(__name__)
+
+SENSITIVE_HEADERS = {'authorization', 'cookie', 'set-cookie'}
+
+def redact_headers(headers):
+    return {k: ('<REDACTED>' if k.lower() in SENSITIVE_HEADERS else v) for k, v in headers.items()}
+
 class XService:
     def __init__(self, access_token, access_token_secret):
         self.access_token = access_token
@@ -19,7 +26,6 @@ class XService:
             resource_owner_secret=access_token_secret,
             signature_type='auth_header'
         )
-        self.logger = logging.getLogger(__name__)
 
     def _make_request(self, method, endpoint, data=None, params=None):
         """Make a request to the X API"""
@@ -45,9 +51,9 @@ class XService:
                 'text': content
             }
             response = self.oauth.post(f"{X_ENDPOINTS['API_URL']}/tweets", json=data)
-            self.logger.info("Response status code: %s", response.status_code)
-            self.logger.debug("Response headers: %s", response.headers)
-            self.logger.debug("Response content: %s", response.text)
+            logger.info("Response status code: %s", response.status_code)
+            logger.debug("Response headers: %s", redact_headers(response.headers))
+            logger.debug("Response content: %s", response.text)
             
             if response.status_code != 201:  # Twitter API v2 returns 201 for successful creation
                 return {
@@ -64,13 +70,13 @@ class XService:
                     'created_at': tweet_data.get('created_at')
                 }
             except ValueError as e:
-                self.logger.error("JSON parsing error: %s", str(e))
+                logger.exception("JSON parsing error: %s", str(e))
                 return {
                     'status': 'error',
                     'message': f'Invalid JSON response from X API: {response.text}'
                 }
         except Exception as e:
-            self.logger.error("Exception in post_content: %s", str(e))
+            logger.exception("Exception in post_content: %s", str(e))
             return {
                 'status': 'error',
                 'message': str(e)
