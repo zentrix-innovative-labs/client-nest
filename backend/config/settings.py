@@ -52,7 +52,6 @@ INSTALLED_APPS = [
    # 'analytics',
     'rest_framework_simplejwt',
     'django_rest_passwordreset',
-    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -176,7 +175,6 @@ REST_FRAMEWORK = {
         'anon': '100/hour',
         'user': '1000/hour',
     },
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 from datetime import timedelta
@@ -202,3 +200,7 @@ EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@client-nest.local')
+
+FACEBOOK_REDIRECT_URI = 'http://localhost:8000/api/social/facebook/callback/'
+FACEBOOK_APP_ID = '632402719860654'
+FACEBOOK_APP_SECRET = 'f378887238aa323e9b927db924ac9221'

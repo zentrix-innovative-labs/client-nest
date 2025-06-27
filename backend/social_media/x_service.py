@@ -6,6 +6,7 @@ import json
 import base64
 from datetime import datetime
 from requests_oauthlib import OAuth1Session
+import logging
 
 class XService:
     def __init__(self, access_token, access_token_secret):
@@ -18,6 +19,7 @@ class XService:
             resource_owner_secret=access_token_secret,
             signature_type='auth_header'
         )
+        self.logger = logging.getLogger(__name__)
 
     def _make_request(self, method, endpoint, data=None, params=None):
         """Make a request to the X API"""
@@ -43,9 +45,9 @@ class XService:
                 'text': content
             }
             response = self.oauth.post(f"{X_ENDPOINTS['API_URL']}/tweets", json=data)
-            print("Response status code:", response.status_code)
-            print("Response headers:", response.headers)
-            print("Response content:", response.text)
+            self.logger.info("Response status code: %s", response.status_code)
+            self.logger.debug("Response headers: %s", response.headers)
+            self.logger.debug("Response content: %s", response.text)
             
             if response.status_code != 201:  # Twitter API v2 returns 201 for successful creation
                 return {
@@ -62,13 +64,13 @@ class XService:
                     'created_at': tweet_data.get('created_at')
                 }
             except ValueError as e:
-                print("JSON parsing error:", str(e))
+                self.logger.error("JSON parsing error: %s", str(e))
                 return {
                     'status': 'error',
                     'message': f'Invalid JSON response from X API: {response.text}'
                 }
         except Exception as e:
-            print("Exception in post_content:", str(e))
+            self.logger.error("Exception in post_content: %s", str(e))
             return {
                 'status': 'error',
                 'message': str(e)
