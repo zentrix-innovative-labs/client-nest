@@ -16,8 +16,8 @@ class TestContentGenerationFlow(APITestCase):
         """Set up a test user and authenticate."""
         self.user = User.objects.create_user(username='testuser', password='testpassword123', email='test@example.com')
         self.client.force_authenticate(user=self.user)
-        # Biyo Stella's final, direct fix: Force celery to store results for eager tasks.
-        current_app.conf.update(task_store_eager_result=True)
+        # Biyo Stella's final, direct fix: Force celery to store results for eager tasks and execute tasks eagerly.
+        current_app.conf.update(task_store_eager_result=True, task_always_eager=True)
 
     @patch('ai_services.content_generation.logic.ContentGenerator.generate_post')
     def test_full_async_content_generation_flow_success(self, mock_generate_post):

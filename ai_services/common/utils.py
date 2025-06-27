@@ -3,15 +3,16 @@ Common utility functions for the AI services.
 """
 import re
 
-def truncate_text(text, max_length):
+def truncate_text(text: str, max_length: int) -> str:
     """
     Truncates text to a maximum length without cutting words.
     """
     if len(text) <= max_length:
         return text
-    last_space = text.rfind(' ', 0, max_length)
+    # Find the last space before max_length - 3 to avoid breaking words
+    last_space = text.rfind(' ', 0, max_length - 3)
     if last_space == -1:
-        return text[:max_length] + '...'
+        return text[:max_length - 3] + '...'
     return text[:last_space] + '...'
 
 def calculate_readability_score(text):

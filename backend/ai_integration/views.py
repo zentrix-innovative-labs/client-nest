@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from celery.result import AsyncResult
 from .serializers import ContentGenerationRequestSerializer, ContentGenerationResponseSerializer
 from .tasks import generate_content_task
+import logging
 
 # Create your views here.
 
@@ -63,7 +64,9 @@ class TaskStatusAPIView(APIView):
 
         elif task_result.failed():
             # The task execution failed with an exception.
-            response_data['result'] = {'error': str(task_result.info)}
+            logger = logging.getLogger(__name__)
+            logger.error(f"Task {task_id} failed with exception: {task_result.info}")
+            response_data['result'] = {'error': 'An error occurred during task execution.'}
             return Response(response_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         else:
