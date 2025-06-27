@@ -53,7 +53,12 @@ class XService:
             response = self.oauth.post(f"{X_ENDPOINTS['API_URL']}/tweets", json=data)
             logger.info("Response status code: %s", response.status_code)
             logger.debug("Response headers: %s", redact_headers(response.headers))
-            logger.debug("Response content: %s", response.text)
+            # Truncate response content to avoid logging sensitive or PII data
+            max_log_length = 500
+            resp_text = response.text
+            if len(resp_text) > max_log_length:
+                resp_text = resp_text[:max_log_length] + '... [truncated]'
+            logger.debug("Response content: %s", resp_text)
             
             if response.status_code != 201:  # Twitter API v2 returns 201 for successful creation
                 return {
