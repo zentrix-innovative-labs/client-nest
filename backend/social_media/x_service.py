@@ -10,7 +10,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-SENSITIVE_HEADERS = {'authorization', 'cookie', 'set-cookie'}
+SENSITIVE_HEADERS = frozenset({'authorization', 'cookie', 'set-cookie'})
 
 def redact_headers(headers):
     return {k: ('<REDACTED>' if k.lower() in SENSITIVE_HEADERS else v) for k, v in headers.items()}
@@ -70,13 +70,13 @@ class XService:
                     'created_at': tweet_data.get('created_at')
                 }
             except ValueError as e:
-                logger.exception("JSON parsing error: %s", str(e))
+                logger.exception("JSON parsing error")
                 return {
                     'status': 'error',
                     'message': f'Invalid JSON response from X API: {response.text}'
                 }
         except Exception as e:
-            logger.exception("Exception in post_content: %s", str(e))
+            logger.exception("Exception in post_content")
             return {
                 'status': 'error',
                 'message': str(e)
