@@ -12,6 +12,7 @@ import os
 import time
 import requests
 from typing import Dict, Any, Optional
+from decimal import Decimal, getcontext
 
 from django.conf import settings
 from django.utils import timezone
@@ -93,6 +94,7 @@ class DeepSeekClient:
 
             # The actual content is a JSON string, so we parse it.
             try:
+                # Note: The AI is expected to return a JSON string as the message content
                 content_payload = json.loads(response_data["choices"][0]["message"]["content"])
                 return content_payload
             except (json.JSONDecodeError, KeyError, IndexError):
@@ -122,19 +124,22 @@ class DeepSeekClient:
             completion_tokens=completion_tokens,
             total_tokens=usage_data.get("total_tokens", 0),
             cost=cost,
-            response_time_ms=response_time_ms,
-            created_at=timezone.now()
+            response_time_ms=response_time_ms
         )
 
-    def _calculate_cost(self, prompt_tokens: int, completion_tokens: int) -> float:
+    def _calculate_cost(self, prompt_tokens: int, completion_tokens: int) -> Decimal:
         """
-        Calculates the cost based on DeepSeek's pricing model.
-        (Example rates, should be configurable)
+        Calculates the cost based on DeepSeek's pricing model using Decimal for precision.
         """
-        prompt_cost_per_1k = 0.0014  # $ per 1K tokens
-        completion_cost_per_1k = 0.0028 # $ per 1K tokens
+        # Set precision for Decimal calculations
+        getcontext().prec = 10
 
-        prompt_cost = (prompt_tokens / 1000) * prompt_cost_per_1k
-        completion_cost = (completion_tokens / 1000) * completion_cost_per_1k
+        # Prices per 1,000 tokens, as Decimal objects
+        prompt_cost_per_1k = Decimal('0.0014')
+        completion_cost_per_1k = Decimal('0.0028')
+        
+        # Use Decimal for all calculations to avoid floating point inaccuracies
+        prompt_cost = (Decimal(prompt_tokens) / Decimal(1000)) * prompt_cost_per_1k
+        completion_cost = (Decimal(completion_tokens) / Decimal(1000)) * completion_cost_per_1k
         
         return prompt_cost + completion_cost 

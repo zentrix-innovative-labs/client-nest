@@ -1,15 +1,10 @@
 # backend/ai_integration/tests/test_api_endpoints.py
-import pytest
-import time
 from unittest.mock import patch
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from users.models import User
 from celery import current_app
-
-# Marks all tests in this module as Django DB tests
-pytestmark = pytest.mark.django_db
 
 class TestContentGenerationFlow(APITestCase):
     """

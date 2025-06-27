@@ -59,14 +59,17 @@ class TaskStatusAPIView(APIView):
                 response_data['result'] = response_serializer.data
                 return Response(response_data, status=status.HTTP_200_OK)
             else:
+                # The AI service returned data in an unexpected format.
                 response_data['status'] = 'FAILURE'
                 response_data['result'] = {'error': 'AI response structure was invalid.', 'details': response_serializer.errors}
-                return Response(response_data, status=status.HTTP_200_OK)
+                return Response(response_data, status=status.HTTP_502_BAD_GATEWAY)
 
         elif task_result.failed():
+            # The task execution failed with an exception.
             response_data['result'] = {'error': str(task_result.info)}
-            return Response(response_data, status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         else:
-            # Task is still pending, processing, etc.
-            return Response(response_data, status=status.HTTP_200_OK)
+            # Task is PENDING, STARTED, RETRY, etc.
+            # Inform the client that the request is accepted and processing.
+            return Response(response_data, status=status.HTTP_202_ACCEPTED)
