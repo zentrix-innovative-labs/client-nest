@@ -35,3 +35,29 @@ class AITask(models.Model):
 
     def __str__(self):
         return f"{self.model.name} task for {self.user.username} at {self.created_at}"
+
+class AIUsageLog(models.Model):
+    """
+    Logs each AI API call for analytics and cost management.
+    This fulfills Onyait Elias's task for cost tracking.
+    """
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ai_usage_logs'
+    )
+    request_type = models.CharField(max_length=100)
+    prompt_tokens = models.PositiveIntegerField(default=0)
+    completion_tokens = models.PositiveIntegerField(default=0)
+    total_tokens = models.PositiveIntegerField(default=0)
+    cost = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
+    response_time_ms = models.PositiveIntegerField(help_text="Response time in milliseconds")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.request_type} for {self.user.username if self.user else 'Anonymous'} at {self.created_at}"
+
+    class Meta:
+        ordering = ['-created_at']
