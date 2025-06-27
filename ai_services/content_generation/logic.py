@@ -15,7 +15,7 @@ class ContentGenerator:
     def __init__(self, deepseek_client: DeepSeekClient):
         self.client = deepseek_client
 
-    def generate_post(self, topic: str, platform: str, user: settings.AUTH_USER_MODEL, tone: str = 'professional', 
+    def generate_post(self, topic: str, platform: str, user: Any, tone: str = 'professional', 
                             content_type: str = 'post', additional_context: str = None) -> Dict[str, Any]:
         """
         Main method for generating a complete, platform-aware social media post.
@@ -24,7 +24,11 @@ class ContentGenerator:
         user_prompt = get_user_prompt(topic, content_type, additional_context)
         
         try:
-            response_data = self.client.generate_content(system_prompt, user_prompt, user=user)
+            response_data = self.client.generate_content(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                user=user
+            )
         except AIClientError as e:
             # Catch client-specific errors and return a structured error response
             return {"error": str(e)}
@@ -36,6 +40,16 @@ class ContentGenerator:
         Processes the raw AI response and applies platform-specific rules and enhancements.
         (Sprint 2, Week 1 & 2: Platform-specific optimization, content enhancement)
         """
+        # If response_data is a string, try to parse as JSON
+        if isinstance(response_data, str):
+            try:
+                response_data = json.loads(response_data)
+            except Exception:
+                return {"error": "Failed to decode AI response as JSON.", "raw_response": response_data}
+        # If not a dict after parsing, return error
+        if not isinstance(response_data, dict):
+            return {"error": "AI response is not a dictionary.", "raw_response": response_data}
+
         platform_configs = {
             'twitter': {'max_length': 280},
             'instagram': {'max_length': 2200},

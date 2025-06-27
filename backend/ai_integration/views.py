@@ -3,9 +3,6 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from celery.result import AsyncResult
-
-from ai_services.content_generation.logic import ContentGenerator
-from ai_services.common.deepseek_client import DeepSeekClient
 from .serializers import ContentGenerationRequestSerializer, ContentGenerationResponseSerializer
 from .tasks import generate_content_task
 
