@@ -1,5 +1,4 @@
 from celery import shared_task
-import asyncio
 from users.models import User
 from ai_services.content_generation.logic import ContentGenerator
 from ai_services.common.deepseek_client import DeepSeekClient, AIClientError
@@ -23,8 +22,7 @@ def generate_content_task(self, user_id: int, validated_data: dict):
         client = DeepSeekClient()
         generator = ContentGenerator(client)
         
-        # Run the async method in the synchronous Celery task
-        result_data = asyncio.run(generator.generate_post(user=user, **validated_data))
+        result_data = generator.generate_post(user=user, **validated_data)
         
         if "error" in result_data:
             raise TaskFailureError(result_data["error"])

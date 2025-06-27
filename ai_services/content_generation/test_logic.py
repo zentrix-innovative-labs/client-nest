@@ -1,5 +1,4 @@
 # ai_services/content_generation/test_logic.py
-import asyncio
 import json
 import pytest
 from unittest.mock import AsyncMock
@@ -32,18 +31,17 @@ def mock_deepseek_client():
     mock_client.__aenter__.return_value = mock_client
     return mock_client
 
-@pytest.mark.asyncio
 class TestContentGenerator:
     """Unit tests for the ContentGenerator logic, using a mocked client."""
 
-    async def test_generate_post_success(self, mock_deepseek_client):
+    def test_generate_post_success(self, mock_deepseek_client):
         """Tests a successful content generation call."""
         # Arrange: Configure the mock to return a successful response
         mock_deepseek_client.generate_content.return_value = SAMPLE_SUCCESS_RESPONSE
         generator = ContentGenerator(mock_deepseek_client)
 
         # Act
-        result = await generator.generate_post(
+        result = generator.generate_post(
             topic="AI for small business marketing",
             platform="linkedin",
             tone="professional"
@@ -57,7 +55,7 @@ class TestContentGenerator:
         assert len(result['variations']) == 2
         mock_deepseek_client.generate_content.assert_called_once()
 
-    async def test_twitter_length_truncation(self, mock_deepseek_client):
+    def test_twitter_length_truncation(self, mock_deepseek_client):
         """Tests that content for Twitter is correctly truncated if it exceeds the character limit."""
         # Arrange: Create a response with content that is too long for Twitter
         long_content = "This is an extremely long post that definitely exceeds the 280 character limit for Twitter, designed to test the truncation logic and ensure that posts remain compliant with platform constraints." * 5
@@ -67,13 +65,13 @@ class TestContentGenerator:
         generator = ContentGenerator(mock_deepseek_client)
         
         # Act
-        result = await generator.generate_post(topic="Long topic", platform="twitter", tone="casual")
+        result = generator.generate_post(topic="Long topic", platform="twitter", tone="casual")
         
         # Assert
         assert len(result['content']) <= 280
         assert 'Content was truncated to 280 characters for twitter.' in result.get('suggestions', [])
 
-    async def test_json_parsing_error(self, mock_deepseek_client):
+    def test_json_parsing_error(self, mock_deepseek_client):
         """Tests handling of a non-JSON response from the AI."""
         # Arrange: Configure the mock to return a malformed string
         raw_response = "This is not valid JSON."
@@ -81,7 +79,7 @@ class TestContentGenerator:
         generator = ContentGenerator(mock_deepseek_client)
         
         # Act
-        result = await generator.generate_post(topic="Test error", platform="linkedin", tone="professional")
+        result = generator.generate_post(topic="Test error", platform="linkedin", tone="professional")
         
         # Assert: Check that the error is handled gracefully
         assert 'error' in result
@@ -91,7 +89,7 @@ class TestContentGenerator:
 @pytest.mark.asyncio
 async def test_generate_post_safety_check():
     generator = ContentGenerator(DeepSeekClient())
-    result = await generator.generate_post(
+    result = generator.generate_post(
         topic="Sensitive topic",
         platform="facebook",
         tone="inspirational"
@@ -103,7 +101,7 @@ async def test_generate_post_safety_check():
 @pytest.mark.asyncio
 async def test_generate_post_variations():
     generator = ContentGenerator(DeepSeekClient())
-    result = await generator.generate_post(
+    result = generator.generate_post(
         topic="Remote work tips",
         platform="instagram",
         tone="witty"
@@ -122,7 +120,7 @@ async def test_generate_post_error_handling():
         async def generate_content(self, system_prompt, user_prompt, **kwargs):
             return "not a json string"
     generator = ContentGenerator(BadClient())
-    result = await generator.generate_post(
+    result = generator.generate_post(
         topic="Test error handling",
         platform="linkedin",
         tone="professional"
