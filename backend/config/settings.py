@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import sys
 
 # Load environment variables from .env file
 load_dotenv()
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'users',
+    'content',
     'social_media',
     'ai_integration',
    # 'analytics',
@@ -97,6 +99,15 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
+
+# Use SQLite for testing to avoid PostgreSQL connection issues
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
 
 # Cache configuration
 CACHES = {
