@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Q
 from .models import Post, Schedule, Comment, CommentLike
 from .serializers import PostSerializer, ScheduleSerializer, CommentSerializer, CommentUpdateSerializer, CommentLikeSerializer
 
@@ -74,7 +75,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Show comments from posts the user can see (their own posts or public posts)
         return Comment.objects.filter(
-            post__user=self.request.user
+            Q(post__user=self.request.user) | Q(post__status='published')
         ).select_related('author', 'post', 'parent_comment').prefetch_related('replies')
 
     def get_serializer_class(self):
@@ -141,6 +142,15 @@ class CommentLikeView(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        # Get the comment before deleting the like
+        comment = instance.comment
+        # Delete the like
+        instance.delete()
+        # Recalculate and update the comment's like count
+        comment.like_count = comment.likes.count()
+        comment.save()
 
 class ScheduleViewSet(viewsets.ModelViewSet):
     serializer_class = ScheduleSerializer

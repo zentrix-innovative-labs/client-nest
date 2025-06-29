@@ -21,6 +21,24 @@ class PostSerializer(serializers.ModelSerializer):
     def get_comment_count(self, obj):
         return obj.comments.count()
 
+class CommentReplySerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    is_liked_by_user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'post', 'author', 'parent_comment', 'content', 'media_files',
+                 'like_count', 'mentions', 'is_edited', 'edited_at',
+                 'is_liked_by_user', 'created_at', 'updated_at']
+        read_only_fields = ['author', 'like_count', 'is_edited', 'edited_at', 
+                           'created_at', 'updated_at']
+
+    def get_is_liked_by_user(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(user=request.user).exists()
+        return False
+
 class CommentSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     replies = serializers.SerializerMethodField()
@@ -42,7 +60,7 @@ class CommentSerializer(serializers.ModelSerializer):
     def get_replies(self, obj):
         # Only get direct replies (not nested replies to avoid infinite recursion)
         replies = obj.replies.all()
-        return CommentSerializer(replies, many=True, context=self.context).data
+        return CommentReplySerializer(replies, many=True, context=self.context).data
 
     def get_is_liked_by_user(self, obj):
         request = self.context.get('request')
