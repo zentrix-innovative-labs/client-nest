@@ -95,13 +95,17 @@ class DeepSeekClient:
             )
 
             # The actual content is a JSON string, so we parse it.
+            raw_content = None
             try:
                 # Note: The AI is expected to return a JSON string as the message content
                 raw_content = response_data["choices"][0]["message"]["content"]
                 content_payload = json.loads(raw_content)
                 return content_payload
             except (json.JSONDecodeError, KeyError, IndexError) as e:
-                logger.error(f"Failed to parse JSON from AI response. Raw content: '{raw_content}'. Error: {e}")
+                logger.error(
+                    f"Failed to parse JSON from AI response. "
+                    f"Raw content: '{raw_content if raw_content is not None else 'Not Available'}'. Error: {e}"
+                )
                 raise AIAPIError("Failed to parse valid content from AI response.")
 
         except requests.exceptions.Timeout:
