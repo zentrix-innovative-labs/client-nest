@@ -108,8 +108,15 @@ class DeepSeekClient:
             raise AIConnectionError(f"Request timed out after {REQUEST_TIMEOUT} seconds.")
         except requests.exceptions.RequestException as e:
             raise AIConnectionError(f"API request failed: {e}")
+        except AIAPIError:
+            # Re-raise AIAPIError to preserve its specific meaning.
+            raise
+        except AIClientError:
+            # Re-raise AIClientError for the same reason.
+            raise
         except Exception as e:
-            # Catch-all for other unexpected errors
+            # Catch-all for other unexpected errors.
+            logger.error(f"An unexpected error occurred in DeepSeekClient: {e}")
             raise AIClientError(f"An unexpected error occurred: {e}")
 
     def _log_usage(self, user: Optional[settings.AUTH_USER_MODEL], request_type: str, usage_data: Dict[str, int], response_time_ms: int):

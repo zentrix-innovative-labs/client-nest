@@ -1,5 +1,4 @@
 from django.dispatch import Signal, receiver
-from decimal import Decimal, getcontext
 from django.conf import settings
 from .models import AIUsageLog
 import logging
