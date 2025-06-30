@@ -23,11 +23,20 @@ def calculate_readability_score(text):
     """
     words = text.split()
     num_words = len(words)
-    num_sentences = text.count('.') + text.count('!') + text.count('?')
+    
+    # Improved sentence counting using regex to better handle various sentence endings.
+    sentences = re.split(r'[.!?]+', text)
+    # Filter out empty strings that may result from the split
+    num_sentences = len([s for s in sentences if s.strip()])
+    
     num_syllables = 0
     
-    if num_words == 0 or num_sentences == 0:
+    if num_words == 0:
         return 0.0
+    
+    # Ensure num_sentences is at least 1 to avoid division by zero.
+    if num_sentences == 0:
+        num_sentences = 1
 
     for word in words:
         # A very basic syllable counter
