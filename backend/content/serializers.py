@@ -20,7 +20,7 @@ class PostSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at', 'published_at']
 
     def get_comment_count(self, obj):
-        return obj.comments.count()
+        return getattr(obj, 'comment_count', 0)
 
 class CommentReplySerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
@@ -90,12 +90,9 @@ class CommentLikeSerializer(serializers.ModelSerializer):
         comment_like, created = CommentLike.objects.get_or_create(**validated_data)
         
         if created:
-            # Update like count
+            # Atomic increment of like count
             comment = validated_data['comment']
-            comment.like_count = comment.likes.count()
-            comment.save()
-            comment.like_count = F('like_count') + 1
-            comment.save(update_fields=['like_count'])
+            Comment.objects.filter(pk=comment.pk).update(like_count=F('like_count') + 1)
             comment.refresh_from_db(fields=['like_count'])
         
         return comment_like 

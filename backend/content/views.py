@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q, F
+from django.db.models import Q, F, Count
 from .models import Post, Schedule, Comment, CommentLike
 from .serializers import PostSerializer, ScheduleSerializer, CommentSerializer, CommentUpdateSerializer, CommentLikeSerializer
 
@@ -21,7 +21,7 @@ class PostViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return Post.objects.filter(user=self.request.user)
+        return Post.objects.filter(user=self.request.user).annotate(comment_count=Count('comments'))
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
