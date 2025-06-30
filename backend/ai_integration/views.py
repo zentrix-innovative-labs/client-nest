@@ -33,9 +33,9 @@ class ContentGenerationAPIView(APIView):
             validated_data=validated_data
         )
 
-        # Store the task ID and user mapping for ownership checks
+        # Save the user-task mapping for ownership verification
         try:
-            CeleryTask.objects.create(user=request.user, task_id=task.id)
+            UserTaskMapping.objects.create(user=request.user, task_id=task.id)
         except DatabaseError as e:
             # Log a database-specific error if the CeleryTask table doesn't exist, but don't block the request.
             # This allows the feature to work even if migrations haven't been run.
