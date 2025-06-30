@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
+from django.db.models import Q, F
 from .models import Post, Schedule, Comment, CommentLike
 from .serializers import PostSerializer, ScheduleSerializer, CommentSerializer, CommentUpdateSerializer, CommentLikeSerializer
 
@@ -75,7 +75,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Show comments from posts the user can access (their own posts, public posts, or shared posts)
         return Comment.objects.filter(
-            Q(post__user=self.request.user) | Q(post__is_public=True) | Q(post__status='published')
+            Q(post__user=self.request.user) | Q(post__status='published')
         ).select_related('author', 'post', 'parent_comment').prefetch_related('replies')
 
     def get_serializer_class(self):
@@ -120,14 +120,13 @@ class CommentViewSet(viewsets.ModelViewSet):
             like = CommentLike.objects.get(comment=comment, user=user)
             like.delete()
             action = 'unliked'
+            comment.like_count = F('like_count') - 1
         except CommentLike.DoesNotExist:
             CommentLike.objects.create(comment=comment, user=user)
             action = 'liked'
-        
-        # Update like count
-        comment.like_count = comment.likes.count()
-        comment.save()
-        
+            comment.like_count = F('like_count') + 1
+        comment.save(update_fields=['like_count'])
+        comment.refresh_from_db(fields=['like_count'])
         return Response({
             'action': action,
             'like_count': comment.like_count
@@ -148,9 +147,10 @@ class CommentLikeView(viewsets.ModelViewSet):
         comment = instance.comment
         # Delete the like
         instance.delete()
-        # Recalculate and update the comment's like count
-        comment.like_count = comment.likes.count()
-        comment.save()
+        # Atomically decrement the comment's like count
+        comment.like_count = F('like_count') - 1
+        comment.save(update_fields=['like_count'])
+        comment.refresh_from_db(fields=['like_count'])
 
 class ScheduleViewSet(viewsets.ModelViewSet):
     serializer_class = ScheduleSerializer

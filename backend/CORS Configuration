@@ -6,7 +6,7 @@ app = FastAPI()
 # ===== CORS CONFIGURATION =====
 allowed_origins = [
     "https://www.clientnest.xyx",
-    "https://lientnest.xyx",
+    "https://clientnest.xyx",
     "http://localhost:3000"
 ]
 
