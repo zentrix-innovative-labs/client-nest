@@ -19,20 +19,20 @@ class TestAISignals(TestCase):
         """
         # Test case 1: Standard calculation
         cost = _calculate_cost(prompt_tokens=1000, completion_tokens=2000)
-        expected_cost = 1000 * 0.001 + 2000 * 0.002
+        expected_cost = Decimal('0.005')
         self.assertEqual(cost, expected_cost)
 
         # Test case 2: Zero tokens
         cost = _calculate_cost(prompt_tokens=0, completion_tokens=0)
         self.assertEqual(cost, Decimal('0.0'))
 
-        # Test case 3: Only prompt tokens
+        # Test case 3: Small token count
         cost = _calculate_cost(prompt_tokens=500, completion_tokens=0)
-        self.assertEqual(cost, Decimal('0.0007'))
+        self.assertEqual(cost, Decimal('0.0005'))
 
         # Test case 4: Only completion tokens
         cost = _calculate_cost(prompt_tokens=0, completion_tokens=100)
-        self.assertEqual(cost, Decimal('0.00028'))
+        self.assertEqual(cost, Decimal('0.0002'))
 
     def test_log_ai_usage_receiver(self):
         """

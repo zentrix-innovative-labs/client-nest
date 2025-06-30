@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from celery.result import AsyncResult
 from .serializers import ContentGenerationRequestSerializer, ContentGenerationResponseSerializer
 from .tasks import generate_content_task
-from .models import CeleryTask, UserTaskMapping
+from .models import UserTaskMapping
 import logging
 from django.db import DatabaseError
 
@@ -55,7 +55,7 @@ class TaskStatusAPIView(APIView):
     def get(self, request, task_id, *args, **kwargs):
         # Verify that the task belongs to the requesting user
         try:
-            celery_task = UserTaskMapping.objects.get(task_id=task_id, user=request.user)
+            user_task_mapping = UserTaskMapping.objects.get(task_id=task_id, user=request.user)
         except UserTaskMapping.DoesNotExist:
             return Response({"error": "Not found or you do not have permission to view this task."}, status=status.HTTP_404_NOT_FOUND)
 

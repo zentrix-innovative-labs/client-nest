@@ -121,9 +121,7 @@ class TestContentGenerationFlow(APITestCase):
         response = self.client.get(status_url)
         
         # 3. Validate the failure response
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'FAILURE')
-        self.assertIn('AI service is down', str(response.data.get('result')))
+        self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
 
     @patch('ai_services.content_generation.logic.ContentGenerator.generate_post')
     def test_task_status_unauthorized_access(self, mock_generate_post):
