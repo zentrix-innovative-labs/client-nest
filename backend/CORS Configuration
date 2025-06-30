@@ -1,0 +1,24 @@
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+# ===== CORS CONFIGURATION =====
+allowed_origins = [
+    "https://www.clientnest.xyx",
+    "https://lientnest.xyx",
+    "http://localhost:3000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],  # Or ["GET", "POST", "PUT", "DELETE"]
+    allow_headers=["*"],  # Or ["Content-Type", "Authorization"]
+)
+# =============================
+
+@app.get("/api/data")
+def get_data():
+    return {"message": "Hello from FastAPI backend!"}
