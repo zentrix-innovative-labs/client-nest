@@ -73,8 +73,11 @@ class ContentGenerator:
 
         # (Sprint 2, Week 3: Engagement Optimization & Quality Control - Simplified)
         # In a real scenario, these would be more complex models.
-        response_data['engagement_prediction'] = self._predict_engagement(response_data)
-        response_data['optimal_posting_time_suggestion'] = self._suggest_posting_time(platform)
+        # Only set these if the AI hasn't already provided them.
+        if 'engagement_prediction' not in response_data:
+            response_data['engagement_prediction'] = self._predict_engagement(response_data)
+        if 'optimal_posting_time_suggestion' not in response_data:
+            response_data['optimal_posting_time_suggestion'] = self._suggest_posting_time(platform)
 
         return response_data
 

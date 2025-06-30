@@ -77,4 +77,47 @@ class TestContentGenerationFlow(APITestCase):
         self.assertIsInstance(result['hashtags'], list)
         self.assertGreater(len(result['content']), 10)
         self.assertGreater(result['quality_score'], 0)
-        self.assertTrue(result['safety_check']['is_safe']) 
+        self.assertTrue(result['safety_check']['is_safe'])
+
+    def test_content_generation_invalid_input(self):
+        """
+        Tests the API's response to invalid input data (missing 'topic').
+        """
+        url = reverse('generate-content')
+        data = {
+            "platform": "linkedin",
+            "tone": "professional"
+            # 'topic' is intentionally missing
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('topic', response.data)
+        self.assertEqual(str(response.data['topic'][0]), 'This field is required.')
+
+    @patch('ai_services.content_generation.logic.ContentGenerator.generate_post')
+    def test_content_generation_task_failure(self, mock_generate_post):
+        """
+        Tests the API's response when the underlying Celery task fails.
+        """
+        # Configure the mock to raise an exception
+        mock_generate_post.side_effect = Exception("AI service is down")
+
+        # 1. Start the content generation task
+        url = reverse('generate-content')
+        data = {
+            "topic": "A topic that will cause a failure",
+            "platform": "twitter",
+            "tone": "casual"
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        task_id = response.data['task_id']
+
+        # 2. Poll the status endpoint
+        status_url = reverse('task-status', kwargs={'task_id': task_id})
+        response = self.client.get(status_url)
+        
+        # 3. Validate the failure response
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'FAILURE')
+        self.assertIn('AI service is down', str(response.data.get('result')))
