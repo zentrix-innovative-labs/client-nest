@@ -11,10 +11,13 @@ jobs:
   security-audit:
     name: Run Security Scans
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client-nest
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # --- ESLint (JS/TS) ---
       - name: Setup Node.js
@@ -27,8 +30,8 @@ jobs:
 
       - name: Run ESLint
         run: |
-          npm install -g eslint eslint-plugin-security
-          eslint . --ext .js,.ts || true
+          npm install --save-dev eslint eslint-plugin-security
+          npx eslint . --ext .js,.ts
 
       # --- Bandit (Python) ---
       - name: Setup Python
@@ -40,21 +43,21 @@ jobs:
         run: pip install bandit
 
       - name: Run Bandit
-        run: bandit -r . || true
+        run: bandit -r ./backend
 
       # --- Semgrep ---
       - name: Install Semgrep
         run: pip install semgrep
 
       - name: Run Semgrep
-        run: semgrep scan --config=auto . || true
+        run: semgrep scan --config=auto .
 
       # --- OWASP Dependency-Check ---
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "ClientNest"
-          path: "."
+          path: "./client-nest"
           format: "HTML"
           out: "reports"
 
