@@ -30,6 +30,8 @@ jobs:
 
       - name: Run ESLint
         run: |
+          npm install -g eslint eslint-plugin-security
+          eslint . --ext .js,.ts
           npm install --save-dev eslint eslint-plugin-security
           npx eslint . --ext .js,.ts
 
