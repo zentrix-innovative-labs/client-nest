@@ -101,7 +101,7 @@ DATABASES = {
 }
 
 # Use SQLite for testing to avoid PostgreSQL connection issues
-if 'test' in sys.argv:
+if os.environ.get('DJANGO_TEST_ENV') == 'true':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import Post, Schedule, Comment, CommentLike
 from users.serializers import UserSerializer
 from django.db.models import F
+from django.db import transaction
 
 class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -87,12 +88,11 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
-        comment_like, created = CommentLike.objects.get_or_create(**validated_data)
-        
-        if created:
-            # Atomic increment of like count
-            comment = validated_data['comment']
-            Comment.objects.filter(pk=comment.pk).update(like_count=F('like_count') + 1)
-            comment.refresh_from_db(fields=['like_count'])
-        
+        with transaction.atomic():
+            comment_like, created = CommentLike.objects.get_or_create(**validated_data)
+            if created:
+                # Atomic increment of like count
+                comment = validated_data['comment']
+                Comment.objects.filter(pk=comment.pk).update(like_count=F('like_count') + 1)
+                comment.refresh_from_db(fields=['like_count'])
         return comment_like 
