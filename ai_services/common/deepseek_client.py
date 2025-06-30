@@ -11,6 +11,7 @@ import random
 import os
 import time
 import requests
+import logging
 from typing import Dict, Any, Optional
 
 from django.conf import settings
@@ -20,6 +21,9 @@ from backend.ai_integration.signals import ai_usage_logged
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "your-deepseek-api-key-goes-here")
 BASE_URL = "https://api.deepseek.com/v1"
 REQUEST_TIMEOUT = 30  # seconds
+
+# --- Add a logger ---
+logger = logging.getLogger(__name__)
 
 # --- Custom Exceptions ---
 class AIClientError(Exception):
@@ -93,9 +97,11 @@ class DeepSeekClient:
             # The actual content is a JSON string, so we parse it.
             try:
                 # Note: The AI is expected to return a JSON string as the message content
-                content_payload = json.loads(response_data["choices"][0]["message"]["content"])
+                raw_content = response_data["choices"][0]["message"]["content"]
+                content_payload = json.loads(raw_content)
                 return content_payload
-            except (json.JSONDecodeError, KeyError, IndexError):
+            except (json.JSONDecodeError, KeyError, IndexError) as e:
+                logger.error(f"Failed to parse JSON from AI response. Raw content: '{raw_content}'. Error: {e}")
                 raise AIAPIError("Failed to parse valid content from AI response.")
 
         except requests.exceptions.Timeout:
