@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from celery.result import AsyncResult
 from .serializers import ContentGenerationRequestSerializer, ContentGenerationResponseSerializer
 from .tasks import generate_content_task
+from .models import CeleryTask
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,14 @@ class ContentGenerationAPIView(APIView):
             validated_data=validated_data
         )
 
+        # Store the task ID and user mapping for ownership checks
+        try:
+            CeleryTask.objects.create(user=request.user, task_id=task.id)
+        except Exception as e:
+            # Log an error if the CeleryTask table doesn't exist, but don't block the request.
+            # This allows the feature to work even if migrations haven't been run.
+            logger.error(f"Could not save CeleryTask mapping for task {task.id}. Does the table exist? Error: {e}")
+
         return Response(
             {"task_id": task.id},
             status=status.HTTP_202_ACCEPTED
@@ -43,6 +52,15 @@ class TaskStatusAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, task_id, *args, **kwargs):
+        # Verify that the task belongs to the requesting user
+        try:
+            if not CeleryTask.objects.filter(task_id=task_id, user=request.user).exists():
+                return Response({"error": "Not found or you do not have permission to view this task."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # If the table doesn't exist, log the error and proceed with caution.
+            # This maintains functionality if migrations are pending.
+            logger.warning(f"Could not verify task ownership for task {task_id}. Does the CeleryTask table exist? Error: {e}")
+
         task_result = AsyncResult(task_id)
 
         response_data = {

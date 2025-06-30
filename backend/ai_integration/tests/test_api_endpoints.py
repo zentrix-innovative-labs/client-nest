@@ -8,24 +8,24 @@ from celery import current_app
 
 class TestContentGenerationFlow(APITestCase):
     """
-    Integration test for the full asynchronous content generation flow.
-    This fulfills Biyo Stella's tasks for end-to-end testing, quality validation,
-    and performance monitoring.
+    Integration test for the full asynchronous content generation flow,
+    covering end-to-end testing, quality validation, and performance monitoring.
     """
     def setUp(self):
-        """Set up a test user and authenticate."""
+        """Set up test users and authenticate."""
         self.user = User.objects.create_user(username='testuser', password='testpassword123', email='test@example.com')
+        self.other_user = User.objects.create_user(username='otheruser', password='password456', email='other@example.com')
         self.client.force_authenticate(user=self.user)
-        # Biyo Stella's final, direct fix: Force celery to store results for eager tasks and execute tasks eagerly.
+        # Force celery to execute tasks eagerly and store results for testing purposes.
         current_app.conf.update(task_store_eager_result=True, task_always_eager=True)
 
     @patch('ai_services.content_generation.logic.ContentGenerator.generate_post')
     def test_full_async_content_generation_flow_success(self, mock_generate_post):
         """
-        Tests the entire successful workflow using a mock for the AI call.
+        Tests the entire successful workflow from task creation to successful result retrieval.
         """
-        # Biyo Stella's final test strategy: Mock the actual AI call to ensure
-        # the test is fast, repeatable, and validates the full pipeline.
+        # Mock the actual AI call to ensure the test is fast, repeatable,
+        # and validates the full pipeline.
         mock_generate_post.return_value = {
             "content": "This is a brilliantly mocked post about remote work.",
             "hashtags": ["#remotework", "#productivity", "#mocked"],
@@ -121,3 +121,26 @@ class TestContentGenerationFlow(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['status'], 'FAILURE')
         self.assertIn('AI service is down', str(response.data.get('result')))
+
+    @patch('ai_services.content_generation.logic.ContentGenerator.generate_post')
+    def test_task_status_unauthorized_access(self, mock_generate_post):
+        """
+        Ensures a user cannot access the task status of a task created by another user.
+        """
+        # This side effect isn't strictly necessary for this test but is good practice
+        mock_generate_post.return_value = {"content": "some content"}
+
+        # 1. User 1 starts a task
+        url = reverse('generate-content')
+        data = {"topic": "A topic", "platform": "twitter"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        task_id = response.data['task_id']
+
+        # 2. User 2 (other_user) tries to poll the status
+        self.client.force_authenticate(user=self.other_user)
+        status_url = reverse('task-status', kwargs={'task_id': task_id})
+        response = self.client.get(status_url)
+
+        # 3. Validate that access is denied
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

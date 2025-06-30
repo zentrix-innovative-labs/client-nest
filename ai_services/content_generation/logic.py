@@ -69,7 +69,7 @@ class ContentGenerator:
         
         # Calculate readability if not already provided by the AI
         if 'readability_score' not in response_data and 'content' in response_data:
-             response_data['readability_score'] = calculate_readability_score(response_data['content'])
+            response_data['readability_score'] = calculate_readability_score(response_data['content'])
 
         # (Sprint 2, Week 3: Engagement Optimization & Quality Control - Simplified)
         # In a real scenario, these would be more complex models.

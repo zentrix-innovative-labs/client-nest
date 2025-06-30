@@ -1,5 +1,6 @@
 from django.dispatch import Signal, receiver
 from decimal import Decimal, getcontext
+from django.conf import settings
 from .models import AIUsageLog
 
 
@@ -12,9 +13,10 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> Decimal:
     # Set precision for Decimal calculations
     getcontext().prec = 10
 
-    # Prices per 1,000 tokens, as Decimal objects
-    prompt_cost_per_1k = Decimal('0.0014')
-    completion_cost_per_1k = Decimal('0.0028')
+    # Prices per 1,000 tokens, as Decimal objects, from settings
+    pricing = settings.DEEPSEEK_PRICING
+    prompt_cost_per_1k = Decimal(pricing['prompt_cost_per_1k'])
+    completion_cost_per_1k = Decimal(pricing['completion_cost_per_1k'])
     
     # Use Decimal for all calculations to avoid floating point inaccuracies
     prompt_cost = (Decimal(prompt_tokens) / Decimal(1000)) * prompt_cost_per_1k
