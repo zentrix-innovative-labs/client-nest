@@ -82,7 +82,6 @@ class TaskStatusAPIView(APIView):
 
         elif task_result.failed():
             # The task execution failed with an exception.
-            # The endpoint itself worked, so we return 200 OK.
             # The body of the response indicates the task's failure.
             logger.error(f"Task {task_id} failed with exception: {task_result.info}")
             response_data['result'] = {'error': 'An error occurred during task execution.', 'details': str(task_result.info)}

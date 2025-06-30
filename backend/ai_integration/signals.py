@@ -20,8 +20,8 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
 
         # Prices per 1,000 tokens, as Decimal objects, from settings
         pricing = settings.DEEPSEEK_PRICING
-        prompt_cost_per_1k = decimal.Decimal(pricing['prompt_cost_per_1k'])
-        completion_cost_per_1k = decimal.Decimal(pricing['completion_cost_per_1k'])
+        prompt_cost_per_1k = decimal.Decimal(pricing['prompt'])
+        completion_cost_per_1k = decimal.Decimal(pricing['completion'])
         
         # Use Decimal for all calculations to avoid floating point inaccuracies
         prompt_cost = (decimal.Decimal(prompt_tokens) / decimal.Decimal(1000)) * prompt_cost_per_1k
