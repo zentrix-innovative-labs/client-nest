@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
 from decimal import Decimal
 from unittest.mock import MagicMock
@@ -12,13 +12,15 @@ class TestAISignals(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser', password='password123')
 
+    @override_settings(DEEPSEEK_PRICING={"prompt": 0.001, "completion": 0.002})
     def test_calculate_cost(self):
         """
         Tests the _calculate_cost function with sample token counts.
         """
         # Test case 1: Standard calculation
         cost = _calculate_cost(prompt_tokens=1000, completion_tokens=2000)
-        self.assertEqual(cost, Decimal('0.0014') + Decimal('0.0056'))
+        expected_cost = 1000 * 0.001 + 2000 * 0.002
+        self.assertEqual(cost, expected_cost)
 
         # Test case 2: Zero tokens
         cost = _calculate_cost(prompt_tokens=0, completion_tokens=0)

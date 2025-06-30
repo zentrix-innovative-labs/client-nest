@@ -37,9 +37,9 @@ class ContentGenerationAPIView(APIView):
         try:
             UserTaskMapping.objects.create(user=request.user, task_id=task.id)
         except DatabaseError as e:
-            # Log a database-specific error if the CeleryTask table doesn't exist, but don't block the request.
+            # Log a database-specific error if the UserTaskMapping table doesn't exist, but don't block the request.
             # This allows the feature to work even if migrations haven't been run.
-            logger.error(f"Database error while saving CeleryTask mapping for task {task.id}. Does the table exist? Error: {e}")
+            logger.error(f"Database error while saving UserTaskMapping for task {task.id}. Does the table exist? Error: {e}")
 
         return Response(
             {"task_id": task.id},
@@ -86,7 +86,7 @@ class TaskStatusAPIView(APIView):
             # The body of the response indicates the task's failure.
             logger.error(f"Task {task_id} failed with exception: {task_result.info}")
             response_data['result'] = {'error': 'An error occurred during task execution.', 'details': str(task_result.info)}
-            return Response(response_data, status=status.HTTP_200_OK)
+            return Response(response_data, status=status.HTTP_502_BAD_GATEWAY)
         
         else:
             # Task is PENDING, STARTED, RETRY, etc.

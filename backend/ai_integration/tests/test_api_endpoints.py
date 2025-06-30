@@ -147,3 +147,22 @@ class TestContentGenerationFlow(APITestCase):
 
         # 3. Validate that access is denied
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_content_generation_invalid_ai_response(self):
+        """
+        Simulate an invalid AI response structure to trigger the 502 gateway branch.
+        """
+        # Patch the Celery task to return a malformed response
+        invalid_response = {"unexpected": "structure"}
+        with patch("backend.ai_integration.tasks.generate_content_task.apply_async") as mock_task:
+            mock_task.return_value.id = "fake-task-id"
+            # Simulate the task result in the polling endpoint
+            with patch("backend.ai_integration.views.AsyncResult") as mock_async_result:
+                mock_async_result.return_value.status = "SUCCESS"
+                mock_async_result.return_value.result = invalid_response
+                # Create a UserTaskMapping for the fake task
+                from backend.ai_integration.models import UserTaskMapping
+                UserTaskMapping.objects.create(user=self.user, task_id="fake-task-id")
+                response = self.client.get(f"/api/ai/task-status/fake-task-id/")
+                self.assertEqual(response.status_code, 502)
+                self.assertIn("error", response.data["result"])
