@@ -4,29 +4,32 @@ from django.conf import settings
 from .models import AIUsageLog
 import logging
 from django.db import DatabaseError
+import decimal
 
 # --- Add a logger ---
 logger = logging.getLogger(__name__)
 
 ai_usage_logged = Signal()
 
-def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> Decimal:
+def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decimal:
     """
     Calculates the cost based on DeepSeek's pricing model using Decimal for precision.
+    Uses a local context to ensure thread-safe precision settings.
     """
-    # Set precision for Decimal calculations
-    getcontext().prec = 10
+    with decimal.localcontext() as ctx:
+        # Set precision for Decimal calculations within this context
+        ctx.prec = 10
 
-    # Prices per 1,000 tokens, as Decimal objects, from settings
-    pricing = settings.DEEPSEEK_PRICING
-    prompt_cost_per_1k = Decimal(pricing['prompt_cost_per_1k'])
-    completion_cost_per_1k = Decimal(pricing['completion_cost_per_1k'])
-    
-    # Use Decimal for all calculations to avoid floating point inaccuracies
-    prompt_cost = (Decimal(prompt_tokens) / Decimal(1000)) * prompt_cost_per_1k
-    completion_cost = (Decimal(completion_tokens) / Decimal(1000)) * completion_cost_per_1k
-    
-    return prompt_cost + completion_cost
+        # Prices per 1,000 tokens, as Decimal objects, from settings
+        pricing = settings.DEEPSEEK_PRICING
+        prompt_cost_per_1k = decimal.Decimal(pricing['prompt_cost_per_1k'])
+        completion_cost_per_1k = decimal.Decimal(pricing['completion_cost_per_1k'])
+        
+        # Use Decimal for all calculations to avoid floating point inaccuracies
+        prompt_cost = (decimal.Decimal(prompt_tokens) / decimal.Decimal(1000)) * prompt_cost_per_1k
+        completion_cost = (decimal.Decimal(completion_tokens) / decimal.Decimal(1000)) * completion_cost_per_1k
+        
+        return prompt_cost + completion_cost
 
 @receiver(ai_usage_logged)
 def log_ai_usage_receiver(sender, **kwargs):

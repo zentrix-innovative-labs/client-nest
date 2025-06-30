@@ -52,7 +52,7 @@ class AIUsageLog(models.Model):
     prompt_tokens = models.PositiveIntegerField(default=0)
     completion_tokens = models.PositiveIntegerField(default=0)
     total_tokens = models.PositiveIntegerField(default=0)
-    cost = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
+    cost = models.DecimalField(max_digits=10, decimal_places=6, default=0.0, help_text="Cost in USD")
     response_time_ms = models.PositiveIntegerField(help_text="Response time in milliseconds")
     created_at = models.DateTimeField(auto_now_add=True)
 

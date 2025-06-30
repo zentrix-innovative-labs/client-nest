@@ -31,6 +31,10 @@ def generate_content_task(self, user_id: int, validated_data: dict):
 
     except AIClientError as e:
         raise TaskFailureError(f"AI Client Error: {e}") from e
+    except (TypeError, ValueError) as e:
+        # Handle specific, potentially recoverable errors during task execution.
+        raise TaskFailureError(f'A task-specific error occurred: {str(e)}') from e
     except Exception as e:
-        # Catch any other unexpected errors and re-raise for visibility
-        raise TaskFailureError(f'An unexpected error occurred in the task: {str(e)}') from e 
+        # Re-raise any other unexpected errors for full visibility.
+        # This prevents masking critical, unforeseen issues.
+        raise e 
