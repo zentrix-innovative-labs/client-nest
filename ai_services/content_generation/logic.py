@@ -12,6 +12,13 @@ class ContentGenerator:
     Handles all logic related to content generation, enhancement, and optimization.
     This version is synchronous and uses the robust, production-ready DeepSeekClient.
     """
+    PLATFORM_CONFIGS = {
+        'twitter': {'max_length': 280},
+        'instagram': {'max_length': 2200},
+        'linkedin': {'max_length': 3000},
+        'facebook': {'max_length': 63206}
+    }
+
     def __init__(self, deepseek_client: DeepSeekClient):
         self.client = deepseek_client
 
@@ -50,14 +57,7 @@ class ContentGenerator:
         if not isinstance(response_data, dict):
             return {"error": "AI response is not a dictionary.", "raw_response": response_data}
 
-        platform_configs = {
-            'twitter': {'max_length': 280},
-            'instagram': {'max_length': 2200},
-            'linkedin': {'max_length': 3000},
-            'facebook': {'max_length': 63206}
-        }
-        
-        config = platform_configs.get(platform, {})
+        config = self.PLATFORM_CONFIGS.get(platform, {})
         max_length = config.get('max_length')
 
         # Optimize content length for the platform

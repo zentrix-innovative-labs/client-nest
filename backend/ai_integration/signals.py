@@ -2,7 +2,11 @@ from django.dispatch import Signal, receiver
 from decimal import Decimal, getcontext
 from django.conf import settings
 from .models import AIUsageLog
+import logging
+from django.db import DatabaseError
 
+# --- Add a logger ---
+logger = logging.getLogger(__name__)
 
 ai_usage_logged = Signal()
 
@@ -39,12 +43,15 @@ def log_ai_usage_receiver(sender, **kwargs):
     
     cost = _calculate_cost(prompt_tokens, completion_tokens)
 
-    AIUsageLog.objects.create(
-        user=user,
-        request_type=request_type,
-        prompt_tokens=prompt_tokens,
-        completion_tokens=completion_tokens,
-        total_tokens=usage_data.get("total_tokens", 0),
-        cost=cost,
-        response_time_ms=response_time_ms
-    ) 
+    try:
+        AIUsageLog.objects.create(
+            user=user,
+            request_type=request_type,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=usage_data.get("total_tokens", 0),
+            cost=cost,
+            response_time_ms=response_time_ms
+        )
+    except DatabaseError as e:
+        logger.error(f"Database error while logging AI usage: {e}") 
