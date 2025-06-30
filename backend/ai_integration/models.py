@@ -62,17 +62,17 @@ class AIUsageLog(models.Model):
     class Meta:
         ordering = ['-created_at']
 
-class CeleryTask(models.Model):
+class UserTaskMapping(models.Model):
     """
     Stores a mapping between a Celery task ID and the user who initiated it.
     This is used to enforce ownership and security for task status polling.
     """
-    task_id = models.CharField(max_length=255, unique=True, db_index=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='celery_tasks')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    task_id = models.CharField(max_length=255, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Task {self.task_id} for user {self.user.username}"
+        return f"{self.user} - {self.task_id}"
 
     class Meta:
         ordering = ['-created_at']

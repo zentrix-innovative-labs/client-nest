@@ -15,7 +15,11 @@ import logging
 from typing import Dict, Any, Optional
 
 from django.conf import settings
-from backend.ai_integration.signals import ai_usage_logged
+# TODO: Move ai_usage_logged signal to a shared utilities module to avoid tight coupling and circular dependencies.
+try:
+    from backend.ai_integration.signals import ai_usage_logged
+except ImportError:
+    ai_usage_logged = None
 
 # --- Client Configuration & Constants ---
 DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "your-deepseek-api-key-goes-here")

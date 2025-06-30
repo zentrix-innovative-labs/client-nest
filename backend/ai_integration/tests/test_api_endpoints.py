@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 from users.models import User
 from celery import current_app
+from backend.ai_integration.models import AIUsageLog
 
 class TestContentGenerationFlow(APITestCase):
     """
@@ -78,6 +79,8 @@ class TestContentGenerationFlow(APITestCase):
         self.assertGreater(len(result['content']), 10)
         self.assertGreater(result['quality_score'], 0)
         self.assertTrue(result['safety_check']['is_safe'])
+        # Assert that an AIUsageLog entry was created for the user
+        self.assertTrue(AIUsageLog.objects.filter(user=self.user).exists())
 
     def test_content_generation_invalid_input(self):
         """
