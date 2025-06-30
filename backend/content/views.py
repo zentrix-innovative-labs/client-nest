@@ -73,9 +73,9 @@ class CommentViewSet(viewsets.ModelViewSet):
     ordering = ['created_at']
 
     def get_queryset(self):
-        # Show comments from posts the user can see (their own posts or public posts)
+        # Show comments from posts the user can access (their own posts, public posts, or shared posts)
         return Comment.objects.filter(
-            Q(post__user=self.request.user) | Q(post__status='published')
+            Q(post__user=self.request.user) | Q(post__is_public=True) | Q(post__status='published')
         ).select_related('author', 'post', 'parent_comment').prefetch_related('replies')
 
     def get_serializer_class(self):
