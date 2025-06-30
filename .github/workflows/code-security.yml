@@ -11,9 +11,6 @@ jobs:
   security-audit:
     name: Run Security Scans
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./client-nest
 
     steps:
       - name: Checkout Code
@@ -30,8 +27,6 @@ jobs:
 
       - name: Run ESLint
         run: |
-          npm install -g eslint eslint-plugin-security
-          eslint . --ext .js,.ts
           npm install --save-dev eslint eslint-plugin-security
           npx eslint . --ext .js,.ts
 
@@ -59,7 +54,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "ClientNest"
-          path: "./client-nest"
+          path: "."
           format: "HTML"
           out: "reports"
 
