@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Post, Schedule, Comment, CommentLike
 from users.serializers import UserSerializer
+from django.db.models import F
 
 class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -93,5 +94,8 @@ class CommentLikeSerializer(serializers.ModelSerializer):
             comment = validated_data['comment']
             comment.like_count = comment.likes.count()
             comment.save()
+            comment.like_count = F('like_count') + 1
+            comment.save(update_fields=['like_count'])
+            comment.refresh_from_db(fields=['like_count'])
         
         return comment_like 
