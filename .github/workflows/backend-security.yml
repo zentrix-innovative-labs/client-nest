@@ -58,7 +58,7 @@ jobs:
           mkdir -p security-reports
           if [ -f bandit-report.html ]; then mv bandit-report.html security-reports/; fi
           if [ -f semgrep-report.json ]; then mv semgrep-report.json security-reports/; fi
-          if [ -f dc-reports/dependency-check-report.html ]; then mv dc-reports/dependency-check-report.html security-reports/; fi
+          if [ -f dc-reports/dependency-check-report.html ]; then cp dc-reports/dependency-check-report.html security-reports/; fi
 
       # --- Upload All as "backend-security" Artifact ---
       - name: Upload Backend Security Report
