@@ -7,7 +7,8 @@ class SocialAccount(models.Model):
     PLATFORM_CHOICES = [
         ('facebook', 'Facebook'),
         ('instagram', 'Instagram'),
-        ('x', 'X')
+        ('x', 'X'),
+        ('linkedin', 'LinkedIn')
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='social_media_accounts')

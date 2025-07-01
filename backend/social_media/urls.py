@@ -4,6 +4,8 @@ from .views import SocialAccountViewSet, PostAnalyticsViewSet, XConnectionTestVi
 from .instagram_auth import InstagramAuthView, InstagramCallbackView
 from .x_auth import XAuthView, XCallbackView
 from .facebook_auth import FacebookAuthView, FacebookCallbackView
+from .linkedin_auth import LinkedInAuthView, LinkedInCallbackView
+from .linkedin_service import LinkedInConnectionTestView, LinkedInPostView
 
 router = DefaultRouter()
 router.register(r'accounts', SocialAccountViewSet, basename='social-account')
@@ -21,4 +23,8 @@ urlpatterns = [
     path('facebook/callback/', FacebookCallbackView.as_view(), name='facebook_callback'),
     path('facebook/test-connection/', FacebookConnectionTestView.as_view(), name='facebook_test_connection'),
     path('facebook/post/', FacebookPostView.as_view(), name='facebook_post'),
+    path('linkedin/auth/', LinkedInAuthView.as_view(), name='linkedin_auth'),
+    path('linkedin/callback/', LinkedInCallbackView.as_view(), name='linkedin_callback'),
+    path('linkedin/test-connection/', LinkedInConnectionTestView.as_view(), name='linkedin_test_connection'),
+    path('linkedin/post/', LinkedInPostView.as_view(), name='linkedin_post'),
 ] 

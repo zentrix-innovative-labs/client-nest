@@ -22,8 +22,23 @@ This document lists the backend API endpoints available for Facebook Page manage
 - **GET /api/facebook/posts/<post_id>/insights/**
   - Get analytics (impressions, engagement, etc.) for a specific post.
 
+# LinkedIn Integration API Endpoints
+
+This document lists the backend API endpoints available for LinkedIn account management and posting.
+
+## Endpoints
+
+- **GET /api/linkedin/test-connection/**
+  - Test LinkedIn account connection and get account info.
+
+- **POST /api/linkedin/post/**
+  - Create a new post on the LinkedIn account.
+
 ---
 
 **Note:**
 - These endpoints are to be consumed by the frontend for Facebook Page management and analytics.
+- Do not include sensitive information (like access tokens) in frontend code or documentation.
+
+- These endpoints are to be consumed by the frontend for LinkedIn management and posting.
 - Do not include sensitive information (like access tokens) in frontend code or documentation. 

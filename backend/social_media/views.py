@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from .x_service import XService
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .facebook_service import FacebookService
+from .linkedin_service import LinkedInService
 import requests
 
 # Create your views here.
@@ -251,3 +252,67 @@ class FacebookPostView(APIView):
             return Response({'status': 'success', 'response': response.json()})
         else:
             return Response({'status': 'error', 'response': response.json()}, status=response.status_code)
+
+class LinkedInConnectionTestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+        try:
+            linkedin_account = SocialAccount.objects.filter(
+                user=request.user,
+                platform='linkedin',
+                is_active=True
+            ).first()
+            if not linkedin_account:
+                return Response({
+                    'status': 'error',
+                    'message': 'No active LinkedIn account found'
+                }, status=status.HTTP_404_NOT_FOUND)
+            linkedin_service = LinkedInService(linkedin_account)
+            account_info = linkedin_service.get_account_info()
+            return Response({
+                'status': 'success',
+                'message': 'LinkedIn account is connected',
+                'account_info': account_info
+            })
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class LinkedInPostView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        try:
+            linkedin_account = SocialAccount.objects.filter(
+                user=request.user,
+                platform='linkedin',
+                is_active=True
+            ).first()
+            if not linkedin_account:
+                return Response({
+                    'status': 'error',
+                    'message': 'No active LinkedIn account found'
+                }, status=status.HTTP_404_NOT_FOUND)
+            content = request.data.get('content')
+            if not content:
+                return Response({
+                    'status': 'error',
+                    'message': 'No content provided'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            linkedin_service = LinkedInService(linkedin_account)
+            result = linkedin_service.post_content(content)
+            return Response({
+                'status': 'success',
+                'message': 'Post published successfully',
+                'post_id': result.get('id')
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
