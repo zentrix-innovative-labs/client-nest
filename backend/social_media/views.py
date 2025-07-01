@@ -316,3 +316,76 @@ class LinkedInPostView(APIView):
                 'status': 'error',
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class LinkedInUserInfoView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+        try:
+            linkedin_account = SocialAccount.objects.filter(
+                user=request.user,
+                platform='linkedin',
+                is_active=True
+            ).first()
+            if not linkedin_account:
+                return Response({
+                    'status': 'error',
+                    'message': 'No active LinkedIn account found'
+                }, status=status.HTTP_404_NOT_FOUND)
+            linkedin_service = LinkedInService(linkedin_account)
+            userinfo = linkedin_service.get_userinfo()
+            return Response({
+                'status': 'success',
+                'userinfo': userinfo
+            })
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class LinkedInImagePostView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        try:
+            linkedin_account = SocialAccount.objects.filter(
+                user=request.user,
+                platform='linkedin',
+                is_active=True
+            ).first()
+            if not linkedin_account:
+                return Response({
+                    'status': 'error',
+                    'message': 'No active LinkedIn account found'
+                }, status=status.HTTP_404_NOT_FOUND)
+            content = request.data.get('content')
+            image = request.FILES.get('image')
+            if not content or not image:
+                return Response({
+                    'status': 'error',
+                    'message': 'Content and image are required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            linkedin_service = LinkedInService(linkedin_account)
+            # Step 1: Register image upload
+            upload_resp = linkedin_service.register_image_upload()
+            upload_url = upload_resp['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl']
+            asset_urn = upload_resp['value']['asset']
+            # Step 2: Upload the image
+            image_data = image.read()
+            linkedin_service.upload_image(upload_url, image_data)
+            # Step 3: Post content with image
+            result = linkedin_service.post_content_with_image(content, asset_urn)
+            return Response({
+                'status': 'success',
+                'message': 'Post with image published successfully',
+                'post_id': result.get('id'),
+                'asset_urn': asset_urn
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

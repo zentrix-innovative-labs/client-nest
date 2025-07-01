@@ -34,6 +34,12 @@ This document lists the backend API endpoints available for LinkedIn account man
 - **POST /api/linkedin/post/**
   - Create a new post on the LinkedIn account.
 
+- **GET /api/social/linkedin/userinfo/**
+  - Fetch LinkedIn user profile info (requires authentication).
+
+- **POST /api/social/linkedin/post-image/**
+  - Create a new LinkedIn post with an image. Requires 'content' and 'image' in multipart/form-data.
+
 ---
 
 **Note:**

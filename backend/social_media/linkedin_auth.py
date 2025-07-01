@@ -6,25 +6,24 @@ from django.shortcuts import redirect
 from .models import SocialAccount
 import requests
 import urllib.parse
-
-# Placeholder config, replace with your actual LinkedIn app credentials
-LINKEDIN_CLIENT_ID = getattr(settings, 'LINKEDIN_CLIENT_ID', 'your-linkedin-client-id')
-LINKEDIN_CLIENT_SECRET = getattr(settings, 'LINKEDIN_CLIENT_SECRET', 'your-linkedin-client-secret')
-LINKEDIN_REDIRECT_URI = getattr(settings, 'LINKEDIN_REDIRECT_URI', 'http://localhost:8000/api/social/linkedin/callback/')
+from .linkedin_config import LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET, LINKEDIN_REDIRECT_URI
+from rest_framework.permissions import AllowAny
 
 class LinkedInAuthView(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         params = {
             'response_type': 'code',
             'client_id': LINKEDIN_CLIENT_ID,
             'redirect_uri': LINKEDIN_REDIRECT_URI,
-            'scope': 'r_liteprofile r_emailaddress w_member_social',
+            'scope': 'r_liteprofile w_member_social',
             'state': 'random_state_string'  # In production, generate and validate this
         }
         url = f"https://www.linkedin.com/oauth/v2/authorization?{urllib.parse.urlencode(params)}"
         return redirect(url)
 
 class LinkedInCallbackView(APIView):
+    permission_classes = [AllowAny]
     def get(self, request):
         code = request.GET.get('code')
         state = request.GET.get('state')
