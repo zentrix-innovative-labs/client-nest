@@ -27,7 +27,7 @@ jobs:
 
       - name: Run ESLint
         run: |
-          npm install --save-dev eslint eslint-plugin-security
+          npm install --save-dev eslint@8 eslint-plugin-security
           npx eslint . --ext .js,.ts
 
       # --- Bandit (Python) ---
