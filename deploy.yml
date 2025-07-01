@@ -1,0 +1,48 @@
+name: Auto Deploy to AWS CloudFormation
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ arn:aws:iam::763338915451:role/GitHubOIDCDeployRole }}
+          aws-region: ${{ af-south-1 }}
+
+      - name: Install AWS CLI (if not already)
+        run: |
+          if (-not (Get-Command aws -ErrorAction SilentlyContinue)) {
+            Invoke-WebRequest -Uri "https://awscli.amazonaws.com/AWSCLIV2.msi" -OutFile "AWSCLIV2.msi"
+            Start-Process msiexec.exe -Wait -ArgumentList '/i AWSCLIV2.msi /quiet'
+          }
+          aws --version
+        shell: pwsh
+
+      - name: Validate CloudFormation Template
+        run: |
+          aws cloudformation validate-template --template-body file://clientnest-vpc.yaml
+        shell: pwsh
+
+      - name: Deploy CloudFormation Stack
+        run: |
+          $stackName = "nest"
+          aws cloudformation deploy `
+            --template-file clientnest-vpc.yaml `
+            --stack-name $stackName `
+            --capabilities CAPABILITY_NAMED_IAM `
+            --no-fail-on-empty-changeset
+        shell: pwsh
