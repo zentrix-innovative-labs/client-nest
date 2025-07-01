@@ -40,6 +40,42 @@ This document lists the backend API endpoints available for LinkedIn account man
 - **POST /api/social/linkedin/post-image/**
   - Create a new LinkedIn post with an image. Requires 'content' and 'image' in multipart/form-data.
 
+## LinkedIn Integration (Working Endpoints)
+
+### 1. Post to LinkedIn (Text Only)
+- **POST** `/api/social/linkedin/post/`
+- **Description:** Create a new LinkedIn post (text only) for the authenticated user.
+- **Headers:**
+  - `Authorization: Bearer <JWT token>`
+- **Body:**
+  - `content`: The post text (string)
+- **Response (201 Created):**
+```json
+{
+    "status": "success",
+    "message": "Post published successfully",
+    "post_id": "urn:li:share:123456789"
+}
+```
+
+### 2. Post to LinkedIn with Image
+- **POST** `/api/social/linkedin/post-image/`
+- **Description:** Create a new LinkedIn post with an image for the authenticated user.
+- **Headers:**
+  - `Authorization: Bearer <JWT token>`
+- **Body:** (multipart/form-data)
+  - `content`: The post text (string)
+  - `image`: The image file
+- **Response (201 Created):**
+```json
+{
+    "status": "success",
+    "message": "Post with image published successfully",
+    "post_id": "urn:li:share:123456789",
+    "asset_urn": "urn:li:digitalmediaAsset:abc123"
+}
+```
+
 ---
 
 **Note:**
