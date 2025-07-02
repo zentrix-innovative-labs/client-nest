@@ -3,8 +3,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import SocialAccount, PostAnalytics
-from .serializers import SocialAccountSerializer, PostAnalyticsSerializer
+from .models import SocialAccount, PostAnalytics, Comment
+from .serializers import SocialAccountSerializer, PostAnalyticsSerializer, CommentSerializer
 from .instagram_service import InstagramService
 from rest_framework.views import APIView
 from .x_service import XService
@@ -465,3 +465,8 @@ class XAndLinkedInConnectionTestView(APIView):
 
         response_data['message'] = '; '.join(messages)
         return Response(response_data)
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all().order_by('-created_at')
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
