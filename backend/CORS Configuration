@@ -1,24 +1,21 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-app = FastAPI()
-
-# ===== CORS CONFIGURATION =====
-allowed_origins = [
-    "https://www.clientnest.xyx",
-    "https://clientnest.xyx",
-    "http://localhost:3000"
+# Add to INSTALLED_APPS
+INSTALLED_APPS = [
+    ...,
+    "corsheaders",
 ]
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],  # Or ["GET", "POST", "PUT", "DELETE"]
-    allow_headers=["*"],  # Or ["Content-Type", "Authorization"]
-)
-# =============================
+# ===== CORS CONFIGURATION =====
 
-@app.get("/api/data")
-def get_data():
-    return {"message": "Hello from FastAPI backend!"}
+MIDDLEWARE = [
+    ...,
+    "corsheaders.middleware.CorsMiddleware",  # Should be near the top
+    "django.middleware.common.CommonMiddleware",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://www.clientnest.xyz",
+    "https://clientnest.xyz",
+    "http://localhost:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
