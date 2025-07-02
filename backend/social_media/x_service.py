@@ -17,6 +17,11 @@ def redact_headers(headers):
 
 class XService:
     def __init__(self, access_token, access_token_secret):
+        print("[DEBUG] XService.__init__ values:")
+        print("  API_KEY:", X_CONFIG.get('API_KEY'))
+        print("  API_SECRET:", X_CONFIG.get('API_SECRET'))
+        print("  access_token:", access_token)
+        print("  access_token_secret:", access_token_secret)
         self.access_token = access_token
         self.access_token_secret = access_token_secret
         self.oauth = OAuth1Session(
