@@ -9,6 +9,7 @@ from .models import Post, Schedule, Comment, CommentLike
 from .serializers import PostSerializer, ScheduleSerializer, CommentSerializer, CommentUpdateSerializer, CommentLikeSerializer
 from django.db import transaction
 from rest_framework.pagination import PageNumberPagination
+from .utils import toggle_comment_like
 
 # Create your views here.
 
@@ -117,21 +118,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         """Like or unlike a comment"""
         comment = self.get_object()
         user = request.user
-        with transaction.atomic():
-            try:
-                like = CommentLike.objects.get(comment=comment, user=user)
-                like.delete()
-                action = 'unliked'
-                comment.like_count = F('like_count') - 1
-            except CommentLike.DoesNotExist:
-                CommentLike.objects.create(comment=comment, user=user)
-                action = 'liked'
-                comment.like_count = F('like_count') + 1
-            comment.save(update_fields=['like_count'])
-            comment.refresh_from_db(fields=['like_count'])
+        action, like_count = toggle_comment_like(comment, user)
         return Response({
             'action': action,
-            'like_count': comment.like_count
+            'like_count': like_count
         })
 
 class CommentLikeView(viewsets.ModelViewSet):

@@ -3,6 +3,7 @@ from .models import Post, Schedule, Comment, CommentLike
 from users.serializers import UserSerializer
 from django.db.models import F
 from django.db import transaction
+from .utils import toggle_comment_like
 
 class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -73,7 +74,7 @@ class CommentUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['content', 'media_files']
-        read_only_fields = ['author', 'post']
+        read_only_fields = ['author']
 
 class CommentLikeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -83,11 +84,12 @@ class CommentLikeSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
-        with transaction.atomic():
-            comment_like, created = CommentLike.objects.get_or_create(**validated_data)
-            if created:
-                # Atomic increment of like count
-                comment = validated_data['comment']
-                Comment.objects.filter(pk=comment.pk).update(like_count=F('like_count') + 1)
-                comment.refresh_from_db(fields=['like_count'])
-        return comment_like 
+        comment = validated_data['comment']
+        user = validated_data['user']
+        action, _ = toggle_comment_like(comment, user)
+        # Return the CommentLike instance if liked, or raise error if unliked (since unliking deletes the instance)
+        if action == 'liked':
+            return CommentLike.objects.get(comment=comment, user=user)
+        else:
+            # If unliked, return None or raise an error as appropriate for your use case
+            raise serializers.ValidationError('Comment was unliked, no like instance to return.') 
