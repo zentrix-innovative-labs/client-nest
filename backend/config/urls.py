@@ -36,6 +36,9 @@ urlpatterns = [
         # User management endpoints
         path('users/', include('users.urls')),
         
+        # Content management endpoints (posts, comments, schedules)
+        path('content/', include('content.urls')),
+        
         # Social media endpoints
         path('social/', include('social_media.urls')),
         
