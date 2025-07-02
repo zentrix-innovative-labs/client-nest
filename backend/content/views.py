@@ -8,6 +8,7 @@ from django.db.models import Q, F, Count
 from .models import Post, Schedule, Comment, CommentLike
 from .serializers import PostSerializer, ScheduleSerializer, CommentSerializer, CommentUpdateSerializer, CommentLikeSerializer
 from django.db import transaction
+from rest_framework.pagination import PageNumberPagination
 
 # Create your views here.
 
@@ -71,6 +72,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     search_fields = ['content']
     ordering_fields = ['created_at', 'like_count']
     ordering = ['created_at']
+    pagination_class = PageNumberPagination
 
     def get_queryset(self):
         # Show comments from posts the user can access (their own posts, public posts, or shared posts)

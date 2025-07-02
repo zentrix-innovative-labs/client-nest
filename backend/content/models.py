@@ -73,7 +73,7 @@ class CommentLike(models.Model):
         return f"{self.user.username} likes {self.comment.id}"
 
 class Schedule(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='schedules')
     platform = models.CharField(max_length=20)
     scheduled_time = models.DateTimeField()
     is_published = models.BooleanField(default=False)

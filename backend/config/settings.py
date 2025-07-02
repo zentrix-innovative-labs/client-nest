@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-import sys
 
 # Load environment variables from .env file
 load_dotenv()
@@ -57,9 +56,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -215,3 +215,12 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@client-nest.l
 FACEBOOK_REDIRECT_URI = 'http://localhost:8000/api/social/facebook/callback/'
 FACEBOOK_APP_ID = '632402719860654'
 FACEBOOK_APP_SECRET = 'f378887238aa323e9b927db924ac9221'
+
+# ===== CORS CONFIGURATION =====
+CORS_ALLOWED_ORIGINS = [
+    "https://www.clientnest.xyz",
+    "https://clientnest.xyz",
+    "http://localhost:3000",
+]
+CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
+# =============================
