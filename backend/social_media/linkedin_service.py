@@ -15,7 +15,11 @@ class LinkedInService:
         if response.status_code == 200:
             return response.json()
         else:
-            raise Exception('Failed to fetch LinkedIn account info')
+            try:
+                error_details = response.json()
+            except Exception:
+                error_details = response.text
+            raise Exception(f'Failed to fetch LinkedIn account info: {error_details}')
 
     def post_content(self, content):
         url = f"{LINKEDIN_API_BASE_URL}ugcPosts"
