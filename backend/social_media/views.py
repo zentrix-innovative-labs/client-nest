@@ -189,69 +189,18 @@ class XPostTestView(APIView):
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-class FacebookConnectionTestView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [JWTAuthentication]
-
-    def get(self, request):
-        """Test Facebook connection and return account info"""
-        try:
-            # Get the user's Facebook account
-            fb_account = SocialAccount.objects.filter(
-                user=request.user,
-                platform='facebook',
-                is_active=True
-            ).first()
-
-            if not fb_account:
-                return Response({
-                    'status': 'error',
-                    'message': 'No active Facebook account found'
-                }, status=status.HTTP_404_NOT_FOUND)
-
-            # Initialize Facebook service
-            fb_service = FacebookService(fb_account.access_token)
-            account_info = fb_service.get_account_info()
-
-            return Response({
-                'status': 'success',
-                'message': 'Facebook account is connected',
-                'account_info': account_info
-            })
-        except Exception as e:
-            return Response({
-                'status': 'error',
-                'message': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-class FacebookPostView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        content = request.data.get('content')
-        if not content:
-            return Response({'error': 'No content provided'}, status=400)
-
-        fb_account = SocialAccount.objects.filter(
-            user=request.user,
-            platform='facebook',
-            is_active=True
-        ).first()
-
-        if not fb_account:
-            return Response({'error': 'No active Facebook account found'}, status=404)
-
-        access_token = fb_account.access_token
-        url = "https://graph.facebook.com/me/feed"
-        data = {
-            'message': content,
-            'access_token': access_token
-        }
-        response = requests.post(url, data=data)
-        if response.status_code == 200:
-            return Response({'status': 'success', 'response': response.json()})
-        else:
-            return Response({'status': 'error', 'response': response.json()}, status=response.status_code)
+def get_linkedin_account(request):
+    linkedin_account = SocialAccount.objects.filter(
+        user=request.user,
+        platform='linkedin',
+        is_active=True
+    ).first()
+    if not linkedin_account:
+        return Response({
+            'status': 'error',
+            'message': 'No active LinkedIn account found'
+        }, status=status.HTTP_404_NOT_FOUND)
+    return linkedin_account
 
 class LinkedInConnectionTestView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -259,16 +208,9 @@ class LinkedInConnectionTestView(APIView):
 
     def get(self, request):
         try:
-            linkedin_account = SocialAccount.objects.filter(
-                user=request.user,
-                platform='linkedin',
-                is_active=True
-            ).first()
-            if not linkedin_account:
-                return Response({
-                    'status': 'error',
-                    'message': 'No active LinkedIn account found'
-                }, status=status.HTTP_404_NOT_FOUND)
+            linkedin_account = get_linkedin_account(request)
+            if isinstance(linkedin_account, Response):
+                return linkedin_account
             linkedin_service = LinkedInService(linkedin_account)
             account_info = linkedin_service.get_account_info()
             return Response({
@@ -288,16 +230,9 @@ class LinkedInPostView(APIView):
 
     def post(self, request):
         try:
-            linkedin_account = SocialAccount.objects.filter(
-                user=request.user,
-                platform='linkedin',
-                is_active=True
-            ).first()
-            if not linkedin_account:
-                return Response({
-                    'status': 'error',
-                    'message': 'No active LinkedIn account found'
-                }, status=status.HTTP_404_NOT_FOUND)
+            linkedin_account = get_linkedin_account(request)
+            if isinstance(linkedin_account, Response):
+                return linkedin_account
             content = request.data.get('content')
             if not content:
                 return Response({
@@ -323,16 +258,9 @@ class LinkedInUserInfoView(APIView):
 
     def get(self, request):
         try:
-            linkedin_account = SocialAccount.objects.filter(
-                user=request.user,
-                platform='linkedin',
-                is_active=True
-            ).first()
-            if not linkedin_account:
-                return Response({
-                    'status': 'error',
-                    'message': 'No active LinkedIn account found'
-                }, status=status.HTTP_404_NOT_FOUND)
+            linkedin_account = get_linkedin_account(request)
+            if isinstance(linkedin_account, Response):
+                return linkedin_account
             linkedin_service = LinkedInService(linkedin_account)
             userinfo = linkedin_service.get_userinfo()
             return Response({
@@ -351,16 +279,9 @@ class LinkedInImagePostView(APIView):
 
     def post(self, request):
         try:
-            linkedin_account = SocialAccount.objects.filter(
-                user=request.user,
-                platform='linkedin',
-                is_active=True
-            ).first()
-            if not linkedin_account:
-                return Response({
-                    'status': 'error',
-                    'message': 'No active LinkedIn account found'
-                }, status=status.HTTP_404_NOT_FOUND)
+            linkedin_account = get_linkedin_account(request)
+            if isinstance(linkedin_account, Response):
+                return linkedin_account
             content = request.data.get('content')
             image = request.FILES.get('image')
             if not content or not image:

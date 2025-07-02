@@ -46,7 +46,7 @@ class LinkedInService:
             raise Exception('Failed to post content to LinkedIn')
 
     def get_userinfo(self):
-        url = 'https://api.linkedin.com/v2/userinfo'
+        url = f"{LINKEDIN_API_BASE_URL}userinfo"
         headers = {
             'Authorization': f'Bearer {self.access_token}'
         }
