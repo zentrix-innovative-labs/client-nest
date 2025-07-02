@@ -12,8 +12,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from .facebook_service import FacebookService
 from .linkedin_service import LinkedInService
 import requests
+import logging
+from requests.exceptions import RequestException
 
 # Create your views here.
+
+logger = logging.getLogger(__name__)
 
 class SocialAccountViewSet(viewsets.ModelViewSet):
     serializer_class = SocialAccountSerializer
@@ -132,10 +136,18 @@ class XConnectionTestView(APIView):
                 'account_info': account_info
             })
             
-        except Exception as e:
+        except RequestException as e:
+            logger.error(f"X API error: {e}")
             return Response({
                 'status': 'error',
-                'message': str(e)
+                'message': 'Failed to connect to X API',
+                'details': str(e)
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.exception("Unexpected error in XConnectionTestView")
+            return Response({
+                'status': 'error',
+                'message': 'An unexpected error occurred'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class XPostTestView(APIView):
@@ -183,10 +195,18 @@ class XPostTestView(APIView):
                 'created_at': result.get('created_at')
             })
             
-        except Exception as e:
+        except RequestException as e:
+            logger.error(f"X API error: {e}")
             return Response({
                 'status': 'error',
-                'message': str(e)
+                'message': 'Failed to connect to X API',
+                'details': str(e)
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.exception("Unexpected error in XPostTestView")
+            return Response({
+                'status': 'error',
+                'message': 'An unexpected error occurred'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 def get_linkedin_account(request):
@@ -218,10 +238,18 @@ class LinkedInConnectionTestView(APIView):
                 'message': 'LinkedIn account is connected',
                 'account_info': account_info
             })
-        except Exception as e:
+        except RequestException as e:
+            logger.error(f"LinkedIn API error: {e}")
             return Response({
                 'status': 'error',
-                'message': str(e)
+                'message': 'Failed to connect to LinkedIn API',
+                'details': str(e)
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.exception("Unexpected error in LinkedInConnectionTestView")
+            return Response({
+                'status': 'error',
+                'message': 'An unexpected error occurred'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class LinkedInPostView(APIView):
@@ -246,10 +274,18 @@ class LinkedInPostView(APIView):
                 'message': 'Post published successfully',
                 'post_id': result.get('id')
             }, status=status.HTTP_201_CREATED)
-        except Exception as e:
+        except RequestException as e:
+            logger.error(f"LinkedIn API error: {e}")
             return Response({
                 'status': 'error',
-                'message': str(e)
+                'message': 'Failed to connect to LinkedIn API',
+                'details': str(e)
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.exception("Unexpected error in LinkedInPostView")
+            return Response({
+                'status': 'error',
+                'message': 'An unexpected error occurred'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class LinkedInUserInfoView(APIView):
@@ -267,10 +303,18 @@ class LinkedInUserInfoView(APIView):
                 'status': 'success',
                 'userinfo': userinfo
             })
-        except Exception as e:
+        except RequestException as e:
+            logger.error(f"LinkedIn API error: {e}")
             return Response({
                 'status': 'error',
-                'message': str(e)
+                'message': 'Failed to connect to LinkedIn API',
+                'details': str(e)
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.exception("Unexpected error in LinkedInUserInfoView")
+            return Response({
+                'status': 'error',
+                'message': 'An unexpected error occurred'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class LinkedInImagePostView(APIView):
@@ -305,8 +349,58 @@ class LinkedInImagePostView(APIView):
                 'post_id': result.get('id'),
                 'asset_urn': asset_urn
             }, status=status.HTTP_201_CREATED)
-        except Exception as e:
+        except RequestException as e:
+            logger.error(f"LinkedIn API error: {e}")
             return Response({
                 'status': 'error',
-                'message': str(e)
+                'message': 'Failed to connect to LinkedIn API',
+                'details': str(e)
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.exception("Unexpected error in LinkedInImagePostView")
+            return Response({
+                'status': 'error',
+                'message': 'An unexpected error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class FacebookConnectionTestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request):
+        """Test Facebook connection and return account info"""
+        try:
+            fb_account = SocialAccount.objects.filter(
+                user=request.user,
+                platform='facebook',
+                is_active=True
+            ).first()
+
+            if not fb_account:
+                return Response({
+                    'status': 'error',
+                    'message': 'No active Facebook account found'
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            fb_service = FacebookService(fb_account.access_token)
+            account_info = fb_service.get_account_info()
+
+            return Response({
+                'status': 'success',
+                'message': 'Facebook account is connected',
+                'account_info': account_info
+            })
+
+        except RequestException as e:
+            logger.error(f"Facebook API error: {e}")
+            return Response({
+                'status': 'error',
+                'message': 'Failed to connect to Facebook API',
+                'details': str(e)
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.exception("Unexpected error in FacebookConnectionTestView")
+            return Response({
+                'status': 'error',
+                'message': 'An unexpected error occurred'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

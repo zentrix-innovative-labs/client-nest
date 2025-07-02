@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SocialAccountViewSet, PostAnalyticsViewSet, XConnectionTestView, XPostTestView, FacebookConnectionTestView, FacebookPostView, LinkedInConnectionTestView, LinkedInPostView, LinkedInUserInfoView, LinkedInImagePostView
+from .views import SocialAccountViewSet, PostAnalyticsViewSet, XConnectionTestView, XPostTestView, LinkedInConnectionTestView, LinkedInPostView, LinkedInUserInfoView, LinkedInImagePostView, FacebookConnectionTestView
 from .instagram_auth import InstagramAuthView, InstagramCallbackView
 from .x_auth import XAuthView, XCallbackView
 from .facebook_auth import FacebookAuthView, FacebookCallbackView
@@ -21,7 +21,6 @@ urlpatterns = [
     path('facebook/auth/', FacebookAuthView.as_view(), name='facebook_auth'),
     path('facebook/callback/', FacebookCallbackView.as_view(), name='facebook_callback'),
     path('facebook/test-connection/', FacebookConnectionTestView.as_view(), name='facebook_test_connection'),
-    path('facebook/post/', FacebookPostView.as_view(), name='facebook_post'),
     path('linkedin/auth/', LinkedInAuthView.as_view(), name='linkedin_auth'),
     path('linkedin/callback/', LinkedInCallbackView.as_view(), name='linkedin_callback'),
     path('linkedin/test-connection/', LinkedInConnectionTestView.as_view(), name='linkedin_test_connection'),

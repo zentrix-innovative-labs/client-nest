@@ -1,3 +1,5 @@
+import os
+print("LINKEDIN_CLIENT_ID:", os.environ.get("LINKEDIN_CLIENT_ID"))
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -48,17 +50,28 @@ class LinkedInCallbackView(APIView):
         response = requests.post(token_url, data=data, headers={'Content-Type': 'application/x-www-form-urlencoded'})
         if response.status_code == 200:
             token_data = response.json()
-            # Save the access token to the user's SocialAccount
+            access_token = token_data.get('access_token')
+            # Fetch LinkedIn user ID using the access token
+            profile_url = 'https://api.linkedin.com/v2/me'
+            headers = {'Authorization': f'Bearer {access_token}'}
+            profile_response = requests.get(profile_url, headers=headers)
+            if profile_response.status_code != 200:
+                return Response({'error': 'Failed to fetch LinkedIn user profile', 'details': profile_response.json()}, status=profile_response.status_code)
+            profile_data = profile_response.json()
+            linkedin_id = profile_data.get('id')
+            if not linkedin_id:
+                return Response({'error': 'LinkedIn user ID not found in profile data', 'details': profile_data}, status=400)
+            # Save the access token and LinkedIn user ID to the user's SocialAccount
             if not request.user or not request.user.is_authenticated:
                 return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
             social_account, created = SocialAccount.objects.get_or_create(
                 user=request.user,
                 platform='linkedin',
-                account_id=''  # You may want to fetch and set the LinkedIn account ID here
+                account_id=linkedin_id
             )
-            social_account.access_token = token_data.get('access_token')
+            social_account.access_token = access_token
             # Optionally handle expires_in and token_expires_at
             social_account.save()
-            return Response({'status': 'success', 'token_data': token_data})
+            return Response({'status': 'success', 'token_data': token_data, 'linkedin_id': linkedin_id})
         else:
             return Response({'error': 'Failed to obtain access token', 'details': response.json()}, status=response.status_code) 
