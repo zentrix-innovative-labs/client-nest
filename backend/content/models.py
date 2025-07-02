@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 import uuid
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -53,7 +54,6 @@ class Comment(models.Model):
                 old_comment = Comment.objects.get(pk=self.pk)
                 if self.content != old_comment.content:
                     self.is_edited = True
-                    from django.utils import timezone
                     self.edited_at = timezone.now()
             except Comment.DoesNotExist:
                 # This is a new comment, no need to check for changes

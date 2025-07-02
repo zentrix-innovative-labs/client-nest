@@ -10,6 +10,7 @@ from .serializers import PostSerializer, ScheduleSerializer, CommentSerializer, 
 from django.db import transaction
 from rest_framework.pagination import PageNumberPagination
 from .utils import toggle_comment_like
+from django.db import models
 
 # Create your views here.
 
@@ -77,9 +78,17 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # Show comments from posts the user can access (their own posts, public posts, or shared posts)
-        return Comment.objects.filter(
+        qs = Comment.objects.filter(
             Q(post__user=self.request.user) | Q(post__status='published')
         ).select_related('author', 'post', 'parent_comment').prefetch_related('replies')
+        user = self.request.user
+        if user.is_authenticated:
+            qs = qs.annotate(
+                is_liked_by_user=models.Exists(
+                    CommentLike.objects.filter(comment=models.OuterRef('pk'), user=user)
+                )
+            )
+        return qs
 
     def get_serializer_class(self):
         if self.action in ['update', 'partial_update']:
@@ -124,7 +133,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             'like_count': like_count
         })
 
-class CommentLikeView(viewsets.ModelViewSet):
+class CommentLikeViewSet(viewsets.ModelViewSet):
     serializer_class = CommentLikeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -133,6 +142,16 @@ class CommentLikeView(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        # If unliked, return 204 No Content
+        if getattr(serializer, '_unliked', False):
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def perform_destroy(self, instance):
         # Get the comment before deleting the like

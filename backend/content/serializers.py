@@ -26,6 +26,10 @@ class PostSerializer(serializers.ModelSerializer):
 
 class IsLikedByUserMixin:
     def get_is_liked_by_user(self, obj):
+        # Prefer the annotated flag if present
+        value = getattr(obj, 'is_liked_by_user', None)
+        if value is not None:
+            return value
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return obj.likes.filter(user=request.user).exists()
@@ -87,9 +91,10 @@ class CommentLikeSerializer(serializers.ModelSerializer):
         comment = validated_data['comment']
         user = validated_data['user']
         action, _ = toggle_comment_like(comment, user)
-        # Return the CommentLike instance if liked, or raise error if unliked (since unliking deletes the instance)
+        # Return the CommentLike instance if liked, or a structured response if unliked
         if action == 'liked':
             return CommentLike.objects.get(comment=comment, user=user)
         else:
-            # If unliked, return None or raise an error as appropriate for your use case
-            raise serializers.ValidationError('Comment was unliked, no like instance to return.') 
+            # If unliked, return None or a structured response
+            self._unliked = True  # Set a flag for the view to handle 204/response
+            return None 

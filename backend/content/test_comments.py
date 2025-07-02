@@ -102,4 +102,62 @@ class CommentAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         # Try to delete
         response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN) 
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_filter_comments_by_post(self):
+        post2 = Post.objects.create(user=self.user, content='Another post')
+        c1 = Comment.objects.create(post=self.post, author=self.user, content='Comment on post1')
+        c2 = Comment.objects.create(post=post2, author=self.user, content='Comment on post2')
+        url = reverse('comment-list')
+        response = self.client.get(url, {'post': str(self.post.id)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['content'], 'Comment on post1')
+
+    def test_filter_comments_by_author(self):
+        c1 = Comment.objects.create(post=self.post, author=self.user, content='Mine')
+        c2 = Comment.objects.create(post=self.post, author=self.user2, content='Not mine')
+        url = reverse('comment-list')
+        response = self.client.get(url, {'author': str(self.user.id)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['content'], 'Mine')
+
+    def test_filter_comments_by_parent_comment(self):
+        parent = Comment.objects.create(post=self.post, author=self.user, content='Parent')
+        reply = Comment.objects.create(post=self.post, author=self.user, content='Reply', parent_comment=parent)
+        url = reverse('comment-list')
+        response = self.client.get(url, {'parent_comment': str(parent.id)})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['content'], 'Reply')
+
+    def test_search_comments_by_content(self):
+        Comment.objects.create(post=self.post, author=self.user, content='FindMe')
+        Comment.objects.create(post=self.post, author=self.user, content='Other comment')
+        url = reverse('comment-list')
+        response = self.client.get(url, {'search': 'FindMe'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['content'], 'FindMe')
+
+    def test_order_comments_by_like_count(self):
+        c1 = Comment.objects.create(post=self.post, author=self.user, content='First')
+        c2 = Comment.objects.create(post=self.post, author=self.user, content='Second')
+        # Like c2 twice
+        CommentLike.objects.create(comment=c2, user=self.user)
+        CommentLike.objects.create(comment=c2, user=self.user2)
+        url = reverse('comment-list')
+        response = self.client.get(url, {'ordering': '-like_count'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data['results']), 2)
+        self.assertEqual(response.data['results'][0]['content'], 'Second')
+
+    def test_order_comments_by_created_at(self):
+        c1 = Comment.objects.create(post=self.post, author=self.user, content='Oldest')
+        c2 = Comment.objects.create(post=self.post, author=self.user, content='Newest')
+        url = reverse('comment-list')
+        response = self.client.get(url, {'ordering': '-created_at'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data['results']), 2)
+        self.assertEqual(response.data['results'][0]['content'], 'Newest') 
