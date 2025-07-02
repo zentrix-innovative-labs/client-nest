@@ -15,10 +15,31 @@ import requests
 import logging
 from requests.exceptions import RequestException
 from rest_framework.exceptions import NotFound
+from functools import wraps
 
 # Create your views here.
 
 logger = logging.getLogger(__name__)
+
+def handle_api_errors(view_func):
+    @wraps(view_func)
+    def _wrapped_view(self, request, *args, **kwargs):
+        try:
+            return view_func(self, request, *args, **kwargs)
+        except RequestException as e:
+            logger.error(f"API error: {e}")
+            return Response({
+                'status': 'error',
+                'message': 'Failed to connect to external API',
+                'details': str(e)
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.exception(f"Unexpected error in {self.__class__.__name__}")
+            return Response({
+                'status': 'error',
+                'message': 'An unexpected error occurred'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    return _wrapped_view
 
 class SocialAccountViewSet(viewsets.ModelViewSet):
     serializer_class = SocialAccountSerializer
@@ -106,109 +127,81 @@ class XConnectionTestView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     
+    @handle_api_errors
     def get(self, request):
         """Test X connection and return account info"""
-        try:
-            # Get the user's X account
-            x_account = SocialAccount.objects.filter(
-                user=request.user,
-                platform='x',
-                is_active=True
-            ).first()
-            
-            if not x_account:
-                return Response({
-                    'status': 'error',
-                    'message': 'No active X account found'
-                }, status=status.HTTP_404_NOT_FOUND)
-            
-            # Initialize X service with both tokens
-            x_service = XService(
-                access_token=x_account.access_token,
-                access_token_secret=x_account.access_token_secret
-            )
-            
-            # Get account info
-            account_info = x_service.get_account_info()
-            
-            return Response({
-                'status': 'success',
-                'message': 'X account is connected',
-                'account_info': account_info
-            })
-            
-        except RequestException as e:
-            logger.error(f"X API error: {e}")
+        # Get the user's X account
+        x_account = SocialAccount.objects.filter(
+            user=request.user,
+            platform='x',
+            is_active=True
+        ).first()
+        
+        if not x_account:
             return Response({
                 'status': 'error',
-                'message': 'Failed to connect to X API',
-                'details': str(e)
-            }, status=status.HTTP_502_BAD_GATEWAY)
-        except Exception as e:
-            logger.exception("Unexpected error in XConnectionTestView")
-            return Response({
-                'status': 'error',
-                'message': 'An unexpected error occurred'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                'message': 'No active X account found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Initialize X service with both tokens
+        x_service = XService(
+            access_token=x_account.access_token,
+            access_token_secret=x_account.access_token_secret
+        )
+        
+        # Get account info
+        account_info = x_service.get_account_info()
+        
+        return Response({
+            'status': 'success',
+            'message': 'X account is connected',
+            'account_info': account_info
+        })
 
 class XPostTestView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     
+    @handle_api_errors
     def post(self, request):
         """Test posting to X"""
-        try:
-            # Get the user's X account
-            x_account = SocialAccount.objects.filter(
-                user=request.user,
-                platform='x',
-                is_active=True
-            ).first()
-            
-            if not x_account:
-                return Response({
-                    'status': 'error',
-                    'message': 'No active X account found'
-                }, status=status.HTTP_404_NOT_FOUND)
-            
-            # Get the content from the request
-            content = request.data.get('content')
-            if not content:
-                return Response({
-                    'status': 'error',
-                    'message': 'No content provided'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Initialize X service with both tokens
-            x_service = XService(
-                access_token=x_account.access_token,
-                access_token_secret=x_account.access_token_secret
-            )
-            
-            # Post the content
-            result = x_service.post_content(content)
-            
-            return Response({
-                'status': 'success',
-                'message': 'Tweet posted successfully',
-                'tweet_id': result.get('id'),
-                'text': result.get('text'),
-                'created_at': result.get('created_at')
-            })
-            
-        except RequestException as e:
-            logger.error(f"X API error: {e}")
+        # Get the user's X account
+        x_account = SocialAccount.objects.filter(
+            user=request.user,
+            platform='x',
+            is_active=True
+        ).first()
+        
+        if not x_account:
             return Response({
                 'status': 'error',
-                'message': 'Failed to connect to X API',
-                'details': str(e)
-            }, status=status.HTTP_502_BAD_GATEWAY)
-        except Exception as e:
-            logger.exception("Unexpected error in XPostTestView")
+                'message': 'No active X account found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        
+        # Get the content from the request
+        content = request.data.get('content')
+        if not content:
             return Response({
                 'status': 'error',
-                'message': 'An unexpected error occurred'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                'message': 'No content provided'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Initialize X service with both tokens
+        x_service = XService(
+            access_token=x_account.access_token,
+            access_token_secret=x_account.access_token_secret
+        )
+        
+        # Post the content
+        result = x_service.post_content(content)
+        
+        return Response({
+            'status': 'success',
+            'message': 'Tweet posted successfully',
+            'tweet_id': result.get('id'),
+            'text': result.get('text'),
+            'created_at': result.get('created_at')
+        })
 
 def get_linkedin_account(request):
     linkedin_account = SocialAccount.objects.filter(
@@ -224,6 +217,7 @@ class LinkedInConnectionTestView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    @handle_api_errors
     def get(self, request):
         try:
             linkedin_account = get_linkedin_account(request)
@@ -252,6 +246,7 @@ class LinkedInPostView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    @handle_api_errors
     def post(self, request):
         try:
             linkedin_account = get_linkedin_account(request)
@@ -286,6 +281,7 @@ class LinkedInUserInfoView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    @handle_api_errors
     def get(self, request):
         try:
             linkedin_account = get_linkedin_account(request)
@@ -313,6 +309,7 @@ class LinkedInImagePostView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    @handle_api_errors
     def post(self, request):
         try:
             linkedin_account = get_linkedin_account(request)
@@ -357,6 +354,7 @@ class FacebookConnectionTestView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
+    @handle_api_errors
     def get(self, request):
         """Test Facebook connection and return account info"""
         try:
