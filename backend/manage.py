@@ -3,7 +3,7 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-# Removed the sys.path.append line. Ensure the PYTHONPATH environment variable is configured correctly.
+# The sys.path modification above ensures the script can locate the necessary modules. PYTHONPATH configuration is not required here.
 
 
 def main():
