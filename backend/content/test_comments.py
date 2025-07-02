@@ -165,7 +165,7 @@ class CommentAPITests(APITestCase):
     def test_list_comment_likes(self):
         comment = Comment.objects.create(post=self.post, author=self.user, content='Likeable')
         CommentLike.objects.create(comment=comment, user=self.user)
-        url = reverse('commentlike-list')
+        url = reverse('comment-like-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 1)
