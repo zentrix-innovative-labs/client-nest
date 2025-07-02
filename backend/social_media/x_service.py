@@ -17,12 +17,7 @@ def redact_headers(headers):
 
 class XService:
     def __init__(self, access_token, access_token_secret):
-        # Remove direct prints of sensitive info
-        # print("[DEBUG] XService.__init__ values:")
-        # print("  API_KEY:", X_CONFIG.get('API_KEY'))
-        # print("  API_SECRET:", X_CONFIG.get('API_SECRET'))
-        # print("  access_token:", access_token)
-        # print("  access_token_secret:", access_token_secret)
+        # Removed commented-out print statements for sensitive debug output
         logger.debug("[DEBUG] XService.__init__ values:")
         logger.debug("  API_KEY: %s", "<REDACTED>")
         logger.debug("  API_SECRET: %s", "<REDACTED>")
