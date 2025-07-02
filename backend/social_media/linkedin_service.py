@@ -46,13 +46,22 @@ class LinkedInService:
             raise Exception('Failed to post content to LinkedIn')
 
     def get_userinfo(self):
-        url = f"{LINKEDIN_API_BASE_URL}userinfo"
+        url = f"{LINKEDIN_API_BASE_URL}me?projection=(id,firstName,lastName)"
         headers = {
             'Authorization': f'Bearer {self.access_token}'
         }
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            return response.json()
+            userinfo = response.json()
+            # Fetch email address as a separate call
+            email_url = f"{LINKEDIN_API_BASE_URL}emailAddress?q=members&projection=(elements*(handle~))"
+            email_response = requests.get(email_url, headers=headers)
+            if email_response.status_code == 200:
+                email_data = email_response.json()
+                elements = email_data.get('elements', [])
+                if elements and 'handle~' in elements[0]:
+                    userinfo['emailAddress'] = elements[0]['handle~'].get('emailAddress')
+            return userinfo
         else:
             raise Exception('Failed to fetch LinkedIn user info')
 

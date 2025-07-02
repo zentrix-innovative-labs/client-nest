@@ -14,6 +14,7 @@ from .linkedin_service import LinkedInService
 import requests
 import logging
 from requests.exceptions import RequestException
+from rest_framework.exceptions import NotFound
 
 # Create your views here.
 
@@ -216,10 +217,7 @@ def get_linkedin_account(request):
         is_active=True
     ).first()
     if not linkedin_account:
-        return Response({
-            'status': 'error',
-            'message': 'No active LinkedIn account found'
-        }, status=status.HTTP_404_NOT_FOUND)
+        raise NotFound({'status': 'error', 'message': 'No active LinkedIn account found'})
     return linkedin_account
 
 class LinkedInConnectionTestView(APIView):
@@ -229,8 +227,6 @@ class LinkedInConnectionTestView(APIView):
     def get(self, request):
         try:
             linkedin_account = get_linkedin_account(request)
-            if isinstance(linkedin_account, Response):
-                return linkedin_account
             linkedin_service = LinkedInService(linkedin_account)
             account_info = linkedin_service.get_account_info()
             return Response({
@@ -259,8 +255,6 @@ class LinkedInPostView(APIView):
     def post(self, request):
         try:
             linkedin_account = get_linkedin_account(request)
-            if isinstance(linkedin_account, Response):
-                return linkedin_account
             content = request.data.get('content')
             if not content:
                 return Response({
@@ -295,8 +289,6 @@ class LinkedInUserInfoView(APIView):
     def get(self, request):
         try:
             linkedin_account = get_linkedin_account(request)
-            if isinstance(linkedin_account, Response):
-                return linkedin_account
             linkedin_service = LinkedInService(linkedin_account)
             userinfo = linkedin_service.get_userinfo()
             return Response({
@@ -324,8 +316,6 @@ class LinkedInImagePostView(APIView):
     def post(self, request):
         try:
             linkedin_account = get_linkedin_account(request)
-            if isinstance(linkedin_account, Response):
-                return linkedin_account
             content = request.data.get('content')
             image = request.FILES.get('image')
             if not content or not image:
