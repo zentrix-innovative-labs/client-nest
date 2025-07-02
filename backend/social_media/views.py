@@ -311,44 +311,30 @@ class LinkedInImagePostView(APIView):
 
     @handle_api_errors
     def post(self, request):
-        try:
-            linkedin_account = get_linkedin_account(request)
-            content = request.data.get('content')
-            image = request.FILES.get('image')
-            if not content or not image:
-                return Response({
-                    'status': 'error',
-                    'message': 'Content and image are required'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            linkedin_service = LinkedInService(linkedin_account)
-            # Step 1: Register image upload
-            upload_resp = linkedin_service.register_image_upload()
-            upload_url = upload_resp['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl']
-            asset_urn = upload_resp['value']['asset']
-            # Step 2: Upload the image
-            image_data = image.read()
-            linkedin_service.upload_image(upload_url, image_data)
-            # Step 3: Post content with image
-            result = linkedin_service.post_content_with_image(content, asset_urn)
-            return Response({
-                'status': 'success',
-                'message': 'Post with image published successfully',
-                'post_id': result.get('id'),
-                'asset_urn': asset_urn
-            }, status=status.HTTP_201_CREATED)
-        except RequestException as e:
-            logger.error(f"LinkedIn API error: {e}")
+        linkedin_account = get_linkedin_account(request)
+        content = request.data.get('content')
+        image = request.FILES.get('image')
+        if not content or not image:
             return Response({
                 'status': 'error',
-                'message': 'Failed to connect to LinkedIn API',
-                'details': str(e)
-            }, status=status.HTTP_502_BAD_GATEWAY)
-        except Exception as e:
-            logger.exception("Unexpected error in LinkedInImagePostView")
-            return Response({
-                'status': 'error',
-                'message': 'An unexpected error occurred'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                'message': 'Content and image are required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        linkedin_service = LinkedInService(linkedin_account)
+        # Step 1: Register image upload
+        upload_resp = linkedin_service.register_image_upload()
+        upload_url = upload_resp['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl']
+        asset_urn = upload_resp['value']['asset']
+        # Step 2: Upload the image using a file object
+        with image.open('rb') as image_file:
+            linkedin_service.upload_image(upload_url, image_file)
+        # Step 3: Post content with image
+        result = linkedin_service.post_content_with_image(content, asset_urn)
+        return Response({
+            'status': 'success',
+            'message': 'Post with image published successfully',
+            'post_id': result.get('id'),
+            'asset_urn': asset_urn
+        }, status=status.HTTP_201_CREATED)
 
 class FacebookConnectionTestView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -392,3 +378,41 @@ class FacebookConnectionTestView(APIView):
                 'status': 'error',
                 'message': 'An unexpected error occurred'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SocialAccountsStatusView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @handle_api_errors
+    def get(self, request):
+        result = {}
+        # X account
+        x_account = SocialAccount.objects.filter(
+            user=request.user,
+            platform='x',
+            is_active=True
+        ).first()
+        if x_account:
+            x_service = XService(
+                access_token=x_account.access_token,
+                access_token_secret=x_account.access_token_secret
+            )
+            result['x_account'] = {
+                'status': 'connected',
+                'account_info': x_service.get_account_info()
+            }
+        else:
+            result['x_account'] = {'status': 'not connected'}
+
+        # LinkedIn account
+        try:
+            linkedin_account = get_linkedin_account(request)
+            linkedin_service = LinkedInService(linkedin_account)
+            result['linkedin_account'] = {
+                'status': 'connected',
+                'account_info': linkedin_service.get_account_info()
+            }
+        except NotFound:
+            result['linkedin_account'] = {'status': 'not connected'}
+
+        return Response(result)
