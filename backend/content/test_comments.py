@@ -160,4 +160,32 @@ class CommentAPITests(APITestCase):
         response = self.client.get(url, {'ordering': '-created_at'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data['results']), 2)
-        self.assertEqual(response.data['results'][0]['content'], 'Newest') 
+        self.assertEqual(response.data['results'][0]['content'], 'Newest')
+
+    def test_list_comment_likes(self):
+        comment = Comment.objects.create(post=self.post, author=self.user, content='Likeable')
+        CommentLike.objects.create(comment=comment, user=self.user)
+        url = reverse('commentlike-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['comment'], comment.id)
+        self.assertEqual(response.data['results'][0]['user'], self.user.id)
+
+    def test_create_comment_like(self):
+        comment = Comment.objects.create(post=self.post, author=self.user2, content='Like me')
+        url = reverse('commentlike-list')
+        data = {'comment': comment.id}
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(CommentLike.objects.count(), 1)
+        self.assertEqual(CommentLike.objects.first().comment, comment)
+        self.assertEqual(CommentLike.objects.first().user, self.user)
+
+    def test_delete_comment_like(self):
+        comment = Comment.objects.create(post=self.post, author=self.user2, content='Like me')
+        like = CommentLike.objects.create(comment=comment, user=self.user)
+        url = reverse('commentlike-detail', args=[like.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(CommentLike.objects.count(), 0) 
