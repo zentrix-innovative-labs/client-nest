@@ -8,6 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, F, Count
 from .models import Post, Schedule, Comment, CommentLike
 from .serializers import PostSerializer, ScheduleSerializer, CommentSerializer, CommentUpdateSerializer, CommentLikeSerializer
+from django.db import transaction
 
 # Create your views here.
 
@@ -115,18 +116,18 @@ class CommentViewSet(viewsets.ModelViewSet):
         """Like or unlike a comment"""
         comment = self.get_object()
         user = request.user
-        
-        try:
-            like = CommentLike.objects.get(comment=comment, user=user)
-            like.delete()
-            action = 'unliked'
-            comment.like_count = F('like_count') - 1
-        except CommentLike.DoesNotExist:
-            CommentLike.objects.create(comment=comment, user=user)
-            action = 'liked'
-            comment.like_count = F('like_count') + 1
-        comment.save(update_fields=['like_count'])
-        comment.refresh_from_db(fields=['like_count'])
+        with transaction.atomic():
+            try:
+                like = CommentLike.objects.get(comment=comment, user=user)
+                like.delete()
+                action = 'unliked'
+                comment.like_count = F('like_count') - 1
+            except CommentLike.DoesNotExist:
+                CommentLike.objects.create(comment=comment, user=user)
+                action = 'liked'
+                comment.like_count = F('like_count') + 1
+            comment.save(update_fields=['like_count'])
+            comment.refresh_from_db(fields=['like_count'])
         return Response({
             'action': action,
             'like_count': comment.like_count
@@ -145,12 +146,13 @@ class CommentLikeView(viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         # Get the comment before deleting the like
         comment = instance.comment
-        # Delete the like
-        instance.delete()
-        # Atomically decrement the comment's like count
-        comment.like_count = F('like_count') - 1
-        comment.save(update_fields=['like_count'])
-        comment.refresh_from_db(fields=['like_count'])
+        with transaction.atomic():
+            # Delete the like
+            instance.delete()
+            # Atomically decrement the comment's like count
+            comment.like_count = F('like_count') - 1
+            comment.save(update_fields=['like_count'])
+            comment.refresh_from_db(fields=['like_count'])
 
 class ScheduleViewSet(viewsets.ModelViewSet):
     serializer_class = ScheduleSerializer
