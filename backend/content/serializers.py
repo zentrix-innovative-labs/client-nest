@@ -23,7 +23,14 @@ class PostSerializer(serializers.ModelSerializer):
     def get_comment_count(self, obj):
         return getattr(obj, 'comment_count', 0)
 
-class CommentReplySerializer(serializers.ModelSerializer):
+class IsLikedByUserMixin:
+    def get_is_liked_by_user(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(user=request.user).exists()
+        return False
+
+class CommentReplySerializer(IsLikedByUserMixin, serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     is_liked_by_user = serializers.SerializerMethodField()
 
@@ -35,13 +42,7 @@ class CommentReplySerializer(serializers.ModelSerializer):
         read_only_fields = ['author', 'like_count', 'is_edited', 'edited_at', 
                            'created_at', 'updated_at']
 
-    def get_is_liked_by_user(self, obj):
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return obj.likes.filter(user=request.user).exists()
-        return False
-
-class CommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(IsLikedByUserMixin, serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     replies = serializers.SerializerMethodField()
     is_liked_by_user = serializers.SerializerMethodField()
@@ -63,12 +64,6 @@ class CommentSerializer(serializers.ModelSerializer):
         # Only get direct replies (not nested replies to avoid infinite recursion)
         replies = obj.replies.all()
         return CommentReplySerializer(replies, many=True, context=self.context).data
-
-    def get_is_liked_by_user(self, obj):
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return obj.likes.filter(user=request.user).exists()
-        return False
 
     def create(self, validated_data):
         validated_data['author'] = self.context['request'].user

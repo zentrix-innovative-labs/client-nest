@@ -3,7 +3,6 @@ from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
-from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, F, Count
 from .models import Post, Schedule, Comment, CommentLike
