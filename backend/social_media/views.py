@@ -33,6 +33,9 @@ def handle_api_errors(view_func):
                 'message': 'Failed to connect to external API',
                 'details': str(e)
             }, status=status.HTTP_502_BAD_GATEWAY)
+        except NotFound as e:
+            logger.warning(f"Known HTTP exception: {e}")
+            raise e
         except Exception as e:
             logger.exception(f"Unexpected error in {self.__class__.__name__}")
             return Response({
@@ -325,7 +328,7 @@ class LinkedInImagePostView(APIView):
         upload_url = upload_resp['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl']
         asset_urn = upload_resp['value']['asset']
         # Step 2: Upload the image using a file object
-        with image.open('rb') as image_file:
+        with image.file as image_file:
             linkedin_service.upload_image(upload_url, image_file)
         # Step 3: Post content with image
         result = linkedin_service.post_content_with_image(content, asset_urn)
@@ -416,3 +419,49 @@ class SocialAccountsStatusView(APIView):
             result['linkedin_account'] = {'status': 'not connected'}
 
         return Response(result)
+
+class XAndLinkedInConnectionTestView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    @handle_api_errors
+    def get(self, request):
+        response_data = {
+            'status': 'success',
+            'x_account_info': None,
+            'linkedin_account_info': None,
+            'message': ''
+        }
+        messages = []
+        # X account
+        x_account = SocialAccount.objects.filter(
+            user=request.user,
+            platform='x',
+            is_active=True
+        ).first()
+        if x_account:
+            x_service = XService(
+                access_token=x_account.access_token,
+                access_token_secret=x_account.access_token_secret
+            )
+            try:
+                response_data['x_account_info'] = x_service.get_account_info()
+                messages.append('X account is connected')
+            except Exception as e:
+                messages.append(f'Failed to fetch X account info: {str(e)}')
+        else:
+            messages.append('No active X account found')
+
+        # LinkedIn account
+        try:
+            linkedin_account = get_linkedin_account(request)
+            linkedin_service = LinkedInService(linkedin_account)
+            response_data['linkedin_account_info'] = linkedin_service.get_account_info()
+            messages.append('LinkedIn account is connected')
+        except NotFound:
+            messages.append('No active LinkedIn account found')
+        except Exception as e:
+            messages.append(f'Failed to fetch LinkedIn account info: {str(e)}')
+
+        response_data['message'] = '; '.join(messages)
+        return Response(response_data)
