@@ -47,7 +47,11 @@ class LinkedInService:
         if response.status_code in [200, 201]:
             return response.json()
         else:
-            raise Exception('Failed to post content to LinkedIn')
+            try:
+                error_details = response.json()
+            except Exception:
+                error_details = response.text
+            raise Exception(f'Failed to post content to LinkedIn: {response.status_code} - {error_details}')
 
     def get_userinfo(self):
         url = f"{LINKEDIN_API_BASE_URL}me?projection=(id,firstName,lastName)"
