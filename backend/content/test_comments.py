@@ -185,7 +185,7 @@ class CommentAPITests(APITestCase):
     def test_delete_comment_like(self):
         comment = Comment.objects.create(post=self.post, author=self.user2, content='Like me')
         like = CommentLike.objects.create(comment=comment, user=self.user)
-        url = reverse('commentlike-detail', args=[like.id])
+        url = reverse('comment-like-detail', args=[like.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(CommentLike.objects.count(), 0) 
