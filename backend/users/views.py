@@ -1,20 +1,27 @@
+# Standard library imports
+import logging
+
+# Django imports
+from django.contrib.auth import get_user_model
 from django.shortcuts import render, get_object_or_404
+
+# Third-party imports
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, generics, permissions, status, filters
-from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
+
+# Local imports
 from .models import User, UserProfile, SocialMediaAccount
 from .serializers import (
     UserSerializer, UserDetailSerializer, UserUpdateSerializer, UserRegistrationSerializer,
     UserProfileSerializer, UserProfileUpdateSerializer, SocialMediaAccountSerializer,
     PasswordChangeSerializer
 )
-from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from .utils import send_welcome_email
 from .mixins import SwaggerFakeViewMixin
-import logging
-from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
 

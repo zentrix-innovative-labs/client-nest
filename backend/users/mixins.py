@@ -8,6 +8,13 @@ class SwaggerFakeViewMixin:
     
     This prevents schema generation errors when drf-yasg tries to generate
     OpenAPI documentation without a real request context.
+    
+    IMPORTANT: This mixin must be placed BEFORE ModelViewSet in the class hierarchy.
+    Example: class MyViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
+    
+    This ensures that the mixin's get_queryset method takes precedence over
+    ModelViewSet's get_queryset method due to Python's method resolution order (MRO).
+    If placed after ModelViewSet, the mixin's get_queryset would never be called.
     """
     
     def get_queryset(self):
