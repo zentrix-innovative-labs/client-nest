@@ -16,7 +16,7 @@ class SwaggerFakeViewMixin:
         The swagger_fake_view guard is automatically applied.
         """
         if getattr(self, 'swagger_fake_view', False):
-            return self.model.objects.none()
+            return self.queryset.model.objects.none()
         return self._get_actual_queryset()
     
     def _get_actual_queryset(self):
