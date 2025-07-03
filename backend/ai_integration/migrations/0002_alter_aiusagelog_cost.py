@@ -1,12 +1,10 @@
-
-
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('backend_ai_integration', '0001_initial'),
+        ('ai_integration', '0001_initial'),
     ]
 
     operations = [
