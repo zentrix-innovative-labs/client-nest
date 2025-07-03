@@ -9,12 +9,13 @@ import os
 from dotenv import load_dotenv
 
 # This loads the .env file from the backend directory
+# load_dotenv(os.path.join(os.path.dirname(__file__), '../.env'))  # Duplicate, commented out
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
 load_dotenv(dotenv_path)
 
 # Debug print to confirm .env loading
 print("[DEBUG] Loading .env from:", dotenv_path)
-print("[DEBUG] X_API_KEY loaded:", os.getenv('X_API_KEY'))
+print("[DEBUG] X_API_KEY loaded:", "Yes" if os.getenv('X_API_KEY') else "No")
 
 X_CONFIG = {
     'API_KEY': os.getenv('X_API_KEY'),

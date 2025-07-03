@@ -475,9 +475,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 def x_env_test_view(request):
     """Public endpoint to test if X API credentials are loaded from the environment."""
+    credentials_loaded = all([
+        os.environ.get('X_API_KEY'),
+        os.environ.get('X_API_SECRET'),
+        os.environ.get('X_ACCESS_TOKEN'),
+        os.environ.get('X_ACCESS_TOKEN_SECRET'),
+    ])
     return JsonResponse({
-        'X_API_KEY': os.environ.get('X_API_KEY'),
-        'X_API_SECRET': os.environ.get('X_API_SECRET'),
-        'X_ACCESS_TOKEN': os.environ.get('X_ACCESS_TOKEN'),
-        'X_ACCESS_TOKEN_SECRET': os.environ.get('X_ACCESS_TOKEN_SECRET'),
+        'X_API_CREDENTIALS_LOADED': credentials_loaded
     })
