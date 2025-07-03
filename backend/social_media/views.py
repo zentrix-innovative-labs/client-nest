@@ -50,6 +50,8 @@ class SocialAccountViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return SocialAccount.objects.none()
         return SocialAccount.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -104,6 +106,8 @@ class PostAnalyticsViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return PostAnalytics.objects.none()
         return PostAnalytics.objects.filter(
             post__user=self.request.user
         ).select_related('social_account')

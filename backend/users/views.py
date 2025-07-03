@@ -79,6 +79,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Return appropriate queryset based on user permissions"""
+        if getattr(self, 'swagger_fake_view', False):
+            return User.objects.none()
         if self.request.user.is_staff:
             return User.objects.all()
         return User.objects.filter(id=self.request.user.id)
@@ -151,6 +153,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Return appropriate queryset based on user permissions"""
+        if getattr(self, 'swagger_fake_view', False):
+            return UserProfile.objects.none()
         if self.request.user.is_staff:
             return UserProfile.objects.all()
         return UserProfile.objects.filter(user=self.request.user)
@@ -201,6 +205,8 @@ class SocialMediaAccountViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Return appropriate queryset based on user permissions"""
+        if getattr(self, 'swagger_fake_view', False):
+            return SocialMediaAccount.objects.none()
         if self.request.user.is_staff:
             return SocialMediaAccount.objects.all()
         return SocialMediaAccount.objects.filter(user=self.request.user)

@@ -24,6 +24,8 @@ class PostViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Post.objects.none()
         return Post.objects.filter(user=self.request.user).annotate(comment_count=Count('comments'))
 
     def perform_create(self, serializer):
@@ -77,6 +79,8 @@ class CommentViewSet(viewsets.ModelViewSet):
     pagination_class = PageNumberPagination
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Comment.objects.none()
         # Show comments from posts the user can access (their own posts, public posts, or shared posts)
         qs = Comment.objects.filter(
             Q(post__user=self.request.user) | Q(post__status='published')
@@ -138,6 +142,8 @@ class CommentLikeViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return CommentLike.objects.none()
         return CommentLike.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -169,6 +175,8 @@ class ScheduleViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, 'swagger_fake_view', False):
+            return Schedule.objects.none()
         return Schedule.objects.filter(post__user=self.request.user)
 
     @action(detail=True, methods=['post'])
