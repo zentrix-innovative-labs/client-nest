@@ -13,9 +13,14 @@ MIDDLEWARE = [
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
+    "https://clientnest.xyz",
     "https://www.clientnest.xyz",
     "https://www.api.clientnest.xyz",
     "http://localhost:3000",
+    # Optionally add your Vercel preview domain(s)
+    # "https://frontend-client-nest.vercel.app/",
+]
+    "
 ]
 
 CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
