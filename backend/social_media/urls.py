@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SocialAccountViewSet, PostAnalyticsViewSet, XConnectionTestView, XPostTestView, LinkedInConnectionTestView, LinkedInPostView, LinkedInUserInfoView, LinkedInImagePostView, FacebookConnectionTestView, SocialAccountsStatusView, XAndLinkedInConnectionTestView
+from .views import SocialAccountViewSet, PostAnalyticsViewSet, XConnectionTestView, XPostTestView, LinkedInConnectionTestView, LinkedInPostView, LinkedInUserInfoView, LinkedInImagePostView, FacebookConnectionTestView, SocialAccountsStatusView, XAndLinkedInConnectionTestView, CommentViewSet
 from .instagram_auth import InstagramAuthView, InstagramCallbackView
 from .x_auth import XAuthView, XCallbackView
 from .facebook_auth import FacebookAuthView, FacebookCallbackView
@@ -9,6 +9,7 @@ from .linkedin_auth import LinkedInAuthView, LinkedInCallbackView
 router = DefaultRouter()
 router.register(r'accounts', SocialAccountViewSet, basename='social-account')
 router.register(r'analytics', PostAnalyticsViewSet, basename='post-analytics')
+router.register(r'comments', CommentViewSet, basename='comment')
 
 urlpatterns = [
     path('', include(router.urls)),
