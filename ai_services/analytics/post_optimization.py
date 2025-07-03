@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils.timezone import make_aware
 import pytz
+import logging
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -38,7 +39,8 @@ def post_timing_optimization(request):
                 slot = f"{day} {hour}"
                 engagement_score = likes + (2 * comments) + (3 * shares)
                 engagement_by_slot[slot].append(engagement_score)
-            except Exception:
+            except (ValueError, TypeError) as e:
+                logging.error(f"Malformed timestamp '{timestamp}': {e}")
                 continue  # Skip malformed timestamps
 
         average_scores = {

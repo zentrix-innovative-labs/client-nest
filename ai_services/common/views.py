@@ -2,6 +2,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponseBadRequest
 import json
 from client_nest.ai_services.common.deepseek_client import DeepSeekClient
+import logging
 
 @csrf_exempt
 def generate_content_endpoint(request):
@@ -17,4 +18,5 @@ def generate_content_endpoint(request):
         result = client.generate_content(system_prompt, user_prompt)
         return JsonResponse({'result': result})
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500) 
+        logging.error(f"An error occurred: {e}", exc_info=True)
+        return JsonResponse({'error': 'An internal error occurred. Please try again later.'}, status=500) 

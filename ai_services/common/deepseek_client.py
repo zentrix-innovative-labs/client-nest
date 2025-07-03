@@ -16,10 +16,13 @@ import sys
 # --- Logging for debugging import path and environment ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.info(f"sys.path: {sys.path}")
-logger.info(f"Current working directory: {os.getcwd()}")
-logger.info(f"Contents of current directory: {os.listdir(os.getcwd())}")
-logger.info(f"DJANGO_SETTINGS_MODULE: {os.environ.get('DJANGO_SETTINGS_MODULE')}")
+
+DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1")
+if DEBUG:
+    logger.info(f"sys.path: {sys.path}")
+    logger.info(f"Current working directory: {os.getcwd()}")
+    logger.info(f"Contents of current directory: {os.listdir(os.getcwd())}")
+    logger.info(f"DJANGO_SETTINGS_MODULE: {os.environ.get('DJANGO_SETTINGS_MODULE')}")
 
 from django.conf import settings
 from client_nest.ai_services.common.signals import ai_usage_logged
@@ -100,6 +103,7 @@ class DeepSeekClient:
             response_time_ms = int((time.perf_counter() - start_time) * 1000)
             response_data = response.json()
 
+            # Always log usage after a successful response
             self._log_usage(
                 user=user,
                 request_type="content_generation",
@@ -107,7 +111,7 @@ class DeepSeekClient:
                 response_time_ms=response_time_ms
             )
 
-            # Safely extract and parse the AI content
+            # Now check for content
             choices = response_data.get("choices", [])
             if not choices:
                 raise AIAPIError("No choices returned by the AI response.")
