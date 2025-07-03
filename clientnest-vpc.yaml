@@ -164,3 +164,27 @@ Outputs:
     Value: !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2]]
     Export:
       Name: !Sub ${EnvironmentName}-PRIV-NETS 
+      # Add this to your CloudFormation template under Resources:
+MyAppEC2Instance:
+  Type: AWS::EC2::Instance
+  Properties:
+    InstanceType: t3.micro
+    ImageId: ami-050a082f904e73b9d
+    SubnetId: subnet-0c696643f1cc6af93
+    SecurityGroupIds:
+      - sg-07b833f025c8b611f
+       sg-00006d1e65d89df56# Reference your security group
+    KeyName: EC2 tutorial
+    Tags:
+      - Key: EC2 tutorial
+        Value: !Sub "${https://github.com/eddy624/client-nest}-App-EC2"
+    UserData:
+      Fn::Base64: !Sub |
+        #!/bin/bash
+        yum update -y
+        yum install -y python3 git
+        cd /home/ec2-user
+        git clone https://github.com/eddy624/client-nest.git
+        cd client-nest/backend
+        pip3 install -r requirements.txt
+        # Add commands to run migrations, collectstatic, start Gunicorn, etc.
