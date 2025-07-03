@@ -18,7 +18,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1")
-if DEBUG:
+ENVIRONMENT = os.environ.get("ENVIRONMENT", "production").lower()
+if DEBUG and ENVIRONMENT == "development":
     logger.info(f"sys.path: {sys.path}")
     logger.info(f"Current working directory: {os.getcwd()}")
     logger.info(f"Contents of current directory: {os.listdir(os.getcwd())}")
