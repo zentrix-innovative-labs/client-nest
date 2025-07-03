@@ -13,8 +13,8 @@ MIDDLEWARE = [
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
-    "https://clientnest.xyz",
-    "https://api.clientnest.xyz",
+    "https://www.clientnest.xyz",
+    "https://www.api.clientnest.xyz",
     "http://localhost:3000",
 ]
 
