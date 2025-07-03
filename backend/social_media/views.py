@@ -16,6 +16,8 @@ import logging
 from requests.exceptions import RequestException
 from rest_framework.exceptions import NotFound
 from functools import wraps
+from django.http import JsonResponse
+import os
 
 # Create your views here.
 
@@ -470,3 +472,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all().order_by('-created_at')
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+def x_env_test_view(request):
+    """Public endpoint to test if X API credentials are loaded from the environment."""
+    return JsonResponse({
+        'X_API_KEY': os.environ.get('X_API_KEY'),
+        'X_API_SECRET': os.environ.get('X_API_SECRET'),
+        'X_ACCESS_TOKEN': os.environ.get('X_ACCESS_TOKEN'),
+        'X_ACCESS_TOKEN_SECRET': os.environ.get('X_ACCESS_TOKEN_SECRET'),
+    })
