@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'users',
+    'content',
     'social_media',
     'ai_integration',
    # 'analytics',
@@ -56,8 +57,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -97,6 +99,15 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
+
+# Use SQLite for testing to avoid PostgreSQL connection issues
+if os.environ.get('DJANGO_TEST_ENV') == 'true':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
 
 # Cache configuration
 CACHES = {
@@ -201,6 +212,18 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@client-nest.local')
 
-FACEBOOK_REDIRECT_URI = 'http://localhost:8000/api/social/facebook/callback/'
-FACEBOOK_APP_ID = '632402719860654'
-FACEBOOK_APP_SECRET = 'f378887238aa323e9b927db924ac9221'
+
+# Facebook configuration (secure via environment variables)
+FACEBOOK_APP_ID = os.environ.get('FACEBOOK_APP_ID')
+FACEBOOK_APP_SECRET = os.environ.get('FACEBOOK_APP_SECRET')
+FACEBOOK_REDIRECT_URI = os.environ.get('FACEBOOK_REDIRECT_URI')
+
+# ===== CORS CONFIGURATION =====
+CORS_ALLOWED_ORIGINS = [
+    "https://www.clientnest.xyz",
+    "https://clientnest.xyz",
+    "http://localhost:3000",
+]
+CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
+# =============================
+
