@@ -12,9 +12,13 @@ from .serializers import (
 )
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from .utils import send_welcome_email
+from .mixins import SwaggerFakeViewMixin
 import logging
+from django.contrib.auth import get_user_model
 
 logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 class RegistrationRateThrottle(AnonRateThrottle):
     rate = '3/hour'  # 3 registrations per hour per IP
@@ -34,7 +38,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         # Write permissions are only allowed to the owner
         return obj == request.user or obj.user == request.user
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     """
     ViewSet for User CRUD operations.
     
@@ -77,10 +81,8 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-    def get_queryset(self):
+    def _get_actual_queryset(self):
         """Return appropriate queryset based on user permissions"""
-        if getattr(self, 'swagger_fake_view', False):
-            return User.objects.none()
         if self.request.user.is_staff:
             return User.objects.all()
         return User.objects.filter(id=self.request.user.id)
@@ -119,7 +121,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user.save()
         return Response({'message': 'Account deactivated successfully'})
 
-class UserProfileViewSet(viewsets.ModelViewSet):
+class UserProfileViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     """
     ViewSet for UserProfile CRUD operations.
     
@@ -151,10 +153,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         return [permission() for permission in permission_classes]
 
-    def get_queryset(self):
+    def _get_actual_queryset(self):
         """Return appropriate queryset based on user permissions"""
-        if getattr(self, 'swagger_fake_view', False):
-            return UserProfile.objects.none()
         if self.request.user.is_staff:
             return UserProfile.objects.all()
         return UserProfile.objects.filter(user=self.request.user)
@@ -176,7 +176,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class SocialMediaAccountViewSet(viewsets.ModelViewSet):
+class SocialMediaAccountViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     """
     ViewSet for SocialMediaAccount CRUD operations.
     
@@ -203,10 +203,8 @@ class SocialMediaAccountViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         return [permission() for permission in permission_classes]
 
-    def get_queryset(self):
+    def _get_actual_queryset(self):
         """Return appropriate queryset based on user permissions"""
-        if getattr(self, 'swagger_fake_view', False):
-            return SocialMediaAccount.objects.none()
         if self.request.user.is_staff:
             return SocialMediaAccount.objects.all()
         return SocialMediaAccount.objects.filter(user=self.request.user)
