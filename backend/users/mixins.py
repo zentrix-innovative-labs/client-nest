@@ -24,7 +24,14 @@ class SwaggerFakeViewMixin:
         The swagger_fake_view guard is automatically applied here.
         """
         if getattr(self, 'swagger_fake_view', False):
-            return self.queryset.model.objects.none()
+            if hasattr(self, 'queryset') and self.queryset is not None:
+                return self.queryset.model.objects.none()
+            # Fallback: try to use self.serializer_class.Meta.model if available
+            serializer_class = getattr(self, 'serializer_class', None)
+            if serializer_class and hasattr(serializer_class, 'Meta') and hasattr(serializer_class.Meta, 'model'):
+                return serializer_class.Meta.model.objects.none()
+            # Otherwise, return []
+            return []
         return self._get_actual_queryset()
     
     def _get_actual_queryset(self):

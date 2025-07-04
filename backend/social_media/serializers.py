@@ -20,4 +20,5 @@ class PostAnalyticsSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
+        ref_name = "SocialMediaAppComment"
         fields = '__all__' 
