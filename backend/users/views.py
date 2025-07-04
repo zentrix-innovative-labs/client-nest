@@ -1,20 +1,31 @@
+# Standard library imports
+import logging
+
+# Django imports
+from django.contrib.auth import get_user_model
 from django.shortcuts import render, get_object_or_404
+
+# Third-party imports
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, generics, permissions, status, filters
-from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
-from django_filters.rest_framework import DjangoFilterBackend
-from .models import User, UserProfile, SocialMediaAccount
+from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
+
+# Local imports
+from .models import UserProfile, SocialMediaAccount
 from .serializers import (
     UserSerializer, UserDetailSerializer, UserUpdateSerializer, UserRegistrationSerializer,
     UserProfileSerializer, UserProfileUpdateSerializer, SocialMediaAccountSerializer,
     PasswordChangeSerializer
 )
-from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from .utils import send_welcome_email
-import logging
+from .mixins import SwaggerFakeViewMixin
 
 logger = logging.getLogger(__name__)
+
+User = get_user_model()
 
 class RegistrationRateThrottle(AnonRateThrottle):
     rate = '3/hour'  # 3 registrations per hour per IP
@@ -34,7 +45,7 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
         # Write permissions are only allowed to the owner
         return obj == request.user or obj.user == request.user
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     """
     ViewSet for User CRUD operations.
     
@@ -77,7 +88,7 @@ class UserViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-    def get_queryset(self):
+    def get_actual_queryset(self):
         """Return appropriate queryset based on user permissions"""
         if self.request.user.is_staff:
             return User.objects.all()
@@ -117,7 +128,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user.save()
         return Response({'message': 'Account deactivated successfully'})
 
-class UserProfileViewSet(viewsets.ModelViewSet):
+class UserProfileViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     """
     ViewSet for UserProfile CRUD operations.
     
@@ -149,7 +160,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         return [permission() for permission in permission_classes]
 
-    def get_queryset(self):
+    def get_actual_queryset(self):
         """Return appropriate queryset based on user permissions"""
         if self.request.user.is_staff:
             return UserProfile.objects.all()
@@ -172,7 +183,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class SocialMediaAccountViewSet(viewsets.ModelViewSet):
+class SocialMediaAccountViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     """
     ViewSet for SocialMediaAccount CRUD operations.
     
@@ -199,7 +210,7 @@ class SocialMediaAccountViewSet(viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         return [permission() for permission in permission_classes]
 
-    def get_queryset(self):
+    def get_actual_queryset(self):
         """Return appropriate queryset based on user permissions"""
         if self.request.user.is_staff:
             return SocialMediaAccount.objects.all()

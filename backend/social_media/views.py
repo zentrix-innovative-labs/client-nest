@@ -16,11 +16,17 @@ import logging
 from requests.exceptions import RequestException
 from rest_framework.exceptions import NotFound
 from functools import wraps
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse, HttpResponseRedirect, Http404
+from django.shortcuts import get_object_or_404
+from django.core.exceptions import ObjectDoesNotExist
+
 import os
+import urllib.parse
+
 from django.conf import settings
 from .youtube_config import YOUTUBE_API_KEY, YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, YOUTUBE_REDIRECT_URI
-import urllib.parse
+from users.mixins import SwaggerFakeViewMixin
+
 
 # Create your views here.
 
@@ -49,12 +55,12 @@ def handle_api_errors(view_func):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     return _wrapped_view
 
-class SocialAccountViewSet(viewsets.ModelViewSet):
+class SocialAccountViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     serializer_class = SocialAccountSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def get_queryset(self):
+    def _get_actual_queryset(self):
         return SocialAccount.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -103,12 +109,12 @@ class SocialAccountViewSet(viewsets.ModelViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-class PostAnalyticsViewSet(viewsets.ModelViewSet):
+class PostAnalyticsViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     serializer_class = PostAnalyticsSerializer
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTAuthentication]
 
-    def get_queryset(self):
+    def _get_actual_queryset(self):
         return PostAnalytics.objects.filter(
             post__user=self.request.user
         ).select_related('social_account')

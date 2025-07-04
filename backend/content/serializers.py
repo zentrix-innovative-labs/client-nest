@@ -59,6 +59,7 @@ class CommentSerializer(IsLikedByUserMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Comment
+        ref_name = "ContentAppComment"
         fields = ['id', 'post', 'author', 'parent_comment', 'content', 'media_files',
                  'like_count', 'mentions', 'is_edited', 'edited_at', 'replies',
                  'is_liked_by_user', 'created_at', 'updated_at']
