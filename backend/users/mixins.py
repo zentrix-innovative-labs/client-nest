@@ -19,8 +19,9 @@ class SwaggerFakeViewMixin:
     
     def get_queryset(self):
         """
-        Override this method in subclasses to provide the actual queryset logic.
-        The swagger_fake_view guard is automatically applied.
+        Do not override this method in subclasses.
+        Instead, implement the _get_actual_queryset() method to provide the actual queryset logic.
+        The swagger_fake_view guard is automatically applied here.
         """
         if getattr(self, 'swagger_fake_view', False):
             return self.queryset.model.objects.none()

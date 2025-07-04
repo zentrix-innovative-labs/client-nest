@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 
 # Local imports
-from .models import User, UserProfile, SocialMediaAccount
+from .models import UserProfile, SocialMediaAccount
 from .serializers import (
     UserSerializer, UserDetailSerializer, UserUpdateSerializer, UserRegistrationSerializer,
     UserProfileSerializer, UserProfileUpdateSerializer, SocialMediaAccountSerializer,
