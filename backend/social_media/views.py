@@ -16,10 +16,17 @@ import logging
 from requests.exceptions import RequestException
 from rest_framework.exceptions import NotFound
 from functools import wraps
+from django.http import JsonResponse, HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404
+
+import os
+import urllib.parse
+
+from django.conf import settings
+from .youtube_config import YOUTUBE_API_KEY, YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET, YOUTUBE_REDIRECT_URI
 from users.mixins import SwaggerFakeViewMixin
+
 
 # Create your views here.
 
@@ -474,3 +481,52 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all().order_by('-created_at')
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+def x_env_test_view(request):
+    """Public endpoint to test if X API credentials are loaded from the environment."""
+    credentials_loaded = all([
+        os.environ.get('X_API_KEY'),
+        os.environ.get('X_API_SECRET'),
+        os.environ.get('X_ACCESS_TOKEN'),
+        os.environ.get('X_ACCESS_TOKEN_SECRET'),
+    ])
+    return JsonResponse({
+        'X_API_CREDENTIALS_LOADED': credentials_loaded
+    })
+
+# Fetch public channel info
+
+def youtube_channel_info(request, channel_id):
+    url = f"https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id={channel_id}&key={YOUTUBE_API_KEY}"
+    resp = requests.get(url)
+    return JsonResponse(resp.json())
+
+# Start OAuth2 flow
+
+def youtube_oauth_start(request):
+    params = {
+        'client_id': YOUTUBE_CLIENT_ID,
+        'redirect_uri': YOUTUBE_REDIRECT_URI,
+        'response_type': 'code',
+        'scope': 'https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube.readonly',
+        'access_type': 'offline',
+        'prompt': 'consent',
+    }
+    url = 'https://accounts.google.com/o/oauth2/v2/auth?' + urllib.parse.urlencode(params)
+    return HttpResponseRedirect(url)
+
+# OAuth2 callback (placeholder)
+def youtube_oauth_callback(request):
+    code = request.GET.get('code')
+    if not code:
+        return JsonResponse({'error': 'No code provided'}, status=400)
+    # Exchange code for tokens (to be implemented)
+    return JsonResponse({'message': 'OAuth2 callback received', 'code': code})
+
+# Placeholder endpoints for upload, comments, feed
+def youtube_upload_video(request):
+    return JsonResponse({'message': 'Upload video endpoint (to be implemented)'})
+def youtube_read_comments(request):
+    return JsonResponse({'message': 'Read comments endpoint (to be implemented)'})
+def youtube_feed(request):
+    return JsonResponse({'message': 'YouTube feed endpoint (to be implemented)'})

@@ -31,7 +31,13 @@ SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Add your ngrok domain here for public tunnel access
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "748e-2a09-bac1-75e0-00-71-4b.ngrok-free.app",
+    ".ngrok-free.app"
+]
 
 
 # Application definition
