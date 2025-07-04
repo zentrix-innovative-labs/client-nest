@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+import uuid
 
 User = get_user_model()
 
@@ -7,7 +9,8 @@ class SocialAccount(models.Model):
     PLATFORM_CHOICES = [
         ('facebook', 'Facebook'),
         ('instagram', 'Instagram'),
-        ('x', 'X')
+        ('x', 'X'),
+        ('linkedin', 'LinkedIn')
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='social_media_accounts')
@@ -44,3 +47,16 @@ class PostAnalytics(models.Model):
 
     def __str__(self):
         return f"Analytics for post {self.post_id} on {self.social_account.platform}"
+
+class Comment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    post_id = models.CharField(max_length=100)  # Reference to the post
+    social_account = models.ForeignKey(SocialAccount, on_delete=models.CASCADE)
+    content = models.TextField()
+    author_name = models.CharField(max_length=100)
+    author_id = models.CharField(max_length=100)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Comment by {self.author_name} on post {self.post_id}"
