@@ -1,5 +1,10 @@
 """
-Mixin classes for common viewset functionality.
+Custom mixin classes for common viewset functionality in the ClientNest project.
+
+This module contains mixins designed specifically for this Django REST Framework project
+to handle common patterns like Swagger schema generation and queryset management.
+
+Created for ClientNest project - not derived from external sources.
 """
 
 class SwaggerFakeViewMixin:
@@ -20,7 +25,7 @@ class SwaggerFakeViewMixin:
     def get_queryset(self):
         """
         Do not override this method in subclasses.
-        Instead, implement the _get_actual_queryset() method to provide the actual queryset logic.
+        Instead, implement the get_actual_queryset() method to provide the actual queryset logic.
         The swagger_fake_view guard is automatically applied here.
         """
         if getattr(self, 'swagger_fake_view', False):
@@ -32,11 +37,11 @@ class SwaggerFakeViewMixin:
                 return serializer_class.Meta.model.objects.none()
             # Otherwise, return []
             return []
-        return self._get_actual_queryset()
+        return self.get_actual_queryset()
     
-    def _get_actual_queryset(self):
+    def get_actual_queryset(self):
         """
         Override this method to provide the actual queryset logic.
         This method will only be called when not in swagger_fake_view mode.
         """
-        raise NotImplementedError("Subclasses must implement _get_actual_queryset()") 
+        raise NotImplementedError("Subclasses must implement get_actual_queryset()") 

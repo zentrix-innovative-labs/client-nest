@@ -88,7 +88,7 @@ class UserViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated]
         return [permission() for permission in permission_classes]
 
-    def _get_actual_queryset(self):
+    def get_actual_queryset(self):
         """Return appropriate queryset based on user permissions"""
         if self.request.user.is_staff:
             return User.objects.all()
@@ -160,7 +160,7 @@ class UserProfileViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         return [permission() for permission in permission_classes]
 
-    def _get_actual_queryset(self):
+    def get_actual_queryset(self):
         """Return appropriate queryset based on user permissions"""
         if self.request.user.is_staff:
             return UserProfile.objects.all()
@@ -210,7 +210,7 @@ class SocialMediaAccountViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
             permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
         return [permission() for permission in permission_classes]
 
-    def _get_actual_queryset(self):
+    def get_actual_queryset(self):
         """Return appropriate queryset based on user permissions"""
         if self.request.user.is_staff:
             return SocialMediaAccount.objects.all()
