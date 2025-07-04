@@ -35,8 +35,11 @@ class SwaggerFakeViewMixin:
             serializer_class = getattr(self, 'serializer_class', None)
             if serializer_class and hasattr(serializer_class, 'Meta') and hasattr(serializer_class.Meta, 'model'):
                 return serializer_class.Meta.model.objects.none()
-            # Otherwise, return []
-            return []
+            # Otherwise, raise an exception to indicate a misconfiguration
+            raise NotImplementedError(
+                "Unable to determine the model for the queryset. "
+                "Ensure that 'queryset' or 'serializer_class.Meta.model' is defined."
+            )
         return self.get_actual_queryset()
     
     def get_actual_queryset(self):
