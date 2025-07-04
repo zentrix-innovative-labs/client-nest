@@ -20,7 +20,5 @@ CORS_ALLOWED_ORIGINS = [
     # Optionally add your Vercel preview domain(s)
     # "https://frontend-client-nest.vercel.app/",
 ]
-    "
-]
 
 CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
