@@ -10,11 +10,10 @@ import json
 import time
 import logging
 import requests
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 import sys
 
-# --- Logging for debugging import path and environment ---
-logging.basicConfig(level=logging.INFO)
+# --- Logging setup (library-friendly) ---
 logger = logging.getLogger(__name__)
 
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1")
@@ -24,9 +23,6 @@ if DEBUG and ENVIRONMENT == "development":
     logger.info(f"Current working directory: {os.getcwd()}")
     logger.info(f"Contents of current directory: {os.listdir(os.getcwd())}")
     logger.info(f"DJANGO_SETTINGS_MODULE: {os.environ.get('DJANGO_SETTINGS_MODULE')}")
-
-from django.conf import settings
-from client_nest.ai_services.common.signals import ai_usage_logged
 
 # --- Configuration ---
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
@@ -72,9 +68,10 @@ class DeepSeekClient:
         user_prompt: str,
         user: Optional[object] = None,
         **kwargs
-    ) -> Dict[str, Any]:
+    ) -> str:
         """
         Generates content using the DeepSeek API via OpenRouter and logs the usage.
+        Returns the generated content as a string.
         """
         model = kwargs.get("model", "deepseek/deepseek-r1-0528:free")
         if model not in SUPPORTED_MODELS:
@@ -137,22 +134,37 @@ class DeepSeekClient:
         Sends a signal to log the AI API usage.
         """
         try:
-            ai_usage_logged.send(
-                sender=self.__class__,
-                user=user,
-                request_type=request_type,
-                usage_data=usage_data,
-                response_time_ms=response_time_ms
-            )
+            # Try to import Django components safely
+            try:
+                from client_nest.ai_services.common.signals import ai_usage_logged
+                ai_usage_logged.send(
+                    sender=self.__class__,
+                    user=user,
+                    request_type=request_type,
+                    usage_data=usage_data,
+                    response_time_ms=response_time_ms
+                )
+            except ImportError:
+                logger.warning("Django signals not available, skipping usage logging")
+            except Exception as e:
+                logger.warning(f"Failed to log AI usage: {e}")
         except Exception as e:
             logger.warning(f"Failed to log AI usage: {e}")
 
 # --- Local Test Mode ---
 def main():
-    import django
-    django.setup()
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
+    # Set up Django environment if not already configured
+    if not os.environ.get('DJANGO_SETTINGS_MODULE'):
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+    
+    try:
+        import django
+        django.setup()
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+    except Exception as e:
+        logger.warning(f"Django setup failed: {e}")
+        User = None
 
     api_key = os.environ.get("OPENROUTER_API_KEY", "")
     if not api_key:
