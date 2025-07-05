@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Django Backend
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - ML_SERVICE_URL=http://ml-service:8000
+      - DATABASE_URL=postgresql://postgres:password@db:5432/clientnest
+      - DJANGO_SECRET_KEY=your-very-secret-key
+      - PYTHONPATH=/app
+      - DB_HOST=db
+      - DB_PASSWORD=password
+    depends_on:
+      - db
+      - ml-service
+    volumes:
+      - ./:/app
+    command: python backend/manage.py runserver 0.0.0.0:8000
+
+  # ML Microservice
+  ml-service:
+    build: ./ml_service
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./ml_service:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # PostgreSQL Database
+  db:
+    image: postgres:14
+    environment:
+      - POSTGRES_DB=clientnest
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Redis (for caching and Celery)
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data: 
