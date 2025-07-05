@@ -21,7 +21,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ arn:aws:iam::763338915451:role/GitHubOIDCDeployRole }}
-          aws-region: ${{ af-south-1 }}
+          aws-region: af-south-1
 
       - name: Install AWS CLI (if not already)
         run: |
@@ -30,6 +30,29 @@ jobs:
             Start-Process msiexec.exe -Wait -ArgumentList '/i AWSCLIV2.msi /quiet'
           }
           aws --version
+        shell: pwsh
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+        shell: pwsh
+
+      - name: Run Django Migrations (optional)
+        run: |
+          cd backend
+          python manage.py migrate --check
+        shell: pwsh
+
+      - name: Run Tests
+        run: |
+          cd backend
+          python manage.py test
         shell: pwsh
 
       - name: Validate CloudFormation Template
@@ -46,25 +69,4 @@ jobs:
             --capabilities CAPABILITY_NAMED_IAM `
             --no-fail-on-empty-changeset
         shell: pwsh
-        - name: Set up Python
-  uses: actions/setup-python@v5
-  with:
-    python-version: '3.11'
-
-- name: Install Dependencies
-  run: |
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt
-
-- name: Run Django Migrations (optional)
-  run: |
-    python manage.py migrate
-
-- name: Run Tests
-  run: |
-    pytest
-
-- name: Run Linter
-  run: |
-    flake8 .
 

@@ -6,6 +6,10 @@ Parameters:
     Description: Environment name prefix
     Type: String
     Default: ClientNest-Dev
+  KeyPairName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
 
 Resources:
   # VPC
@@ -146,6 +150,108 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet2
 
+  # Security Groups
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH and HTTP access
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  # EC2 Instance
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0c02fb55956c7d316  # Amazon Linux 2023 AMI for af-south-1
+      InstanceType: t3.micro
+      KeyName: !Ref KeyPairName
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds:
+        - !Ref WebServerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-WebServer"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y python3 python3-pip git
+          
+          # Install PostgreSQL client
+          yum install -y postgresql15
+          
+          # Create application directory
+          mkdir -p /opt/clientnest
+          cd /opt/clientnest
+          
+          # Clone the repository
+          git clone https://github.com/eddy624/client-nest.git .
+          
+          # Install Python dependencies
+          cd backend
+          pip3 install -r requirements.txt
+          
+          # Create environment file
+          cat > .env << 'EOF'
+          DJANGO_SECRET_KEY=your-secret-key-here
+          DB_NAME=postgres
+          DB_USER=postgres
+          DB_PASSWORD=your-db-password
+          DB_HOST=localhost
+          DB_PORT=5432
+          DEBUG=False
+          ALLOWED_HOSTS=*
+          EOF
+          
+          # Run migrations
+          python3 manage.py migrate
+          
+          # Collect static files
+          python3 manage.py collectstatic --noinput
+          
+          # Install and configure Gunicorn
+          pip3 install gunicorn
+          
+          # Create systemd service
+          cat > /etc/systemd/system/clientnest.service << 'EOF'
+          [Unit]
+          Description=ClientNest Django Application
+          After=network.target
+          
+          [Service]
+          User=root
+          WorkingDirectory=/opt/clientnest/backend
+          Environment="PATH=/opt/clientnest/backend/venv/bin"
+          ExecStart=/usr/local/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 config.wsgi:application
+          Restart=always
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          
+          # Start the service
+          systemctl enable clientnest
+          systemctl start clientnest
+
 Outputs:
   VPC:
     Description: VPC ID
@@ -163,28 +269,12 @@ Outputs:
     Description: Private subnets
     Value: !Join [',', [!Ref PrivateSubnet1, !Ref PrivateSubnet2]]
     Export:
-      Name: !Sub ${EnvironmentName}-PRIV-NETS 
-      # Add this to your CloudFormation template under Resources:
-MyAppEC2Instance:
-  Type: AWS::EC2::Instance
-  Properties:
-    InstanceType: t3.micro
-    ImageId: ami-050a082f904e73b9d
-    SubnetId: subnet-0c696643f1cc6af93
-    SecurityGroupIds:
-      - sg-07b833f025c8b611f
-       sg-00006d1e65d89df56# Reference your security group
-    KeyName: EC2 tutorial
-    Tags:
-      - Key: EC2 tutorial
-        Value: !Sub "${https://github.com/eddy624/client-nest}-App-EC2"
-    UserData:
-      Fn::Base64: !Sub |
-        #!/bin/bash
-        yum update -y
-        yum install -y python3 git
-        cd /home/ec2-user
-        git clone https://github.com/eddy624/client-nest.git
-        cd client-nest/backend
-        pip3 install -r requirements.txt
-        # Add commands to run migrations, collectstatic, start Gunicorn, etc.
+      Name: !Sub ${EnvironmentName}-PRIV-NETS
+
+  WebServerPublicIP:
+    Description: Public IP address of the web server
+    Value: !GetAtt WebServerInstance.PublicIp
+
+  WebServerInstanceId:
+    Description: Instance ID of the web server
+    Value: !Ref WebServerInstance
