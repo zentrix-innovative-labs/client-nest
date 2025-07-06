@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'ClientNest Basic VPC Infrastructure'
+Description: 'ClientNest Basic VPC Infrastructure with RDS PostgreSQL'
 
 Parameters:
   EnvironmentName:
@@ -10,6 +10,29 @@ Parameters:
     Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
     Type: AWS::EC2::KeyPair::KeyName
     ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  DatabaseName:
+    Description: Name of the database to create
+    Type: String
+    Default: clientnest
+  DatabaseUsername:
+    Description: Username for the database
+    Type: String
+    Default: postgres
+  DatabasePassword:
+    Description: Password for the database
+    Type: String
+    NoEcho: true
+    MinLength: 8
+  DatabaseInstanceClass:
+    Description: RDS instance class
+    Type: String
+    Default: db.t3.micro
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t3.medium
+      - db.r6g.large
+      - db.r6g.xlarge
 
 Resources:
   # VPC
@@ -150,6 +173,18 @@ Resources:
       RouteTableId: !Ref PrivateRouteTable1
       SubnetId: !Ref PrivateSubnet2
 
+  # Database Subnet Group
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS PostgreSQL
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-DB-Subnet-Group
+
   # Security Groups
   WebServerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -176,6 +211,48 @@ Resources:
       SecurityGroupEgress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for RDS PostgreSQL
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref WebServerSecurityGroup
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-DB-Security-Group
+
+  # RDS PostgreSQL Instance
+  DatabaseInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub ${EnvironmentName}-postgres
+      DBInstanceClass: !Ref DatabaseInstanceClass
+      Engine: postgres
+      EngineVersion: '15.4'
+      AllocatedStorage: 20
+      StorageType: gp2
+      StorageEncrypted: true
+      DBName: !Ref DatabaseName
+      MasterUsername: !Ref DatabaseUsername
+      MasterUserPassword: !Ref DatabasePassword
+      VPCSecurityGroups:
+        - !Ref DatabaseSecurityGroup
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      BackupRetentionPeriod: 7
+      MultiAZ: false
+      PubliclyAccessible: false
+      DeletionProtection: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-PostgreSQL
 
   # EC2 Instance
   WebServerInstance:
@@ -210,13 +287,13 @@ Resources:
           cd backend
           pip3 install -r requirements.txt
           
-          # Create environment file
+          # Create environment file with RDS endpoint
           cat > .env << 'EOF'
           DJANGO_SECRET_KEY=your-secret-key-here
-          DB_NAME=postgres
-          DB_USER=postgres
-          DB_PASSWORD=your-db-password
-          DB_HOST=localhost
+          DB_NAME=${DatabaseName}
+          DB_USER=${DatabaseUsername}
+          DB_PASSWORD=${DatabasePassword}
+          DB_HOST=${DatabaseInstance.Endpoint.Address}
           DB_PORT=5432
           DEBUG=False
           ALLOWED_HOSTS=*
@@ -278,3 +355,15 @@ Outputs:
   WebServerInstanceId:
     Description: Instance ID of the web server
     Value: !Ref WebServerInstance
+
+  DatabaseEndpoint:
+    Description: RDS PostgreSQL endpoint
+    Value: !GetAtt DatabaseInstance.Endpoint.Address
+
+  DatabasePort:
+    Description: RDS PostgreSQL port
+    Value: !GetAtt DatabaseInstance.Endpoint.Port
+
+  DatabaseName:
+    Description: Database name
+    Value: !Ref DatabaseName

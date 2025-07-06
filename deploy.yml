@@ -55,6 +55,12 @@ jobs:
           python manage.py test
         shell: pwsh
 
+      - name: Generate Database Password
+        run: |
+          $dbPassword = -join ((33..126) | Get-Random -Count 16 | ForEach-Object {[char]$_})
+          echo "DB_PASSWORD=$dbPassword" >> $env:GITHUB_ENV
+        shell: pwsh
+
       - name: Validate CloudFormation Template
         run: |
           aws cloudformation validate-template --template-body file://clientnest-vpc.yaml
@@ -67,6 +73,19 @@ jobs:
             --template-file clientnest-vpc.yaml `
             --stack-name $stackName `
             --capabilities CAPABILITY_NAMED_IAM `
+            --parameter-overrides `
+              DatabasePassword=$env:DB_PASSWORD `
             --no-fail-on-empty-changeset
+        shell: pwsh
+
+      - name: Wait for Database to be Available
+        run: |
+          $stackName = "nest"
+          $dbEndpoint = aws cloudformation describe-stacks --stack-name $stackName --query 'Stacks[0].Outputs[?OutputKey==`DatabaseEndpoint`].OutputValue' --output text
+          Write-Host "Waiting for database endpoint: $dbEndpoint"
+          
+          # Wait for RDS instance to be available
+          aws rds wait db-instance-available --db-instance-identifier "ClientNest-Dev-postgres"
+          Write-Host "Database is now available"
         shell: pwsh
 
