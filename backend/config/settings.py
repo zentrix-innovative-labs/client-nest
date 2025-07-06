@@ -227,8 +227,39 @@ FACEBOOK_REDIRECT_URI = os.environ.get('FACEBOOK_REDIRECT_URI')
 CORS_ALLOWED_ORIGINS = [
     "https://www.clientnest.xyz",
     "https://clientnest.xyz",
+    "https://api.clientnest.xyz",
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
-CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
+
+# Allow credentials for API calls
+CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS settings for production
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'False').lower() == 'true'
+
+# Trusted origins for CSRF
+CSRF_TRUSTED_ORIGINS = [
+    "https://www.clientnest.xyz",
+    "https://clientnest.xyz",
+    "https://api.clientnest.xyz",
+]
 # =============================
+
+# ===== PRODUCTION SECURITY SETTINGS =====
+# HTTPS/SSL Settings
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'False').lower() == 'true'
+SECURE_HSTS_PRELOAD = os.environ.get('SECURE_HSTS_PRELOAD', 'False').lower() == 'true'
+
+# Cookie Security
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
+
+# Additional Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+# ======================================
 
