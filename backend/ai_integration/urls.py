@@ -1,7 +1,19 @@
+"""
+URL patterns for AI integration functionality.
+"""
+
 from django.urls import path
-from .views import ContentGenerationAPIView, TaskStatusAPIView
+from . import views
+
+app_name = 'ai_integration'
 
 urlpatterns = [
-    path('generate-content/', ContentGenerationAPIView.as_view(), name='generate-content'),
-    path('task-status/<str:task_id>/', TaskStatusAPIView.as_view(), name='task-status'),
+    # AI content generation endpoint
+    path('generate/', views.AIContentGenerationView.as_view(), name='generate_content'),
+    
+    # AI service health check
+    path('health/', views.ai_health_check, name='health_check'),
+    
+    # AI usage statistics
+    path('usage/', views.ai_usage_stats, name='usage_stats'),
 ] 

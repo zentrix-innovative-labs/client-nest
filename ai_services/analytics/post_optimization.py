@@ -162,12 +162,3 @@ def post_timing_optimization(request):
         return JsonResponse({
             "error": "An unexpected error occurred while analyzing post timing. Please try again later."
         }, status=500)
-
-
-# urls.py
-from django.urls import path
-from .views import post_timing_optimization
-
-urlpatterns = [
-    path('api/v1/ai/post-timing/', post_timing_optimization, name='post_timing_optimization'),
-]

@@ -19,10 +19,9 @@ logger = logging.getLogger(__name__)
 DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1")
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "production").lower()
 if DEBUG and ENVIRONMENT == "development":
-    logger.info(f"sys.path: {sys.path}")
-    logger.info(f"Current working directory: {os.getcwd()}")
-    logger.info(f"Contents of current directory: {os.listdir(os.getcwd())}")
+    logger.info("Running in debug mode in a development environment.")
     logger.info(f"DJANGO_SETTINGS_MODULE: {os.environ.get('DJANGO_SETTINGS_MODULE')}")
+    # Detailed environment and file listings have been omitted to avoid exposing sensitive data.
 
 # --- Configuration ---
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
@@ -121,6 +120,8 @@ class DeepSeekClient:
 
         except requests.exceptions.Timeout:
             raise AIConnectionError(f"Request timed out after {REQUEST_TIMEOUT} seconds.")
+        except requests.exceptions.HTTPError as e:
+            raise AIAPIError(f"HTTP error occurred: {e.response.status_code} {e.response.reason}", status_code=e.response.status_code)
         except requests.exceptions.RequestException as e:
             raise AIConnectionError(f"API request failed: {e}")
         except AIClientError:
@@ -135,19 +136,16 @@ class DeepSeekClient:
         """
         try:
             # Try to import Django components safely
-            try:
-                from client_nest.ai_services.common.signals import ai_usage_logged
-                ai_usage_logged.send(
-                    sender=self.__class__,
-                    user=user,
-                    request_type=request_type,
-                    usage_data=usage_data,
-                    response_time_ms=response_time_ms
-                )
-            except ImportError:
-                logger.warning("Django signals not available, skipping usage logging")
-            except Exception as e:
-                logger.warning(f"Failed to log AI usage: {e}")
+            from .signals import ai_usage_logged
+            ai_usage_logged.send(
+                sender=self.__class__,
+                user=user,
+                request_type=request_type,
+                usage_data=usage_data,
+                response_time_ms=response_time_ms
+            )
+        except ImportError:
+            logger.warning("Django signals not available, skipping usage logging")
         except Exception as e:
             logger.warning(f"Failed to log AI usage: {e}")
 
@@ -178,7 +176,7 @@ def main():
         logger.info("Mock usage logged: %s %s", args, kwargs)
 
     try:
-        from client_nest.ai_services.common import signals
+        from . import signals
         signals.ai_usage_logged = mock_ai_usage_logged
     except ImportError:
         pass

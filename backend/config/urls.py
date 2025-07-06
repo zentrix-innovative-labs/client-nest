@@ -55,6 +55,12 @@ urlpatterns = [
         # Social media endpoints
         path('social/', include('social_media.urls')),
         
+        # AI integration endpoints
+        path('ai/', include('ai_integration.urls')),
+        
+        # AI analytics endpoints
+        path('ai/analytics/', include('ai_services.analytics.urls')),
+        
         # Password reset endpoints (JSON API)
         path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     ])),

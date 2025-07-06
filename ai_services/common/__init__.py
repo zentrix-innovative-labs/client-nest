@@ -1,1 +1,12 @@
-# ai_services/common/__init__.py 
+"""
+Common AI services utilities and shared components.
+"""
+
+from .deepseek_client import DeepSeekClient, AIClientError, AIAPIError, AIConnectionError
+
+__all__ = [
+    'DeepSeekClient',
+    'AIClientError', 
+    'AIAPIError',
+    'AIConnectionError'
+] 

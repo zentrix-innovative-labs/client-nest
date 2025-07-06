@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'content',
     'social_media',
     'ai_integration',
+    'ai_services',
     'drf_yasg',
    # 'analytics',
     'rest_framework_simplejwt',
@@ -231,4 +232,65 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
 # =============================
+
+# ===== AI INTEGRATION CONFIGURATION =====
+# DeepSeek API pricing configuration (per 1,000 tokens)
+DEEPSEEK_PRICING = {
+    'prompt': 0.0014,      # $0.0014 per 1K prompt tokens
+    'completion': 0.0028,  # $0.0028 per 1K completion tokens
+}
+
+# OpenRouter API configuration
+OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
+OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
+
+# AI usage limits by subscription tier
+AI_USAGE_LIMITS = {
+    'free': {
+        'content_generation': 5,
+        'sentiment_analysis': 10,
+        'content_optimization': 5,
+        'total_tokens': 5000,
+    },
+    'starter': {
+        'content_generation': 50,
+        'sentiment_analysis': 100,
+        'content_optimization': 25,
+        'total_tokens': 50000,
+    },
+    'professional': {
+        'content_generation': 200,
+        'sentiment_analysis': 500,
+        'content_optimization': 100,
+        'total_tokens': 200000,
+    },
+    'business': {
+        'content_generation': 800,
+        'sentiment_analysis': 2000,
+        'content_optimization': 400,
+        'total_tokens': 800000,
+    },
+    'enterprise': {
+        'content_generation': -1,  # Unlimited
+        'sentiment_analysis': -1,
+        'content_optimization': -1,
+        'total_tokens': -1,
+    }
+}
+
+# AI model configuration
+SUPPORTED_AI_MODELS = {
+    'deepseek/deepseek-r1-0528:free': {
+        'name': 'DeepSeek R1',
+        'description': 'Free DeepSeek model via OpenRouter',
+        'max_tokens': 4096,
+        'supports_streaming': True,
+    }
+}
+
+# AI request timeout and retry configuration
+AI_REQUEST_TIMEOUT = 30  # seconds
+AI_MAX_RETRIES = 3
+AI_RETRY_DELAY = 1  # seconds
+# ======================================
 

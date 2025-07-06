@@ -4,10 +4,12 @@ from .models import AIUsageLog
 import logging
 from django.db import DatabaseError
 import decimal
-from ai_services.common.signals import ai_usage_logged
 
 # --- Add a logger ---
 logger = logging.getLogger(__name__)
+
+# Define the signal locally to avoid circular imports
+ai_usage_logged = Signal()
 
 def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decimal:
     """

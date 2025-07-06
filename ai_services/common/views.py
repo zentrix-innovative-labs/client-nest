@@ -1,8 +1,7 @@
-from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 import json
 import logging
 from client_nest.ai_services.common.deepseek_client import DeepSeekClient, AIClientError, AIAPIError, AIConnectionError
@@ -12,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 @require_http_methods(["POST"])
 @login_required
+@csrf_exempt
 def generate_content_endpoint(request):
     """
     Generate AI content using DeepSeek API.
