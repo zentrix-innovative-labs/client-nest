@@ -108,7 +108,7 @@ Resources:
   WebServerInstance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: ami-0c02fb55956c7d316  # Amazon Linux 2023 AMI for af-south-1
+      ImageId: ami-0048e3d89ffc88f05  # Amazon Linux 2023 AMI for af-south-1
       InstanceType: t3.micro
       KeyName: !Ref KeyPairName
       SubnetId: !Ref PublicSubnet
