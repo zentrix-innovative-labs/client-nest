@@ -1,0 +1,207 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'ClientNest Simple Backend Infrastructure'
+
+Parameters:
+  EnvironmentName:
+    Description: Environment name prefix
+    Type: String
+    Default: ClientNest-Dev
+  KeyPairName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instance
+    Type: AWS::EC2::KeyPair::KeyName
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  DatabasePassword:
+    Description: Password for the database
+    Type: String
+    NoEcho: true
+    MinLength: 8
+
+Resources:
+  # VPC
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-VPC
+
+  # Internet Gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-IGW
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  # Public Subnet
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-Public-Subnet
+
+  # Route Table
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName}-Public-Routes
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  # Security Group
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable SSH and HTTP access
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+
+  # EC2 Instance
+  WebServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0c02fb55956c7d316  # Amazon Linux 2023 AMI for af-south-1
+      InstanceType: t3.micro
+      KeyName: !Ref KeyPairName
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref WebServerSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-WebServer"
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install -y python3 python3-pip git
+          
+          # Create application directory
+          mkdir -p /opt/clientnest
+          cd /opt/clientnest
+          
+          # Clone the repository
+          git clone https://github.com/eddy624/client-nest.git .
+          
+          # Install Python dependencies
+          cd backend
+          pip3 install -r requirements.txt
+          
+          # Create environment file
+          cat > .env << 'EOF'
+          DJANGO_SECRET_KEY=your-secret-key-here
+          DB_NAME=postgres
+          DB_USER=postgres
+          DB_PASSWORD=your-db-password
+          DB_HOST=localhost
+          DB_PORT=5432
+          DEBUG=False
+          ALLOWED_HOSTS=clientnest.xyz,www.clientnest.xyz,api.clientnest.xyz,*
+          EOF
+          
+          # Install PostgreSQL
+          yum install -y postgresql15 postgresql15-server
+          /usr/bin/postgresql-15-setup initdb
+          systemctl enable postgresql-15
+          systemctl start postgresql-15
+          
+          # Configure PostgreSQL
+          sudo -u postgres psql -c "CREATE DATABASE clientnest;"
+          sudo -u postgres psql -c "CREATE USER clientnest WITH PASSWORD '${DatabasePassword}';"
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE clientnest TO clientnest;"
+          
+          # Update environment file with local database
+          sed -i 's/DB_HOST=localhost/DB_HOST=localhost/' .env
+          sed -i 's/DB_NAME=postgres/DB_NAME=clientnest/' .env
+          sed -i 's/DB_USER=postgres/DB_USER=clientnest/' .env
+          sed -i 's/DB_PASSWORD=your-db-password/DB_PASSWORD=${DatabasePassword}/' .env
+          
+          # Run migrations
+          python3 manage.py migrate
+          
+          # Collect static files
+          python3 manage.py collectstatic --noinput
+          
+          # Install and configure Gunicorn
+          pip3 install gunicorn
+          
+          # Create systemd service
+          cat > /etc/systemd/system/clientnest.service << 'EOF'
+          [Unit]
+          Description=ClientNest Django Application
+          After=network.target postgresql-15.service
+          
+          [Service]
+          User=root
+          WorkingDirectory=/opt/clientnest/backend
+          Environment="PATH=/opt/clientnest/backend/venv/bin"
+          ExecStart=/usr/local/bin/gunicorn --workers 3 --bind 0.0.0.0:8000 config.wsgi:application
+          Restart=always
+          
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+          
+          # Start the service
+          systemctl enable clientnest
+          systemctl start clientnest
+
+Outputs:
+  WebServerPublicIP:
+    Description: Public IP address of the web server
+    Value: !GetAtt WebServerInstance.PublicIp
+
+  WebServerInstanceId:
+    Description: Instance ID of the web server
+    Value: !Ref WebServerInstance
+
+  WebServerDNS:
+    Description: Public DNS name of the web server
+    Value: !GetAtt WebServerInstance.PublicDnsName 
