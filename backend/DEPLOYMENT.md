@@ -230,4 +230,11 @@ To update the application:
 4. Collect static files: `python manage.py collectstatic --noinput`
 5. Restart service: `sudo systemctl restart clientnest-backend`
 
-Or simply run the deployment script: `./deploy-to-clientnest.sh` 
+Or simply run the deployment script: `./deploy-to-clientnest.sh`
+
+## SSH into your server
+ssh -i your-key.pem ubuntu@13.247.190.204
+
+# Then follow the deployment steps:
+cd /var/www/clientnest/backend
+./deploy-to-clientnest.sh 
