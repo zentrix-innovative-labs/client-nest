@@ -58,4 +58,4 @@ docker run -p 8001:8000 ml_service
 
 ---
 
-For more details, see `main.py`, `recommender.py`, and `churn.py` in this directory. 
+For more details,  do see `main.py`, `recommender.py`, and `churn.py` in this directory. 
