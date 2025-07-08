@@ -11,10 +11,11 @@ from django.db import transaction
 from rest_framework.pagination import PageNumberPagination
 from .utils import toggle_comment_like
 from django.db import models
+from users.mixins import SwaggerFakeViewMixin
 
 # Create your views here.
 
-class PostViewSet(viewsets.ModelViewSet):
+class PostViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     serializer_class = PostSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -23,7 +24,7 @@ class PostViewSet(viewsets.ModelViewSet):
     ordering_fields = ['created_at', 'published_at']
     ordering = ['-created_at']
 
-    def get_queryset(self):
+    def _get_actual_queryset(self):
         return Post.objects.filter(user=self.request.user).annotate(comment_count=Count('comments'))
 
     def perform_create(self, serializer):
@@ -66,7 +67,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
         return Response(PostSerializer(post).data)
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -76,7 +77,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     ordering = ['created_at']
     pagination_class = PageNumberPagination
 
-    def get_queryset(self):
+    def _get_actual_queryset(self):
         # Show comments from posts the user can access (their own posts, public posts, or shared posts)
         qs = Comment.objects.filter(
             Q(post__user=self.request.user) | Q(post__status='published')
@@ -133,11 +134,11 @@ class CommentViewSet(viewsets.ModelViewSet):
             'like_count': like_count
         })
 
-class CommentLikeViewSet(viewsets.ModelViewSet):
+class CommentLikeViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     serializer_class = CommentLikeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
+    def _get_actual_queryset(self):
         return CommentLike.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -164,11 +165,11 @@ class CommentLikeViewSet(viewsets.ModelViewSet):
             comment.save(update_fields=['like_count'])
             comment.refresh_from_db(fields=['like_count'])
 
-class ScheduleViewSet(viewsets.ModelViewSet):
+class ScheduleViewSet(SwaggerFakeViewMixin, viewsets.ModelViewSet):
     serializer_class = ScheduleSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
+    def _get_actual_queryset(self):
         return Schedule.objects.filter(post__user=self.request.user)
 
     @action(detail=True, methods=['post'])
