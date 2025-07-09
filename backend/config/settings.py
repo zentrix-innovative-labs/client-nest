@@ -10,8 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
-from pathlib import Path
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -47,8 +47,10 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'users',
+    'content',
     'social_media',
     'ai_integration',
+    'drf_yasg',
    # 'analytics',
     'rest_framework_simplejwt',
     'django_rest_passwordreset',
@@ -56,8 +58,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -73,6 +76,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -90,13 +94,23 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-           'NAME': os.environ.get('DB_NAME', 'postgres'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),  # Set this in your .env file
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+           'NAME': os.environ.get('POSTGRES_DB', 'client-nest'),
+'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'markCole256'),
+'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+
     }
 }
+
+# Use SQLite for testing to avoid PostgreSQL connection issues
+if os.environ.get('DJANGO_TEST_ENV') == 'true':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
 
 # Cache configuration
 CACHES = {
@@ -141,7 +155,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -153,6 +168,7 @@ AUTH_USER_MODEL = 'users.User'
 
 # Django REST Framework configuration
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
@@ -201,6 +217,18 @@ EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@client-nest.local')
 
-FACEBOOK_REDIRECT_URI = 'http://localhost:8000/api/social/facebook/callback/'
-FACEBOOK_APP_ID = '632402719860654'
-FACEBOOK_APP_SECRET = 'f378887238aa323e9b927db924ac9221'
+
+# Facebook configuration (secure via environment variables)
+FACEBOOK_APP_ID = os.environ.get('FACEBOOK_APP_ID')
+FACEBOOK_APP_SECRET = os.environ.get('FACEBOOK_APP_SECRET')
+FACEBOOK_REDIRECT_URI = os.environ.get('FACEBOOK_REDIRECT_URI')
+
+# ===== CORS CONFIGURATION =====
+CORS_ALLOWED_ORIGINS = [
+    "https://www.clientnest.xyz",
+    "https://clientnest.xyz",
+    "http://localhost:3000",
+]
+CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
+# =============================
+

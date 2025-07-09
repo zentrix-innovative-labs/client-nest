@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SocialAccount, PostAnalytics
+from .models import SocialAccount, PostAnalytics, Comment
 
 class SocialAccountSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,6 +13,12 @@ class PostAnalyticsSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = PostAnalytics
-        fields = ['id', 'post', 'social_account', 'likes', 'comments', 
+        fields = ['id', 'post_id', 'social_account', 'likes', 'comments', 
                  'shares', 'reach', 'engagement_rate', 'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at'] 
+        read_only_fields = ['created_at', 'updated_at']
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        ref_name = "SocialMediaAppComment"
+        fields = '__all__' 
