@@ -41,44 +41,46 @@ class UserProfile(models.Model):
     
     # Personal Information
     date_of_birth = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, default='')
     phone_number = PhoneNumberField(blank=True, null=True)
     
     # Address Information
-    address_line_1 = models.CharField(max_length=255, blank=True)
-    address_line_2 = models.CharField(max_length=255, blank=True)
-    city = models.CharField(max_length=100, blank=True)
-    state = models.CharField(max_length=100, blank=True)
-    postal_code = models.CharField(max_length=20, blank=True)
-    country = models.CharField(max_length=100, blank=True)
+    address_line_1 = models.CharField(max_length=255, blank=True, default='')
+    address_line_2 = models.CharField(max_length=255, blank=True, default='')
+    city = models.CharField(max_length=100, blank=True, default='')
+    state = models.CharField(max_length=100, blank=True, default='')
+    postal_code = models.CharField(max_length=20, blank=True, default='')
+    country = models.CharField(max_length=100, blank=True, default='')
     
     # Professional Information
-    occupation = models.CharField(max_length=100, blank=True)
-    company = models.CharField(max_length=100, blank=True)
+    occupation = models.CharField(max_length=100, blank=True, default='')
+    company = models.CharField(max_length=100, blank=True, default='')
     education_level = models.CharField(
         max_length=20, 
         choices=EDUCATION_LEVEL_CHOICES, 
-        blank=True
+        blank=True,
+        default=''
     )
     
     # Social Information
     relationship_status = models.CharField(
         max_length=20, 
         choices=RELATIONSHIP_STATUS_CHOICES, 
-        blank=True
+        blank=True,
+        default=''
     )
-    website = models.URLField(blank=True)
+    website = models.URLField(blank=True, default='')
     
     # Social Media Links
-    facebook_url = models.URLField(blank=True)
-    twitter_url = models.URLField(blank=True)
-    linkedin_url = models.URLField(blank=True)
-    instagram_url = models.URLField(blank=True)
-    github_url = models.URLField(blank=True)
+    facebook_url = models.URLField(blank=True, default='')
+    twitter_url = models.URLField(blank=True, default='')
+    linkedin_url = models.URLField(blank=True, default='')
+    instagram_url = models.URLField(blank=True, default='')
+    github_url = models.URLField(blank=True, default='')
     
     # Interests and Preferences
-    interests = models.TextField(blank=True, help_text="Comma-separated interests")
-    bio_extended = models.TextField(blank=True, max_length=1000)
+    interests = models.TextField(blank=True, help_text="Comma-separated interests", default='')
+    bio_extended = models.TextField(blank=True, max_length=1000, default='')
     
     # Privacy Settings
     show_email = models.BooleanField(default=False)
@@ -295,7 +297,7 @@ class UserEducation(models.Model):
         blank=True,
         validators=[MinValueValidator(0.0), MaxValueValidator(4.0)]
     )
-    description = models.TextField(blank=True)
+    description = models.TextField(null=True, blank=True)
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -329,11 +331,11 @@ class UserExperience(models.Model):
     company_name = models.CharField(max_length=200)
     job_title = models.CharField(max_length=100)
     employment_type = models.CharField(max_length=20, choices=EMPLOYMENT_TYPE_CHOICES)
-    location = models.CharField(max_length=100, blank=True)
+    location = models.CharField(max_length=100, blank=True, default='')
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
     is_current = models.BooleanField(default=False)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, default='')
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
