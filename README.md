@@ -67,18 +67,40 @@ ClientNest combines traditional CRM functionality with cutting-edge AI capabilit
 2. **Backend Setup**
    ```bash
    cd backend
-   python -m venv venv
+   python -m venv venv  # Or use python -m venv .venv for consistency
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
+   cp .env.example .env  # Copy the example env file and edit as needed
+   # Edit .env with your configuration (see below for required variables)
    python manage.py migrate
    python manage.py runserver
    ```
 
+#### Required Environment Variables
+The backend requires a `.env` file in the `backend/` directory. You can copy `backend/.env.example` and fill in your values. The following variables are required:
+
+| Variable              | Description                                 |
+|-----------------------|---------------------------------------------|
+| DJANGO_SECRET_KEY     | Django secret key (required)                |
+| POSTGRES_DB           | Postgres database name                      |
+| POSTGRES_USER         | Postgres username                           |
+| POSTGRES_PASSWORD     | Postgres password                           |
+| POSTGRES_HOST         | Postgres host (default: localhost)          |
+| POSTGRES_PORT         | Postgres port (default: 5432)               |
+| EMAIL_HOST            | SMTP server host                            |
+| EMAIL_PORT            | SMTP server port                            |
+| EMAIL_USE_TLS         | Use TLS for email (True/False)              |
+| EMAIL_USE_SSL         | Use SSL for email (True/False)              |
+| EMAIL_HOST_USER       | SMTP username                               |
+| EMAIL_HOST_PASSWORD   | SMTP password                               |
+| DEFAULT_FROM_EMAIL    | Default from email address                  |
+| FACEBOOK_APP_ID       | Facebook App ID (optional)                  |
+| FACEBOOK_APP_SECRET   | Facebook App Secret (optional)              |
+| FACEBOOK_REDIRECT_URI | Facebook Redirect URI (optional)            |
+
 3. **Frontend Setup**
    ```bash
-   cd frontend
-   npm install
-   npm run dev
+   # The frontend directory is not present in this repository. If/when it is added, follow the instructions in that directory.
    ```
 
 4. **Database Setup**
@@ -93,6 +115,8 @@ ClientNest combines traditional CRM functionality with cutting-edge AI capabilit
    ```
 
 ### Docker Development
+
+> **Note:** If you wish to use Docker Compose for Postgres/Redis, ensure a `docker-compose.yml` file is present. If not, you must install and run Postgres and Redis manually.
 
 ```bash
 # Start all services
