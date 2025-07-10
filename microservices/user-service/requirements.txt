@@ -22,7 +22,7 @@ django-filter==23.3
 python-decouple==3.8
 
 # Image Processing
-Pillow
+Pillow==10.4.0
 
 # Caching
 redis==5.0.1
@@ -58,7 +58,3 @@ django-crispy-forms==2.1
 
 # Monitoring
 django-health-check==3.17.0
-
-python-decouple
-django-phonenumber-field
-phonenumbers
