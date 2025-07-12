@@ -34,6 +34,7 @@ class ServiceDiscovery:
                 f"{self.service_url}/api/ai/optimize/hashtags/",
                 f"{self.service_url}/api/ai/schedule/optimal/",
                 f"{self.service_url}/api/ai/token/usage/",
+                f"{self.service_url}/api/ai/usage/stats/",
                 f"{self.service_url}/api/ai/models/status/"
             ],
             'capabilities': [
@@ -42,6 +43,7 @@ class ServiceDiscovery:
                 'hashtag_optimization',
                 'optimal_posting_time',
                 'token_management',
+                'usage_statistics',
                 'quality_assurance'
             ],
             'version': '1.0.0',
@@ -197,6 +199,11 @@ class MonitoringIntegration:
                 {
                     'name': 'token_usage',
                     'url': '/api/ai/token/usage/',
+                    'status': 'active'
+                },
+                {
+                    'name': 'usage_stats',
+                    'url': '/api/ai/usage/stats/',
                     'status': 'active'
                 },
                 {

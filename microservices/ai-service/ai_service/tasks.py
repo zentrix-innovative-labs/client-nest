@@ -2,11 +2,12 @@ from celery import shared_task
 from django.conf import settings
 import requests
 import json
+from content_generation.prompts import get_base_system_prompt, get_user_prompt
 
 @shared_task
 def generate_content_task(topic, platform='general', tone='professional'):
-    system_prompt = f"You are an expert social media content creator for {platform}. Use a {tone} tone. Return a JSON object with keys: content, hashtags, call_to_action, suggestions, variations, quality_score, safety_check, readability_score."
-    user_prompt = f"Topic: {topic}\nGenerate a post."
+    system_prompt = get_base_system_prompt(platform, tone)
+    user_prompt = get_user_prompt(topic, 'post')
     payload = {
         "model": settings.AI_MODELS['DEEPSEEK']['MODEL_NAME'],
         "messages": [
