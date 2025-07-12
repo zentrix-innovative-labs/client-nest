@@ -9,9 +9,9 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
-    raise ValueError("SECRET_KEY environment variable is required")
+    raise ValueError("The SECRET_KEY environment variable is required but was not found or is empty.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
@@ -132,6 +132,9 @@ REST_FRAMEWORK = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
 
+# Service Configuration
+SERVICE_PORT = os.environ.get('SERVICE_PORT', '8005')
+
 # Service Communication
 SERVICE_URLS = {
     'USER_SERVICE': os.environ.get('USER_SERVICE_URL', 'http://localhost:8001'),
@@ -185,6 +188,9 @@ TOKEN_BUDGET = {
     'WARNING_THRESHOLD': float(os.environ.get('TOKEN_WARNING_THRESHOLD', '0.8')),   # Warn at 80% usage
     'EMERGENCY_THRESHOLD': float(os.environ.get('TOKEN_EMERGENCY_THRESHOLD', '0.95')), # Stop at 95% usage
 }
+
+# Default token fallback for cost calculation
+DEFAULT_TOKEN_FALLBACK = 234  # Estimated tokens for cost calculation fallback
 
 # Content Generation Settings
 CONTENT_GENERATION = {

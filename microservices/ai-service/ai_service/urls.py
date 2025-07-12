@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
+from django.conf import settings
 from .views import (
     ContentGenerationView,
     SentimentAnalysisView,
@@ -17,7 +18,7 @@ def health_check(request):
         'status': 'healthy',
         'service': 'ai-service',
         'version': '1.0.0',
-        'port': '8005'
+        'port': settings.SERVICE_PORT
     })
 
 urlpatterns = [

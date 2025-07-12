@@ -29,7 +29,14 @@ def generate_content_task(topic, platform='general', tone='professional'):
     response.raise_for_status()
     data = response.json()
     raw_content = data["choices"][0]["message"]["content"]
-    return json.loads(raw_content)
+    try:
+        return json.loads(raw_content)
+    except json.JSONDecodeError as e:
+        return {
+            "error": "Invalid JSON content returned by the AI service.",
+            "details": str(e),
+            "raw_content": raw_content
+        }
 
 @shared_task
 def sentiment_analysis_task(text):
@@ -59,4 +66,11 @@ def sentiment_analysis_task(text):
     response.raise_for_status()
     data = response.json()
     raw_content = data["choices"][0]["message"]["content"]
-    return json.loads(raw_content) 
+    try:
+        return json.loads(raw_content)
+    except json.JSONDecodeError as e:
+        return {
+            "error": "Invalid JSON content returned by the AI service.",
+            "details": str(e),
+            "raw_content": raw_content
+        } 
