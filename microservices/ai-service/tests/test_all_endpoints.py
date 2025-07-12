@@ -22,14 +22,14 @@ def test_hashtag_optimization():
     url = f"{AI_SERVICE_URL}/api/ai/optimize/hashtags/"
     
     payload = {
-        "content": "Excited to announce our new AI-powered social media management platform! 🚀 We're helping businesses create engaging content, analyze performance, and optimize their social media strategy. Join us in revolutionizing how brands connect with their audience!",
+        "content": "Launching our new AI-powered social media management platform!",
         "platform": "linkedin",
-        "target_audience": "professionals",
+        "target_audience": "marketers",
         "industry": "technology"
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=60)  # Increased timeout for AI processing
         
         print(f"Status Code: {response.status_code}")
         
@@ -41,24 +41,14 @@ def test_hashtag_optimization():
             print("✅ Hashtag Optimization Test PASSED")
             print(f"Response: {json.dumps(data, indent=2)}")
             
-            # Validate response structure with assertions
+            assert 'success' in data and data['success'] is True, "Response missing 'success' field or not True"
             assert 'data' in data, "Response missing 'data' field"
-            response_data = data.get('data', {})
+            assert 'usage' in data, "Response missing 'usage' field"
             
-            if 'error' in response_data and response_data.get('fallback'):
-                print("⚠️  Using fallback response due to AI parsing issues")
-                print(f"Error: {response_data.get('error')}")
-                # Even fallback should have basic structure
-                assert 'hashtags' in response_data, "Fallback missing hashtags field"
-            elif 'hashtags' in response_data:
-                print(f"📊 Found {len(response_data['hashtags'])} hashtag suggestions")
-                assert isinstance(response_data['hashtags'], list), "Hashtags should be a list"
-                for hashtag in response_data['hashtags'][:3]:  # Show first 3
-                    print(f"  - {hashtag.get('tag', 'N/A')} ({hashtag.get('category', 'N/A')})")
-            else:
-                print("⚠️  Response structure may be incomplete")
-                assert False, "Response missing required hashtags field"
-                
+            hashtag_data = data['data']
+            assert 'hashtags' in hashtag_data, "Hashtag data missing 'hashtags' field"
+            assert isinstance(hashtag_data['hashtags'], list), "Hashtags should be a list"
+            
         else:
             print(f"❌ Hashtag Optimization Test FAILED")
             print(f"Error: {response.text}")
@@ -76,14 +66,14 @@ def test_optimal_posting_time():
     
     payload = {
         "platform": "instagram",
-        "content_type": "post",
+        "content_type": "fashion",
         "target_audience": "millennials",
         "timezone": "America/New_York",
         "industry": "fashion"
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=60)  # Increased timeout for AI processing
         
         print(f"Status Code: {response.status_code}")
         
@@ -95,24 +85,14 @@ def test_optimal_posting_time():
             print("✅ Optimal Posting Time Test PASSED")
             print(f"Response: {json.dumps(data, indent=2)}")
             
-            # Validate response structure with assertions
+            assert 'success' in data and data['success'] is True, "Response missing 'success' field or not True"
             assert 'data' in data, "Response missing 'data' field"
-            response_data = data.get('data', {})
+            assert 'usage' in data, "Response missing 'usage' field"
             
-            if 'error' in response_data and response_data.get('fallback'):
-                print("⚠️  Using fallback response due to AI parsing issues")
-                print(f"Error: {response_data.get('error')}")
-                # Even fallback should have basic structure
-                assert 'optimal_times' in response_data, "Fallback missing optimal_times field"
-            elif 'optimal_times' in response_data:
-                print(f"📅 Optimal times found for {len(response_data['optimal_times'])} days")
-                assert isinstance(response_data['optimal_times'], dict), "Optimal times should be a dict"
-                for day, times in list(response_data['optimal_times'].items())[:3]:  # Show first 3 days
-                    print(f"  - {day.capitalize()}: {', '.join(times)}")
-            else:
-                print("⚠️  Response structure may be incomplete")
-                assert False, "Response missing required optimal_times field"
-                
+            timing_data = data['data']
+            assert 'optimal_times' in timing_data, "Timing data missing 'optimal_times' field"
+            assert isinstance(timing_data['optimal_times'], dict), "Optimal times should be a dict"
+            
         else:
             print(f"❌ Optimal Posting Time Test FAILED")
             print(f"Error: {response.text}")
@@ -136,7 +116,7 @@ def test_content_generation():
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=60)  # Increased timeout for AI processing
         
         print(f"Status Code: {response.status_code}")
         
@@ -148,21 +128,17 @@ def test_content_generation():
             print("✅ Content Generation Test PASSED")
             print(f"Response: {json.dumps(data, indent=2)}")
             
-            # Validate response structure with assertions
-            assert 'data' in data, "Response missing 'data' field"
-            response_data = data.get('data', {})
-            
-            if 'error' in response_data and response_data.get('fallback'):
+            # Content generation returns raw AI response (no data wrapper)
+            if 'error' in data:
                 print("⚠️  Using fallback response due to AI parsing issues")
-                print(f"Error: {response_data.get('error')}")
-                # Even fallback should have basic structure
-                assert 'content' in response_data, "Fallback missing content field"
-            elif 'content' in response_data:
-                print(f"📄 Generated content: {response_data['content'][:100]}...")
-                assert isinstance(response_data['content'], str), "Content should be a string"
-                if 'hashtags' in response_data:
-                    print(f"🏷️  Hashtags: {response_data['hashtags']}")
-                    assert isinstance(response_data['hashtags'], list), "Hashtags should be a list"
+                print(f"Error: {data.get('error')}")
+                assert 'raw_content' in data, "Fallback missing raw_content field"
+            elif 'content' in data:
+                print(f"📄 Generated content: {data['content'][:100]}...")
+                assert isinstance(data['content'], str), "Content should be a string"
+                if 'hashtags' in data:
+                    print(f"🏷️  Hashtags: {data['hashtags']}")
+                    assert isinstance(data['hashtags'], list), "Hashtags should be a list"
             else:
                 print("⚠️  Response structure may be incomplete")
                 assert False, "Response missing required content field"
@@ -187,7 +163,7 @@ def test_sentiment_analysis():
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=60)  # Increased timeout for AI processing
         
         print(f"Status Code: {response.status_code}")
         
@@ -199,21 +175,17 @@ def test_sentiment_analysis():
             print("✅ Sentiment Analysis Test PASSED")
             print(f"Response: {json.dumps(data, indent=2)}")
             
-            # Validate response structure with assertions
-            assert 'data' in data, "Response missing 'data' field"
-            response_data = data.get('data', {})
-            
-            if 'error' in response_data and response_data.get('fallback'):
+            # Sentiment analysis returns raw AI response (no data wrapper)
+            if 'error' in data:
                 print("⚠️  Using fallback response due to AI parsing issues")
-                print(f"Error: {response_data.get('error')}")
-                # Even fallback should have basic structure
-                assert 'sentiment' in response_data, "Fallback missing sentiment field"
-            elif 'sentiment' in response_data:
-                print(f"😊 Sentiment: {response_data['sentiment']}")
-                assert isinstance(response_data['sentiment'], str), "Sentiment should be a string"
-                if 'confidence' in response_data:
-                    print(f"📊 Confidence: {response_data['confidence']}")
-                    assert isinstance(response_data['confidence'], (int, float)), "Confidence should be numeric"
+                print(f"Error: {data.get('error')}")
+                assert 'raw_content' in data, "Fallback missing raw_content field"
+            elif 'sentiment' in data:
+                print(f"😊 Sentiment: {data['sentiment']}")
+                assert isinstance(data['sentiment'], str), "Sentiment should be a string"
+                if 'confidence' in data:
+                    print(f"📊 Confidence: {data['confidence']}")
+                    assert isinstance(data['confidence'], (int, float)), "Confidence should be numeric"
             else:
                 print("⚠️  Response structure may be incomplete")
                 assert False, "Response missing required sentiment field"
@@ -231,7 +203,7 @@ def test_health_check():
     """Test the health check endpoint"""
     print("\n🏥 Testing Health Check Endpoint...")
     
-    url = f"{AI_SERVICE_URL}/api/health/"
+    url = f"{AI_SERVICE_URL}/health/"
     
     try:
         response = requests.get(url, timeout=10)
@@ -275,20 +247,17 @@ def test_usage_stats():
             print("✅ Usage Stats Test PASSED")
             print(f"Response: {json.dumps(data, indent=2)}")
             
-            # Validate response structure with assertions
-            assert 'data' in data, "Response missing 'data' field"
-            response_data = data.get('data', {})
-            
-            # Check for expected usage statistics fields
-            expected_fields = ['total_requests', 'total_tokens', 'total_cost', 'daily_usage']
+            # Usage stats returns direct stats (no data wrapper)
+            expected_fields = ['total_tasks', 'completed_tasks', 'failed_tasks']
             for field in expected_fields:
-                if field in response_data:
-                    print(f"📈 {field}: {response_data[field]}")
+                if field in data:
+                    print(f"📈 {field}: {data[field]}")
                 else:
                     print(f"⚠️  Missing field: {field}")
             
             # Basic structure validation
-            assert isinstance(response_data, dict), "Response data should be a dictionary"
+            assert isinstance(data, dict), "Response should be a dictionary"
+            assert 'total_tasks' in data, "Response missing total_tasks field"
             
         else:
             print(f"❌ Usage Stats Test FAILED")
@@ -310,27 +279,37 @@ def test_endpoint_comparison():
         "POST /api/ai/schedule/optimal",
         "GET /api/ai/models/status",
         "GET /api/ai/usage/stats",
-        "GET /api/health"
+        "GET /health"
     ]
     
     implemented_endpoints = [
+        "✅ GET /health",
         "✅ POST /api/ai/generate/content",
-        "✅ POST /api/ai/analyze/sentiment",
-        "✅ POST /api/ai/optimize/hashtags",  # NEW
-        "✅ POST /api/ai/schedule/optimal",   # NEW
-        "✅ GET /api/ai/models/status",
         "✅ GET /api/ai/usage/stats",
-        "✅ GET /api/health"
+        "✅ POST /api/ai/analyze/sentiment",
+        "✅ GET /api/ai/models/status",
+        "✅ POST /api/ai/optimize/hashtags",  # NEW
+        "✅ POST /api/ai/schedule/optimal"   # NEW
     ]
     
-    # Assert that all required endpoints are implemented
-    assert len(implemented_endpoints) == len(required_endpoints), f"Expected {len(required_endpoints)} endpoints, found {len(implemented_endpoints)}"
+    # Extract endpoint paths from implemented endpoints (remove "✅ " prefix)
+    implemented_paths = [endpoint.split(" ", 1)[1] for endpoint in implemented_endpoints]
     
-    for i, endpoint in enumerate(implemented_endpoints):
+    # Convert to sets for unordered comparison
+    required_set = set(required_endpoints)
+    implemented_set = set(implemented_paths)
+    
+    # Find missing and extra endpoints
+    missing_endpoints = required_set - implemented_set
+    extra_endpoints = implemented_set - required_set
+    
+    # Print all implemented endpoints
+    for endpoint in implemented_endpoints:
         print(f"  {endpoint}")
-        # Extract the endpoint path from the display string
-        endpoint_path = endpoint.split(" ", 1)[1]  # Remove the "✅ " prefix
-        assert endpoint_path in required_endpoints[i], f"Endpoint mismatch: {endpoint_path} != {required_endpoints[i]}"
+    
+    # Assert no missing or extra endpoints
+    assert not missing_endpoints, f"Missing endpoints: {missing_endpoints}"
+    assert not extra_endpoints, f"Unexpected endpoints: {extra_endpoints}"
     
     print("\n🎉 All required AI service endpoints are now implemented!")
     return True

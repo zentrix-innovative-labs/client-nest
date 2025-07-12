@@ -71,7 +71,7 @@ class HashtagOptimizationView(APIView):
             client = DeepSeekClient()
             
             # Create system and user prompts for hashtag optimization
-            system_prompt = """You are a social media hashtag optimization expert. Analyze content and suggest optimal hashtags for maximum engagement."""
+            system_prompt = """You are a social media hashtag optimization expert. Analyze content and suggest optimal hashtags for maximum engagement. IMPORTANT: Return ONLY valid JSON without any markdown formatting or code blocks."""
             
             user_prompt = generate_hashtag_optimization_prompt(content, platform, target_audience, industry)
             
@@ -149,7 +149,7 @@ class OptimalPostingTimeView(APIView):
             client = DeepSeekClient()
             
             # Create system and user prompts for optimal posting time analysis
-            system_prompt = """You are a social media timing optimization expert. Analyze platforms and suggest optimal posting times for maximum engagement."""
+            system_prompt = """You are a social media timing optimization expert. Analyze platforms and suggest optimal posting times for maximum engagement. IMPORTANT: Return ONLY valid JSON without any markdown formatting or code blocks."""
             
             user_prompt = generate_optimal_posting_time_prompt(platform, content_type, target_audience, timezone, industry)
             

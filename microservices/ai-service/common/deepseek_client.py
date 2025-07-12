@@ -206,7 +206,18 @@ class DeepSeekClient:
                 except json.JSONDecodeError:
                     # If JSON parsing fails, try to extract JSON from the response
                     import re
-                    json_match = re.search(r'\{.*\}', raw_content, re.DOTALL)
+                    
+                    # First try to find JSON between markdown code blocks
+                    json_match = re.search(r'```json\s*(\{.*?\})\s*```', raw_content, re.DOTALL)
+                    if json_match:
+                        try:
+                            content_payload = json.loads(json_match.group(1))
+                            return content_payload
+                        except json.JSONDecodeError:
+                            pass
+                    
+                    # Try to find any JSON object in the content
+                    json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', raw_content, re.DOTALL)
                     if json_match:
                         try:
                             content_payload = json.loads(json_match.group())
@@ -255,7 +266,7 @@ class DeepSeekClient:
         Analyzes sentiment with optimized token usage.
         """
         # Use very short prompts for sentiment analysis
-        system_prompt = "Analyze sentiment. Return JSON: sentiment (positive/negative/neutral), confidence (0-1), emotions (array), urgency (low/medium/high), suggested_response_tone (string)."
+        system_prompt = "Analyze sentiment. Return ONLY valid JSON without any markdown formatting or code blocks: sentiment (positive/negative/neutral), confidence (0-1), emotions (array), urgency (low/medium/high), suggested_response_tone (string)."
         
         # Truncate text if too long
         if len(text) > 200:
@@ -324,7 +335,18 @@ class DeepSeekClient:
                 except json.JSONDecodeError:
                     # If JSON parsing fails, try to extract JSON from the response
                     import re
-                    json_match = re.search(r'\{.*\}', raw_content, re.DOTALL)
+                    
+                    # First try to find JSON between markdown code blocks
+                    json_match = re.search(r'```json\s*(\{.*?\})\s*```', raw_content, re.DOTALL)
+                    if json_match:
+                        try:
+                            sentiment_payload = json.loads(json_match.group(1))
+                            return sentiment_payload
+                        except json.JSONDecodeError:
+                            pass
+                    
+                    # Try to find any JSON object in the content
+                    json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', raw_content, re.DOTALL)
                     if json_match:
                         try:
                             sentiment_payload = json.loads(json_match.group())

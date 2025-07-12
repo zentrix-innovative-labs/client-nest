@@ -32,7 +32,8 @@ Please provide:
 3. Platform-specific hashtag strategies
 4. Estimated reach for each hashtag category
 
-Format the response as JSON with the following structure:
+IMPORTANT: Return ONLY valid JSON without any markdown formatting or code blocks.
+
 {{
     "hashtags": [
         {{
@@ -83,7 +84,8 @@ Please provide:
 3. Audience behavior patterns
 4. Industry-specific timing recommendations
 
-Format the response as JSON with the following structure:
+IMPORTANT: Return ONLY valid JSON without any markdown formatting or code blocks.
+
 {{
     "optimal_times": {{
         "monday": ["09:00", "12:00", "18:00"],
