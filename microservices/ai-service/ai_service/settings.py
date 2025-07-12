@@ -1,17 +1,22 @@
 import os
 from pathlib import Path
-from decouple import config
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-ai-service-key')
+SECRET_KEY = os.environ['SECRET_KEY']
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable is required")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -28,12 +33,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_extensions',
     'celery',
+    'django_celery_results',
     
     # Local apps
     'content_generation',
     'sentiment_analysis',
-    'content_optimization',
-    'ai_models',
 ]
 
 MIDDLEWARE = [
@@ -68,14 +72,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ai_service.wsgi.application'
 
 # Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='ai_service_db'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default='password'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5435'),
+        'NAME': os.environ['DB_NAME'],
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PASSWORD'],
+        'HOST': os.environ['DB_HOST'],
+        'PORT': os.environ['DB_PORT'],
     }
 }
 
@@ -124,83 +130,168 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
 
 # Service Communication
 SERVICE_URLS = {
-    'USER_SERVICE': config('USER_SERVICE_URL', default='http://localhost:8001'),
-    'CONTENT_SERVICE': config('CONTENT_SERVICE_URL', default='http://localhost:8002'),
-    'SOCIAL_SERVICE': config('SOCIAL_SERVICE_URL', default='http://localhost:8003'),
-    'ANALYTICS_SERVICE': config('ANALYTICS_SERVICE_URL', default='http://localhost:8004'),
-    'NOTIFICATION_SERVICE': config('NOTIFICATION_SERVICE_URL', default='http://localhost:8006'),
-    'QUEUE_SERVICE': config('QUEUE_SERVICE_URL', default='http://localhost:8007'),
-    'SECURITY_SERVICE': config('SECURITY_SERVICE_URL', default='http://localhost:8008'),
-    'FILE_SERVICE': config('FILE_SERVICE_URL', default='http://localhost:8009'),
-    'WEBHOOK_SERVICE': config('WEBHOOK_SERVICE_URL', default='http://localhost:8010'),
+    'USER_SERVICE': os.environ.get('USER_SERVICE_URL', 'http://localhost:8001'),
+    'CONTENT_SERVICE': os.environ.get('CONTENT_SERVICE_URL', 'http://localhost:8002'),
+    'SOCIAL_SERVICE': os.environ.get('SOCIAL_SERVICE_URL', 'http://localhost:8003'),
+    'ANALYTICS_SERVICE': os.environ.get('ANALYTICS_SERVICE_URL', 'http://localhost:8004'),
+    'NOTIFICATION_SERVICE': os.environ.get('NOTIFICATION_SERVICE_URL', 'http://localhost:8006'),
+    'QUEUE_SERVICE': os.environ.get('QUEUE_SERVICE_URL', 'http://localhost:8007'),
+    'SECURITY_SERVICE': os.environ.get('SECURITY_SERVICE_URL', 'http://localhost:8008'),
+    'FILE_SERVICE': os.environ.get('FILE_SERVICE_URL', 'http://localhost:8009'),
+    'WEBHOOK_SERVICE': os.environ.get('WEBHOOK_SERVICE_URL', 'http://localhost:8010'),
 }
 
 # AI Model Configuration
 AI_MODELS = {
     'DEEPSEEK': {
-        'API_KEY': config('DEEPSEEK_API_KEY', default=''),
-        'BASE_URL': config('DEEPSEEK_BASE_URL', default='https://api.deepseek.com'),
-        'MODEL_NAME': config('DEEPSEEK_MODEL', default='deepseek-chat'),
-        'MAX_TOKENS': config('DEEPSEEK_MAX_TOKENS', default=4000, cast=int),
-        'TEMPERATURE': config('DEEPSEEK_TEMPERATURE', default=0.7, cast=float),
+        'API_KEY': os.environ.get('DEEPSEEK_API_KEY', ''),
+        'BASE_URL': os.environ.get('DEEPSEEK_BASE_URL', 'https://api.deepseek.com'),
+        'MODEL_NAME': os.environ.get('DEEPSEEK_MODEL', 'deepseek-chat'),
+        'MAX_TOKENS': int(os.environ.get('DEEPSEEK_MAX_TOKENS', '4000')),
+        'TEMPERATURE': float(os.environ.get('DEEPSEEK_TEMPERATURE', '0.7')),
     },
     'OPENAI': {
-        'API_KEY': config('OPENAI_API_KEY', default=''),
-        'MODEL_NAME': config('OPENAI_MODEL', default='gpt-3.5-turbo'),
-        'MAX_TOKENS': config('OPENAI_MAX_TOKENS', default=4000, cast=int),
-        'TEMPERATURE': config('OPENAI_TEMPERATURE', default=0.7, cast=float),
+        'API_KEY': os.environ.get('OPENAI_API_KEY', ''),
+        'MODEL_NAME': os.environ.get('OPENAI_MODEL', 'gpt-3.5-turbo'),
+        'MAX_TOKENS': int(os.environ.get('OPENAI_MAX_TOKENS', '4000')),
+        'TEMPERATURE': float(os.environ.get('OPENAI_TEMPERATURE', '0.7')),
     },
     'ANTHROPIC': {
-        'API_KEY': config('ANTHROPIC_API_KEY', default=''),
-        'MODEL_NAME': config('ANTHROPIC_MODEL', default='claude-3-sonnet-20240229'),
-        'MAX_TOKENS': config('ANTHROPIC_MAX_TOKENS', default=4000, cast=int),
-        'TEMPERATURE': config('ANTHROPIC_TEMPERATURE', default=0.7, cast=float),
+        'API_KEY': os.environ.get('ANTHROPIC_API_KEY', ''),
+        'MODEL_NAME': os.environ.get('ANTHROPIC_MODEL', 'claude-3-sonnet-20240229'),
+        'MAX_TOKENS': int(os.environ.get('ANTHROPIC_MAX_TOKENS', '4000')),
+        'TEMPERATURE': float(os.environ.get('ANTHROPIC_TEMPERATURE', '0.7')),
     },
+}
+
+# DeepSeek Pricing Configuration
+DEEPSEEK_PRICING = {
+    "content_generation": 0.01,  # Example: $0.01 per request
+    "sentiment_analysis": 0.005,  # Example: $0.005 per request
+    "prompt": 0.001,  # Cost per 1000 prompt tokens
+    "completion": 0.002,  # Cost per 1000 completion tokens
+    # Add other endpoints as needed
+}
+
+# Token Optimization Settings (for 1M token budget)
+TOKEN_BUDGET = {
+    'TOTAL_TOKENS': int(os.environ.get('TOKEN_BUDGET_TOTAL', '1000000')),  # 1M tokens
+    'DAILY_LIMIT': int(os.environ.get('TOKEN_BUDGET_DAILY', '50000')),      # 50K tokens per day
+    'REQUEST_LIMIT': int(os.environ.get('TOKEN_BUDGET_REQUEST_LIMIT', '2000')),      # Max tokens per request
+    'WARNING_THRESHOLD': float(os.environ.get('TOKEN_WARNING_THRESHOLD', '0.8')),   # Warn at 80% usage
+    'EMERGENCY_THRESHOLD': float(os.environ.get('TOKEN_EMERGENCY_THRESHOLD', '0.95')), # Stop at 95% usage
 }
 
 # Content Generation Settings
 CONTENT_GENERATION = {
-    'DEFAULT_MODEL': config('DEFAULT_AI_MODEL', default='DEEPSEEK'),
-    'FALLBACK_MODEL': config('FALLBACK_AI_MODEL', default='OPENAI'),
-    'MAX_RETRIES': config('AI_MAX_RETRIES', default=3, cast=int),
-    'TIMEOUT_SECONDS': config('AI_TIMEOUT_SECONDS', default=30, cast=int),
-    'RATE_LIMIT_PER_MINUTE': config('AI_RATE_LIMIT_PER_MINUTE', default=60, cast=int),
+    'DEFAULT_MODEL': os.environ.get('DEFAULT_AI_MODEL', 'DEEPSEEK'),
+    'FALLBACK_MODEL': os.environ.get('FALLBACK_AI_MODEL', 'OPENAI'),
+    'MAX_RETRIES': int(os.environ.get('AI_MAX_RETRIES', '3')),
+    'TIMEOUT_SECONDS': int(os.environ.get('AI_TIMEOUT_SECONDS', '30')),
+    'RATE_LIMIT_PER_MINUTE': int(os.environ.get('AI_RATE_LIMIT_PER_MINUTE', '60')),
+    # Token optimization settings
+    'MAX_TOKENS_PER_REQUEST': int(os.environ.get('AI_MAX_TOKENS_PER_REQUEST', '1500')),  # Reduced from 800
+    'OPTIMIZE_PROMPTS': True,
+    'USE_SHORT_PROMPTS': True,
+    'CACHE_RESPONSES': True,
 }
 
 # Redis Configuration
-REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/3')
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/3')
 
 # Celery Configuration
 CELERY_BROKER_URL = REDIS_URL
-CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_RESULT_BACKEND = 'django-db'
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
-# Logging
+# Django Celery Results
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'default'
+
+# Additional Environment Variables
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+SERVICE_NAME = 'ai-service'
+SERVICE_VERSION = '1.0.0'
+SERVICE_PORT = 8005
+
+# Security Settings
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
+
+# Logging Configuration
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'file': {
-            'level': 'INFO',
+            'level': LOG_LEVEL,
             'class': 'logging.FileHandler',
             'filename': 'ai_service.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': LOG_LEVEL,
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
-            'level': 'INFO',
+            'handlers': ['file', 'console'],
+            'level': LOG_LEVEL,
+            'propagate': True,
+        },
+        'content_generation': {
+            'handlers': ['file', 'console'],
+            'level': LOG_LEVEL,
+            'propagate': True,
+        },
+        'common': {
+            'handlers': ['file', 'console'],
+            'level': LOG_LEVEL,
             'propagate': True,
         },
     },
 }
+
+# ===== CONFIGURATION VALIDATION =====
+def validate_configuration():
+    """Validate that all required configuration is present"""
+    required_vars = [
+        'SECRET_KEY',
+        'DB_NAME',
+        'DB_USER', 
+        'DB_PASSWORD',
+        'DEEPSEEK_API_KEY',
+    ]
+    
+    missing_vars = []
+    for var in required_vars:
+        if not os.environ.get(var, ''):
+            missing_vars.append(var)
+    
+    if missing_vars:
+        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
+
+# Validate configuration on startup
+validate_configuration()
