@@ -24,7 +24,7 @@ class ContentGenerationResponseSerializer(serializers.Serializer):
     hashtags = serializers.ListField(child=serializers.CharField())
     call_to_action = serializers.CharField()
     suggestions = serializers.ListField(child=serializers.CharField(), required=False)
-    variations = serializers.ListField(child=serializers.CharField(), required=False)
+    variations = serializers.ListField(child=serializers.DictField(), required=False)  # Changed to DictField
     quality_score = serializers.IntegerField()
     safety_check = serializers.DictField()
     readability_score = serializers.FloatField()

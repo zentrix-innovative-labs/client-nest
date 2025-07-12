@@ -27,7 +27,9 @@ def test_content_generation():
         print("✅ DeepSeek client initialized successfully")
     except Exception as e:
         print(f"❌ Error initializing client: {e}")
-        return
+        return False
+    
+    test_results = []
     
     # Test 1: LinkedIn Professional Post
     print("\n📝 Test 1: LinkedIn Professional Post")
@@ -43,8 +45,17 @@ def test_content_generation():
         print(f"✅ Hashtags: {result['hashtags']}")
         print(f"✅ Quality Score: {result['quality_score']}")
         print(f"✅ Call to Action: {result['call_to_action']}")
+        
+        # Assertions
+        assert 'content' in result, "Content field missing"
+        assert 'hashtags' in result, "Hashtags field missing"
+        assert 'quality_score' in result, "Quality score missing"
+        assert isinstance(result['content'], str), "Content should be string"
+        assert isinstance(result['hashtags'], list), "Hashtags should be list"
+        test_results.append(True)
     except Exception as e:
         print(f"❌ Error: {e}")
+        test_results.append(False)
     
     # Test 2: Twitter Casual Post
     print("\n🐦 Test 2: Twitter Casual Post")
@@ -59,8 +70,14 @@ def test_content_generation():
         print(f"✅ Content: {result['content']}")
         print(f"✅ Hashtags: {result['hashtags']}")
         print(f"✅ Quality Score: {result['quality_score']}")
+        
+        # Assertions
+        assert 'content' in result, "Content field missing"
+        assert isinstance(result['content'], str), "Content should be string"
+        test_results.append(True)
     except Exception as e:
         print(f"❌ Error: {e}")
+        test_results.append(False)
     
     # Test 3: Instagram Inspirational Post
     print("\n📸 Test 3: Instagram Inspirational Post")
@@ -75,8 +92,14 @@ def test_content_generation():
         print(f"✅ Content: {result['content']}")
         print(f"✅ Hashtags: {result['hashtags']}")
         print(f"✅ Call to Action: {result['call_to_action']}")
+        
+        # Assertions
+        assert 'content' in result, "Content field missing"
+        assert 'call_to_action' in result, "Call to action missing"
+        test_results.append(True)
     except Exception as e:
         print(f"❌ Error: {e}")
+        test_results.append(False)
     
     # Test 4: Facebook Friendly Post
     print("\n📘 Test 4: Facebook Friendly Post")
@@ -91,8 +114,15 @@ def test_content_generation():
         print(f"✅ Content: {result['content'][:100]}...")
         print(f"✅ Hashtags: {result['hashtags']}")
         print(f"✅ Variations: {len(result['variations'])} variations")
+        
+        # Assertions
+        assert 'content' in result, "Content field missing"
+        assert 'variations' in result, "Variations field missing"
+        assert isinstance(result['variations'], list), "Variations should be list"
+        test_results.append(True)
     except Exception as e:
         print(f"❌ Error: {e}")
+        test_results.append(False)
     
     # Test 5: Sentiment Analysis
     print("\n🧠 Test 5: Sentiment Analysis")
@@ -104,8 +134,15 @@ def test_content_generation():
         print(f"✅ Sentiment: {sentiment_result['sentiment']}")
         print(f"✅ Confidence: {sentiment_result['confidence']}")
         print(f"✅ Emotions: {sentiment_result['emotions']}")
+        
+        # Assertions
+        assert 'sentiment' in sentiment_result, "Sentiment field missing"
+        assert 'confidence' in sentiment_result, "Confidence field missing"
+        assert isinstance(sentiment_result['sentiment'], str), "Sentiment should be string"
+        test_results.append(True)
     except Exception as e:
         print(f"❌ Error: {e}")
+        test_results.append(False)
     
     # Test 6: Different Tones
     print("\n🎭 Test 6: Different Tones for Same Topic")
@@ -123,11 +160,23 @@ def test_content_generation():
             )
             print(f"✅ {tone.title()}: {result['content'][:80]}...")
             print(f"   Quality Score: {result['quality_score']}")
+            
+            # Assertions
+            assert 'content' in result, f"Content field missing for {tone}"
+            assert 'quality_score' in result, f"Quality score missing for {tone}"
         except Exception as e:
             print(f"❌ {tone.title()}: Error - {e}")
     
-    print("\n🎉 Test Suite Completed!")
+    # Summary
+    passed_tests = sum(test_results)
+    total_tests = len(test_results)
+    success_rate = (passed_tests / total_tests) * 100 if total_tests > 0 else 0
+    
+    print(f"\n🎉 Test Suite Completed!")
+    print(f"📊 Results: {passed_tests}/{total_tests} tests passed ({success_rate:.1f}%)")
     print("=" * 50)
+    
+    return passed_tests == total_tests
 
 def test_api_endpoints():
     """Test API endpoints if server is running"""
@@ -151,16 +200,34 @@ def test_api_endpoints():
         print(f"❌ Error testing health check: {e}")
 
 if __name__ == "__main__":
-    # Set environment variables if not already set
-    if not os.environ.get('DEEPSEEK_API_KEY'):
-        os.environ['DEEPSEEK_API_KEY'] = "sk-54e218fd7ca14f698a9e65e8678dd92b"
+    # Check for required environment variables
+    required_vars = ['DEEPSEEK_API_KEY', 'SECRET_KEY']
+    missing_vars = []
     
-    if not os.environ.get('SECRET_KEY'):
-        os.environ['SECRET_KEY'] = "django-insecure-ai-service-key"
+    for var in required_vars:
+        if not os.environ.get(var):
+            missing_vars.append(var)
     
+    if missing_vars:
+        print(f"❌ Missing required environment variables: {', '.join(missing_vars)}")
+        print("Please set these variables in your .env file or environment:")
+        for var in missing_vars:
+            if var == 'DEEPSEEK_API_KEY':
+                print(f"  {var}=your-actual-deepseek-api-key")
+            elif var == 'SECRET_KEY':
+                print(f"  {var}=your-secure-django-secret-key")
+        sys.exit(1)
+    
+    # Set optional defaults
     if not os.environ.get('DEBUG'):
         os.environ['DEBUG'] = "True"
     
     # Run tests
-    test_content_generation()
-    test_api_endpoints() 
+    content_test_passed = test_content_generation()
+    test_api_endpoints()
+    
+    if content_test_passed:
+        print("✅ All content generation tests passed!")
+    else:
+        print("❌ Some content generation tests failed!")
+        sys.exit(1) 
