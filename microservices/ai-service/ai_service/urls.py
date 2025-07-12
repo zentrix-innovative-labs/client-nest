@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.http import JsonResponse, HttpRequest
+from django.http import JsonResponse
 from .views import (
     ContentGenerationView,
     SentimentAnalysisView,
