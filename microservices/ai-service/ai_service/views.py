@@ -12,6 +12,7 @@ from .tasks import (
 from celery.result import AsyncResult
 from django_celery_results.models import TaskResult
 from common.deepseek_client import DeepSeekClient
+from content_generation.prompts import generate_hashtag_optimization_prompt, generate_optimal_posting_time_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -72,40 +73,7 @@ class HashtagOptimizationView(APIView):
             # Create system and user prompts for hashtag optimization
             system_prompt = """You are a social media hashtag optimization expert. Analyze content and suggest optimal hashtags for maximum engagement."""
             
-            user_prompt = f"""
-            Analyze the following content and suggest optimal hashtags for {platform} platform.
-            
-            Content: {content}
-            Platform: {platform}
-            Target Audience: {target_audience}
-            Industry: {industry}
-            
-            Please provide:
-            1. 5-10 relevant hashtags with high engagement potential
-            2. Mix of popular and niche hashtags
-            3. Platform-specific hashtag strategies
-            4. Estimated reach for each hashtag category
-            
-            Format the response as JSON with the following structure:
-            {{
-                "hashtags": [
-                    {{
-                        "tag": "hashtag",
-                        "category": "popular|niche|trending",
-                        "estimated_reach": "high|medium|low",
-                        "engagement_potential": "high|medium|low"
-                    }}
-                ],
-                "strategy": {{
-                    "platform_specific": "string",
-                    "audience_targeting": "string",
-                    "trending_opportunities": "string"
-                }},
-                "recommendations": [
-                    "string"
-                ]
-            }}
-            """
+            user_prompt = generate_hashtag_optimization_prompt(content, platform, target_audience, industry)
             
             # Generate hashtag suggestions
             try:
@@ -142,12 +110,17 @@ class HashtagOptimizationView(APIView):
                     ]
                 }
             
+            # Calculate actual usage from client if available
+            usage_data = getattr(client, 'last_usage', {})
+            tokens_consumed = usage_data.get('total_tokens', 234)  # Fallback to estimate
+            cost = (tokens_consumed / 1000) * 0.001  # Calculate based on actual tokens
+            
             return Response({
                 'success': True,
                 'data': hashtag_data,
                 'usage': {
-                    'tokens_consumed': 234,  # Estimated
-                    'cost': 0.0018  # Estimated
+                    'tokens_consumed': tokens_consumed,
+                    'cost': round(cost, 4)
                 }
             }, status=status.HTTP_200_OK)
             
@@ -176,44 +149,7 @@ class OptimalPostingTimeView(APIView):
             # Create system and user prompts for optimal posting time analysis
             system_prompt = """You are a social media timing optimization expert. Analyze platforms and suggest optimal posting times for maximum engagement."""
             
-            user_prompt = f"""
-            Analyze and suggest optimal posting times for {platform} platform.
-            
-            Platform: {platform}
-            Content Type: {content_type}
-            Target Audience: {target_audience}
-            Timezone: {timezone}
-            Industry: {industry}
-            
-            Please provide:
-            1. Best posting times for different days of the week
-            2. Platform-specific timing strategies
-            3. Audience behavior patterns
-            4. Industry-specific timing recommendations
-            
-            Format the response as JSON with the following structure:
-            {{
-                "optimal_times": {{
-                    "monday": ["09:00", "12:00", "18:00"],
-                    "tuesday": ["09:00", "12:00", "18:00"],
-                    "wednesday": ["09:00", "12:00", "18:00"],
-                    "thursday": ["09:00", "12:00", "18:00"],
-                    "friday": ["09:00", "12:00", "18:00"],
-                    "saturday": ["10:00", "14:00", "19:00"],
-                    "sunday": ["10:00", "14:00", "19:00"]
-                }},
-                "platform_strategy": {{
-                    "best_days": ["monday", "wednesday", "friday"],
-                    "best_hours": ["09:00-11:00", "12:00-14:00", "18:00-20:00"],
-                    "audience_peak_times": "string",
-                    "engagement_patterns": "string"
-                }},
-                "recommendations": [
-                    "string"
-                ],
-                "timezone_considerations": "string"
-            }}
-            """
+            user_prompt = generate_optimal_posting_time_prompt(platform, content_type, target_audience, timezone, industry)
             
             # Generate optimal posting time suggestions
             try:
@@ -261,12 +197,17 @@ class OptimalPostingTimeView(APIView):
                     "timezone_considerations": f"All times are in {timezone} timezone"
                 }
             
+            # Calculate actual usage from client if available
+            usage_data = getattr(client, 'last_usage', {})
+            tokens_consumed = usage_data.get('total_tokens', 156)  # Fallback to estimate
+            cost = (tokens_consumed / 1000) * 0.001  # Calculate based on actual tokens
+            
             return Response({
                 'success': True,
                 'data': timing_data,
                 'usage': {
-                    'tokens_consumed': 156,  # Estimated
-                    'cost': 0.0012  # Estimated
+                    'tokens_consumed': tokens_consumed,
+                    'cost': round(cost, 4)
                 }
             }, status=status.HTTP_200_OK)
             

@@ -10,6 +10,9 @@ from common.signals import ai_usage_logged
 # --- Add a logger ---
 logger = logging.getLogger(__name__)
 
+# Decimal precision configuration for financial calculations
+DECIMAL_PRECISION = 10  # Configurable precision for cost calculations
+
 def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decimal:
     """
     Calculates the cost based on DeepSeek's pricing model using Decimal for precision.
@@ -17,7 +20,7 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
     """
     with decimal.localcontext() as ctx:
         # Set precision for Decimal calculations within this context
-        ctx.prec = 10
+        ctx.prec = DECIMAL_PRECISION
 
         # Prices per 1,000 tokens, as Decimal objects, from settings
         pricing = settings.DEEPSEEK_PRICING

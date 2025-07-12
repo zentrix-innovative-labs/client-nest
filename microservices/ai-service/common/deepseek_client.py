@@ -22,6 +22,9 @@ DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY")
 BASE_URL = "https://api.deepseek.com/v1"
 REQUEST_TIMEOUT = 60  # seconds
 
+# Token estimation configuration
+CHARS_PER_TOKEN = 4  # Average characters per token for estimation
+
 # --- Add a logger ---
 logger = logging.getLogger(__name__)
 
@@ -124,8 +127,8 @@ class DeepSeekClient:
         return system_prompt, user_prompt
 
     def _estimate_tokens(self, text: str) -> int:
-        """Rough token estimation (4 chars per token)"""
-        return len(text) // 4
+        """Rough token estimation based on the configured characters-per-token ratio"""
+        return len(text) // CHARS_PER_TOKEN
 
     def generate_content(self, system_prompt: str, user_prompt: str, user: Optional[settings.AUTH_USER_MODEL] = None, **kwargs) -> Dict[str, Any]:
         """

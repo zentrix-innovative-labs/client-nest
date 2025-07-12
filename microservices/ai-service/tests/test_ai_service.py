@@ -201,7 +201,15 @@ def test_api_endpoints():
 
 if __name__ == "__main__":
     # Check for required environment variables
-    required_vars = ['DEEPSEEK_API_KEY', 'SECRET_KEY']
+    required_vars = [
+        'DEEPSEEK_API_KEY',
+        'SECRET_KEY',
+        'DB_NAME',
+        'DB_USER',
+        'DB_PASSWORD',
+        'DB_HOST',
+        'DB_PORT'
+    ]
     missing_vars = []
     
     for var in required_vars:
@@ -216,6 +224,8 @@ if __name__ == "__main__":
                 print(f"  {var}=your-actual-deepseek-api-key")
             elif var == 'SECRET_KEY':
                 print(f"  {var}=your-secure-django-secret-key")
+            elif var.startswith('DB_'):
+                print(f"  {var}=your-database-{var.lower()}")
         sys.exit(1)
     
     # Set optional defaults
