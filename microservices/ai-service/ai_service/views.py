@@ -112,7 +112,9 @@ class HashtagOptimizationView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            tokens_consumed = usage_data.get('total_tokens', settings.DEFAULT_TOKEN_FALLBACK)  # Fallback to estimate
+            tokens_consumed = usage_data.get('total_tokens') or \
+                              (usage_data.get('prompt_tokens', 0) + usage_data.get('completion_tokens', 0)) or \
+                              settings.DEFAULT_TOKEN_FALLBACK  # Fallback to estimate
             cost = (tokens_consumed / 1000) * 0.001  # Calculate based on actual tokens
             
             return Response({
@@ -199,7 +201,9 @@ class OptimalPostingTimeView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            tokens_consumed = usage_data.get('total_tokens', settings.DEFAULT_TOKEN_FALLBACK)  # Fallback to estimate
+            tokens_consumed = usage_data.get('total_tokens') or \
+                              (usage_data.get('prompt_tokens', 0) + usage_data.get('completion_tokens', 0)) or \
+                              settings.DEFAULT_TOKEN_FALLBACK  # Fallback to estimate
             cost = (tokens_consumed / 1000) * 0.001  # Calculate based on actual tokens
             
             return Response({

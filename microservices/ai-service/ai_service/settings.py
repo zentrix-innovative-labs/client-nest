@@ -224,7 +224,6 @@ CELERY_CACHE_BACKEND = 'default'
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 SERVICE_NAME = 'ai-service'
 SERVICE_VERSION = '1.0.0'
-SERVICE_PORT = 8005
 
 # Security Settings
 SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'

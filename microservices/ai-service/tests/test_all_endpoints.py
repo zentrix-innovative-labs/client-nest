@@ -256,6 +256,49 @@ def test_health_check():
         print(f"❌ Health Check Test ERROR: {str(e)}")
         assert False, f"Test failed with exception: {str(e)}"
 
+def test_usage_stats():
+    """Test the usage stats endpoint"""
+    print("\n📊 Testing Usage Stats Endpoint...")
+    
+    url = f"{AI_SERVICE_URL}/api/ai/usage/stats/"
+    
+    try:
+        response = requests.get(url, timeout=10)
+        
+        print(f"Status Code: {response.status_code}")
+        
+        # Assertions for response
+        assert response.status_code in [200, 201], f"Expected 200/201, got {response.status_code}"
+        
+        if response.status_code in [200, 201]:
+            data = response.json()
+            print("✅ Usage Stats Test PASSED")
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Validate response structure with assertions
+            assert 'data' in data, "Response missing 'data' field"
+            response_data = data.get('data', {})
+            
+            # Check for expected usage statistics fields
+            expected_fields = ['total_requests', 'total_tokens', 'total_cost', 'daily_usage']
+            for field in expected_fields:
+                if field in response_data:
+                    print(f"📈 {field}: {response_data[field]}")
+                else:
+                    print(f"⚠️  Missing field: {field}")
+            
+            # Basic structure validation
+            assert isinstance(response_data, dict), "Response data should be a dictionary"
+            
+        else:
+            print(f"❌ Usage Stats Test FAILED")
+            print(f"Error: {response.text}")
+            assert False, f"Request failed with status {response.status_code}"
+            
+    except Exception as e:
+        print(f"❌ Usage Stats Test ERROR: {str(e)}")
+        assert False, f"Test failed with exception: {str(e)}"
+
 def test_endpoint_comparison():
     """Compare implemented endpoints with architecture requirements"""
     print("\n📋 Endpoint Implementation Status:")
@@ -266,6 +309,7 @@ def test_endpoint_comparison():
         "POST /api/ai/optimize/hashtags",
         "POST /api/ai/schedule/optimal",
         "GET /api/ai/models/status",
+        "GET /api/ai/usage/stats",
         "GET /api/health"
     ]
     
@@ -275,6 +319,7 @@ def test_endpoint_comparison():
         "✅ POST /api/ai/optimize/hashtags",  # NEW
         "✅ POST /api/ai/schedule/optimal",   # NEW
         "✅ GET /api/ai/models/status",
+        "✅ GET /api/ai/usage/stats",
         "✅ GET /api/health"
     ]
     
@@ -304,6 +349,7 @@ def main():
         ("Sentiment Analysis", test_sentiment_analysis),
         ("Hashtag Optimization", test_hashtag_optimization),
         ("Optimal Posting Time", test_optimal_posting_time),
+        ("Usage Stats", test_usage_stats),
     ]
     
     for test_name, test_func in test_functions:
