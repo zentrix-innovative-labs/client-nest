@@ -6,7 +6,7 @@
 **Issue:** API key was hardcoded in the source code
 ```python
 # BEFORE (INSECURE):
-os.environ['DEEPSEEK_API_KEY'] = "sk-54e218fd7ca14f698a9e65e8678dd92b"
+os.environ['DEEPSEEK_API_KEY'] = "--------------------------------"
 ```
 
 **Fix:** Removed hardcoded values and added proper environment variable validation
