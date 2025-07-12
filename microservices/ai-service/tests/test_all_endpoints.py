@@ -292,12 +292,12 @@ def test_endpoint_comparison():
         "✅ POST /api/ai/schedule/optimal"   # NEW
     ]
     
-    # Extract endpoint paths from implemented endpoints (remove "✅ " prefix)
-    implemented_paths = [endpoint.split(" ", 1)[1] for endpoint in implemented_endpoints]
+    # Extract full method+path strings from implemented endpoints (remove "✅ " prefix)
+    implemented_endpoints_cleaned = [endpoint[2:] for endpoint in implemented_endpoints]
     
     # Convert to sets for unordered comparison
     required_set = set(required_endpoints)
-    implemented_set = set(implemented_paths)
+    implemented_set = set(implemented_endpoints_cleaned)
     
     # Find missing and extra endpoints
     missing_endpoints = required_set - implemented_set

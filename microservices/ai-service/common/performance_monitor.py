@@ -6,6 +6,7 @@ Monitors response times, token usage, error rates, and service health
 import time
 import logging
 import statistics
+import functools
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from dataclasses import dataclass
@@ -124,6 +125,7 @@ performance_monitor = PerformanceMonitor()
 
 def monitor_performance(func):
     """Decorator to monitor function performance"""
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
         error_occurred = False
