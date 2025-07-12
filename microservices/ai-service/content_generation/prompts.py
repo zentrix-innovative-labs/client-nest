@@ -141,4 +141,49 @@ Format the response as JSON with the following structure:
     "engagement_prediction": "high",
     "optimal_posting_time_suggestion": "Best time to post"
 }}
-""" 
+"""
+
+def get_base_system_prompt(platform: str, tone: str, language: str = "English") -> str:
+    """
+    Creates a token-efficient base system prompt for the AI model.
+    
+    Args:
+        platform: Social media platform
+        tone: Content tone
+        language: Language for content generation
+    
+    Returns:
+        System prompt string
+    """
+    platform_instructions = {
+        'twitter': 'Keep under 280 chars. Use hashtags.',
+        'instagram': 'Visual hook. Use hashtags and emojis.',
+        'linkedin': 'Professional tone. Industry insights.',
+        'facebook': 'Community interaction. Friendly tone.'
+    }
+
+    tone_instructions = {
+        'professional': 'Formal, industry terms.',
+        'casual': 'Conversational, emojis ok.',
+        'witty': 'Humor, clever wordplay.',
+        'inspirational': 'Uplifting, motivational.'
+    }
+
+    return f"""Create {platform} content in {language}. Tone: {tone}. Guidelines: {platform_instructions.get(platform, 'Engaging content.')} Tone: {tone_instructions.get(tone, 'Neutral tone.')}
+
+Return JSON: content, hashtags (array), call_to_action, suggestions (array), variations (array), quality_score (1-100), safety_check (is_safe boolean, reason string), readability_score (number)."""
+
+def get_user_prompt(topic: str, content_type: str = "post", additional_context: str = None) -> str:
+    """
+    Creates a token-efficient user-facing prompt.
+    
+    Args:
+        topic: Content topic
+        content_type: Type of content
+        additional_context: Additional context for content generation
+    
+    Returns:
+        User prompt string
+    """
+    context_str = f" Context: {additional_context}" if additional_context else ""
+    return f"Topic: {topic}. Type: {content_type}.{context_str} Generate content." 

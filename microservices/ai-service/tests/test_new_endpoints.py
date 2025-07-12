@@ -33,7 +33,7 @@ def test_hashtag_optimization():
         # Assertions for response
         assert response.status_code in [200, 201], f"Expected 200/201, got {response.status_code}"
         
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             data = response.json()
             print("✅ Hashtag Optimization Test PASSED")
             print(f"Response: {json.dumps(data, indent=2)}")
@@ -87,7 +87,7 @@ def test_optimal_posting_time():
         # Assertions for response
         assert response.status_code in [200, 201], f"Expected 200/201, got {response.status_code}"
         
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             data = response.json()
             print("✅ Optimal Posting Time Test PASSED")
             print(f"Response: {json.dumps(data, indent=2)}")

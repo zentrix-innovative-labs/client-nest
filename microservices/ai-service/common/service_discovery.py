@@ -31,12 +31,16 @@ class ServiceDiscovery:
             'api_endpoints': [
                 f"{self.service_url}/api/ai/generate/content/",
                 f"{self.service_url}/api/ai/analyze/sentiment/",
+                f"{self.service_url}/api/ai/optimize/hashtags/",
+                f"{self.service_url}/api/ai/schedule/optimal/",
                 f"{self.service_url}/api/ai/token/usage/",
                 f"{self.service_url}/api/ai/models/status/"
             ],
             'capabilities': [
                 'content_generation',
                 'sentiment_analysis',
+                'hashtag_optimization',
+                'optimal_posting_time',
                 'token_management',
                 'quality_assurance'
             ],
@@ -178,6 +182,16 @@ class MonitoringIntegration:
                 {
                     'name': 'sentiment_analysis',
                     'url': '/api/ai/analyze/sentiment/',
+                    'status': 'active'
+                },
+                {
+                    'name': 'hashtag_optimization',
+                    'url': '/api/ai/optimize/hashtags/',
+                    'status': 'active'
+                },
+                {
+                    'name': 'optimal_posting_time',
+                    'url': '/api/ai/schedule/optimal/',
                     'status': 'active'
                 },
                 {

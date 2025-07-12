@@ -113,6 +113,7 @@ class DeepSeekClient:
             "Content-Type": "application/json",
             "User-Agent": "ClientNest/1.0"
         })
+        self.last_usage = {}  # Track most recent usage data
 
     def _optimize_prompt(self, system_prompt: str, user_prompt: str) -> tuple[str, str]:
         """Optimize prompts to use fewer tokens"""
@@ -176,6 +177,9 @@ class DeepSeekClient:
                 usage_data.get("prompt_tokens", 0),
                 usage_data.get("completion_tokens", 0)
             )
+            
+            # Store last usage for external access
+            self.last_usage = usage_data
             
             self._log_usage(
                 user=user,
@@ -293,6 +297,9 @@ class DeepSeekClient:
                 usage_data.get("prompt_tokens", 0),
                 usage_data.get("completion_tokens", 0)
             )
+            
+            # Store last usage for external access
+            self.last_usage = usage_data
             
             self._log_usage(
                 user=user,
