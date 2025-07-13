@@ -280,22 +280,25 @@ LOGGING = {
 
 # ===== CONFIGURATION VALIDATION =====
 def validate_configuration():
-    """Validate that all required configuration is present"""
+    """Validate critical configuration settings"""
     required_vars = [
+        'DEEPSEEK_API_KEY',
         'SECRET_KEY',
         'DB_NAME',
         'DB_USER', 
         'DB_PASSWORD',
-        'DEEPSEEK_API_KEY',
+        'DB_HOST',
+        'DB_PORT'
     ]
     
     missing_vars = []
     for var in required_vars:
-        if not os.environ.get(var, ''):
+        if not os.environ.get(var):
             missing_vars.append(var)
     
     if missing_vars:
         raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
 
-# Validate configuration on startup
-validate_configuration()
+# Only validate configuration in production or when explicitly requested
+if os.getenv('DJANGO_ENV') == 'production' or os.getenv('VALIDATE_CONFIG') == 'true':
+    validate_configuration()

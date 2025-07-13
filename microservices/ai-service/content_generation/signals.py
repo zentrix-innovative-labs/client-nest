@@ -18,6 +18,13 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
     Calculates the cost based on DeepSeek's pricing model using Decimal for precision.
     Uses a local context to ensure thread-safe precision settings.
     """
+    # Input validation
+    if not isinstance(prompt_tokens, int) or not isinstance(completion_tokens, int):
+        raise TypeError("Token counts must be integers")
+    
+    if prompt_tokens < 0 or completion_tokens < 0:
+        raise ValueError("Token counts must be non-negative")
+    
     with decimal.localcontext() as ctx:
         # Set precision for Decimal calculations within this context
         ctx.prec = DECIMAL_PRECISION

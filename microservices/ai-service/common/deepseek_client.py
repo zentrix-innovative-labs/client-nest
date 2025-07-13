@@ -131,6 +131,56 @@ class DeepSeekClient:
         """Rough token estimation based on the configured characters-per-token ratio"""
         return len(text) // CHARS_PER_TOKEN
 
+    def _parse_ai_response(self, raw_content: str) -> Dict[str, Any]:
+        """
+        Parse AI response content, handling markdown code blocks and JSON extraction.
+        
+        Args:
+            raw_content: Raw content from AI response
+            
+        Returns:
+            Parsed JSON content or fallback structure
+        """
+        # Handle responses wrapped in markdown code blocks
+        if raw_content.startswith("```json"):
+            raw_content = raw_content.replace("```json", "").replace("```", "").strip()
+        elif raw_content.startswith("```"):
+            raw_content = raw_content.replace("```", "").strip()
+        
+        # Try to parse as JSON
+        try:
+            content_payload = json.loads(raw_content)
+            return content_payload
+        except json.JSONDecodeError:
+            # If JSON parsing fails, try to extract JSON from the response
+            import re
+            
+            # First try to find JSON between markdown code blocks
+            json_match = re.search(r'```json\s*(\{.*?\})\s*```', raw_content, re.DOTALL)
+            if json_match:
+                try:
+                    content_payload = json.loads(json_match.group(1))
+                    return content_payload
+                except json.JSONDecodeError:
+                    pass
+            
+            # Try to find any JSON object in the content
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', raw_content, re.DOTALL)
+            if json_match:
+                try:
+                    content_payload = json.loads(json_match.group())
+                    return content_payload
+                except json.JSONDecodeError:
+                    pass
+            
+            # If still no valid JSON, return a structured fallback
+            logger.warning(f"Could not parse JSON from AI response. Raw content: {raw_content[:200]}...")
+            return {
+                "error": "AI response could not be parsed as JSON",
+                "raw_content": raw_content[:500],
+                "fallback": True
+            }
+
     def generate_content(self, system_prompt: str, user_prompt: str, user: Optional[settings.AUTH_USER_MODEL] = None, **kwargs) -> Dict[str, Any]:
         """
         Generates content using the DeepSeek API with token optimization.
@@ -189,51 +239,10 @@ class DeepSeekClient:
             )
 
             # Parse response
-            raw_content = None
-            try:
-                raw_content = response_data["choices"][0]["message"]["content"]
-                
-                # Handle responses wrapped in markdown code blocks
-                if raw_content.startswith("```json"):
-                    raw_content = raw_content.replace("```json", "").replace("```", "").strip()
-                elif raw_content.startswith("```"):
-                    raw_content = raw_content.replace("```", "").strip()
-                
-                # Try to parse as JSON
-                try:
-                    content_payload = json.loads(raw_content)
-                    return content_payload
-                except json.JSONDecodeError:
-                    # If JSON parsing fails, try to extract JSON from the response
-                    import re
+            raw_content = response_data["choices"][0]["message"]["content"]
+            return self._parse_ai_response(raw_content)
                     
-                    # First try to find JSON between markdown code blocks
-                    json_match = re.search(r'```json\s*(\{.*?\})\s*```', raw_content, re.DOTALL)
-                    if json_match:
-                        try:
-                            content_payload = json.loads(json_match.group(1))
-                            return content_payload
-                        except json.JSONDecodeError:
-                            pass
-                    
-                    # Try to find any JSON object in the content
-                    json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', raw_content, re.DOTALL)
-                    if json_match:
-                        try:
-                            content_payload = json.loads(json_match.group())
-                            return content_payload
-                        except json.JSONDecodeError:
-                            pass
-                    
-                    # If still no valid JSON, return a structured fallback
-                    logger.warning(f"Could not parse JSON from AI response. Raw content: {raw_content[:200]}...")
-                    return {
-                        "error": "AI response could not be parsed as JSON",
-                        "raw_content": raw_content[:500],
-                        "fallback": True
-                    }
-                    
-            except (KeyError, IndexError) as e:
+        except (KeyError, IndexError) as e:
                 logger.error(f"Failed to extract content from AI response. Error: {e}")
                 raise AIAPIError("Failed to extract content from AI response.")
 
@@ -319,56 +328,12 @@ class DeepSeekClient:
                 response_time_ms=response_time_ms
             )
             
-            raw_content = None
-            try:
-                raw_content = response_data["choices"][0]["message"]["content"]
-                
-                if raw_content.startswith("```json"):
-                    raw_content = raw_content.replace("```json", "").replace("```", "").strip()
-                elif raw_content.startswith("```"):
-                    raw_content = raw_content.replace("```", "").strip()
-                
-                # Try to parse as JSON
-                try:
-                    sentiment_payload = json.loads(raw_content)
-                    return sentiment_payload
-                except json.JSONDecodeError:
-                    # If JSON parsing fails, try to extract JSON from the response
-                    import re
+            raw_content = response_data["choices"][0]["message"]["content"]
+            return self._parse_ai_response(raw_content)
                     
-                    # First try to find JSON between markdown code blocks
-                    json_match = re.search(r'```json\s*(\{.*?\})\s*```', raw_content, re.DOTALL)
-                    if json_match:
-                        try:
-                            sentiment_payload = json.loads(json_match.group(1))
-                            return sentiment_payload
-                        except json.JSONDecodeError:
-                            pass
-                    
-                    # Try to find any JSON object in the content
-                    json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', raw_content, re.DOTALL)
-                    if json_match:
-                        try:
-                            sentiment_payload = json.loads(json_match.group())
-                            return sentiment_payload
-                        except json.JSONDecodeError:
-                            pass
-                    
-                    # If still no valid JSON, return a structured fallback
-                    logger.warning(f"Could not parse JSON from AI sentiment response. Raw content: {raw_content[:200]}...")
-                    return {
-                        "sentiment": "neutral",
-                        "confidence": 0.5,
-                        "emotions": ["neutral"],
-                        "urgency": "low",
-                        "suggested_response_tone": "neutral",
-                        "error": "AI response could not be parsed as JSON",
-                        "fallback": True
-                    }
-                    
-            except (KeyError, IndexError) as e:
-                logger.error(f"Failed to extract content from AI sentiment response. Error: {e}")
-                raise AIAPIError("Failed to extract content from AI response.")
+        except (KeyError, IndexError) as e:
+            logger.error(f"Failed to extract content from AI sentiment response. Error: {e}")
+            raise AIAPIError("Failed to extract content from AI response.")
         except requests.exceptions.Timeout:
             raise AIConnectionError(f"Request timed out after {REQUEST_TIMEOUT} seconds.")
         except requests.exceptions.RequestException as e:

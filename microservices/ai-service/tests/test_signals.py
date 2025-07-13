@@ -117,11 +117,14 @@ class TestCalculateCost(TestCase):
     
     def test_calculate_cost_input_validation(self):
         """Test input validation"""
-        # Test with negative tokens (should handle gracefully)
-        with self.assertRaises(TypeError):
+        # Test with negative tokens (should raise ValueError)
+        with self.assertRaises(ValueError):
             _calculate_cost(prompt_tokens=-100, completion_tokens=100)
         
-        # Test with non-integer inputs
+        with self.assertRaises(ValueError):
+            _calculate_cost(prompt_tokens=100, completion_tokens=-100)
+        
+        # Test with non-integer inputs (should raise TypeError)
         with self.assertRaises(TypeError):
             _calculate_cost(prompt_tokens="100", completion_tokens=100)
         

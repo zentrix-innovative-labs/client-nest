@@ -11,9 +11,10 @@ Comprehensive test script for all AI service endpoints:
 import requests
 import json
 import time
+import os
 
-# AI Service configuration
-AI_SERVICE_URL = "http://localhost:8005"
+# AI Service configuration - configurable via environment variables
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8005")
 
 def test_hashtag_optimization():
     """Test the hashtag optimization endpoint"""
