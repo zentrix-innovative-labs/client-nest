@@ -17,7 +17,7 @@ class ServiceDiscovery:
     
     def __init__(self):
         self.service_name = 'ai-service'
-        self.service_port = 8005
+        self.service_port = int(getattr(settings, 'SERVICE_PORT', 8005))
         self.service_url = f"http://localhost:{self.service_port}"
         self.registered_services = {}
         self.health_check_interval = 30  # seconds

@@ -269,6 +269,29 @@ def test_usage_stats():
         print(f"❌ Usage Stats Test ERROR: {str(e)}")
         assert False, f"Test failed with exception: {str(e)}"
 
+def test_content_template_list_and_create():
+    """Test listing and creating content templates (integration test)"""
+    print("\n🧪 Testing ContentTemplateListView (list and create)...")
+    url = f"{AI_SERVICE_URL}/api/ai/templates/"
+    # Test listing
+    response = requests.get(url, timeout=10)
+    print(f"List Status Code: {response.status_code}")
+    assert response.status_code in [200, 201, 403], f"Expected 200/201/403, got {response.status_code}"
+    if response.status_code == 200:
+        data = response.json()
+        print(f"List Response: {json.dumps(data, indent=2)}")
+        assert isinstance(data, list), "Expected a list of templates"
+    # Test creation (requires authentication, so expect 403 or 401 if not logged in)
+    payload = {"name": "Test Template", "template": "Hello, {name}!", "is_active": True}
+    response = requests.post(url, json=payload, timeout=10)
+    print(f"Create Status Code: {response.status_code}")
+    assert response.status_code in [201, 403, 401], f"Expected 201/403/401, got {response.status_code}"
+    if response.status_code == 201:
+        data = response.json()
+        print(f"Create Response: {json.dumps(data, indent=2)}")
+        assert data["name"] == "Test Template", "Template name mismatch"
+        assert data["template"] == "Hello, {name}!", "Template content mismatch"
+
 def test_endpoint_comparison():
     """Compare implemented endpoints with architecture requirements"""
     print("\n📋 Endpoint Implementation Status:")
@@ -331,6 +354,8 @@ def main():
         ("Optimal Posting Time", test_optimal_posting_time),
         ("Usage Stats", test_usage_stats),
     ]
+    
+    test_functions.append(("Content Template List/Create", test_content_template_list_and_create))
     
     for test_name, test_func in test_functions:
         try:
