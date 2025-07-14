@@ -43,17 +43,17 @@ urlpatterns = [
         path('auth/', include([
             path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
             path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-            path('register/', include('users.urls')),  # User registration
+            path('register/', include('user_service.urls')),  # User registration
         ])),
         
         # User management endpoints
-        path('users/', include('users.urls')),
+        path('users/', include('user_service.urls')),
         
         # Content management endpoints (posts, comments, schedules)
-        path('content/', include('content.urls')),
+        path('content/', include('content_service.urls')),
         
         # Social media endpoints
-        path('social/', include('social_media.urls')),
+        path('social/', include('social_service.urls')),
         
         # AI integration endpoints
         path('ai/', include('ai_integration.urls')),

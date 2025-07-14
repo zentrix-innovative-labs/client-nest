@@ -46,11 +46,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'django_filters',
-    'users',
-    'content',
-    'social_media',
-    'ai_integration',
-    'ai_services',
+    'user_service',
+    'content_service',
+    'social_service',
+    'ai_service',
+    'analytics_service',
+    'notification_service',
+    'queue_service',
+    'security_service',
+    'file_service',
     'drf_yasg',
    # 'analytics',
     'rest_framework_simplejwt',
@@ -165,7 +169,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user model
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'user_service.User'
 
 # Django REST Framework configuration
 REST_FRAMEWORK = {

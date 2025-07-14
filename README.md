@@ -49,6 +49,11 @@ A production-ready social media management platform with AI-powered content gene
 4. **Run database migrations**
    ```bash
    cd backend
+   python -m venv venv  # Or use python -m venv .venv for consistency
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   cp .env.example .env  # Copy the example env file and edit as needed
+   # Edit .env with your configuration (see below for required variables)
    python manage.py migrate
    ```
 
@@ -62,11 +67,38 @@ A production-ready social media management platform with AI-powered content gene
    python manage.py runserver
    ```
 
-## Testing the AI Client
+#### Required Environment Variables
+The backend requires a `.env` file in the `backend/` directory. You can copy `backend/.env.example` and fill in your values. The following variables are required:
+
+| Variable              | Description                                 |
+|-----------------------|---------------------------------------------|
+| DJANGO_SECRET_KEY     | Django secret key (required)                |
+| POSTGRES_DB           | Postgres database name                      |
+| POSTGRES_USER         | Postgres username                           |
+| POSTGRES_PASSWORD     | Postgres password                           |
+| POSTGRES_HOST         | Postgres host (default: localhost)          |
+| POSTGRES_PORT         | Postgres port (default: 5432)               |
+| EMAIL_HOST            | SMTP server host                            |
+| EMAIL_PORT            | SMTP server port                            |
+| EMAIL_USE_TLS         | Use TLS for email (True/False)              |
+| EMAIL_USE_SSL         | Use SSL for email (True/False)              |
+| EMAIL_HOST_USER       | SMTP username                               |
+| EMAIL_HOST_PASSWORD   | SMTP password                               |
+| DEFAULT_FROM_EMAIL    | Default from email address                  |
+| FACEBOOK_APP_ID       | Facebook App ID (optional)                  |
+| FACEBOOK_APP_SECRET   | Facebook App Secret (optional)              |
+| FACEBOOK_REDIRECT_URI | Facebook Redirect URI (optional)            |
+
+3. **Frontend Setup**
+   ```bash
+   # The frontend directory is not present in this repository. If/when it is added, follow the instructions in that directory.
+   ```
 
 ### Standalone Test
 
 Test the DeepSeek client without Django:
+
+> **Note:** If you wish to use Docker Compose for Postgres/Redis, ensure a `docker-compose.yml` file is present. If not, you must install and run Postgres and Redis manually.
 
 ```bash
 # Set your API key
@@ -216,30 +248,3 @@ All errors are logged and return appropriate HTTP status codes.
 ## Monitoring and Logging
 
 - **Usage Tracking**: All AI requests are logged with costs
-- **Performance Monitoring**: Response times and error rates
-- **Cost Management**: Per-user and per-tier usage limits
-- **Health Checks**: Automated service monitoring
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Support
-
-For support and questions:
-- Create an issue on GitHub
-- Check the documentation
-- Review the test examples
-
----
-
-**Maintainer**: Onyait Elias  
-**Version**: 1.0.0
