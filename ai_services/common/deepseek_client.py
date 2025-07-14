@@ -24,8 +24,8 @@ if DEBUG and ENVIRONMENT == "development":
     # Detailed environment and file listings have been omitted to avoid exposing sensitive data.
 
 # --- Configuration ---
-OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
-BASE_URL = "https://openrouter.ai/api/v1"
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
+BASE_URL = "https://api.deepseek.com/v1"
 REQUEST_TIMEOUT = 30  # seconds
 SUPPORTED_MODELS = {"deepseek/deepseek-r1-0528:free"}
 
@@ -50,9 +50,9 @@ class DeepSeekClient:
     Synchronous client for the DeepSeek API via OpenRouter.
     Includes error handling, logging, and usage tracking.
     """
-    def __init__(self, api_key: str = OPENROUTER_API_KEY):
+    def __init__(self, api_key: str = DEEPSEEK_API_KEY):
         if not api_key:
-            raise ValueError("OPENROUTER_API_KEY is not configured.")
+            raise ValueError("DEEPSEEK_API_KEY is not configured.")
         self.api_key = api_key
         self.session = requests.Session()
         self.session.headers.update({
@@ -164,9 +164,9 @@ def main():
         logger.warning(f"Django setup failed: {e}")
         User = None
 
-    api_key = os.environ.get("OPENROUTER_API_KEY", "")
+    api_key = os.environ.get("DEEPSEEK_API_KEY", "")
     if not api_key:
-        logger.error("Please set the OPENROUTER_API_KEY environment variable.")
+        logger.error("Please set the DEEPSEEK_API_KEY environment variable.")
         return
 
     class MockUser:

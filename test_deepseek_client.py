@@ -25,10 +25,10 @@ def test_deepseek_client():
     """Test the DeepSeek client functionality."""
     
     # Check for required environment variables
-    api_key = os.environ.get("OPENROUTER_API_KEY")
+    api_key = os.environ.get("DEEPSEEK_API_KEY")
     if not api_key:
-        logger.error("OPENROUTER_API_KEY environment variable is not set.")
-        logger.info("Please set it with: $env:OPENROUTER_API_KEY='your-api-key'")
+        logger.error("DEEPSEEK_API_KEY environment variable is not set.")
+        logger.info("Please set it with: $env:DEEPSEEK_API_KEY='your-api-key'")
         return False
     
     try:
