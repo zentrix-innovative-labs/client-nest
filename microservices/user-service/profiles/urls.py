@@ -66,18 +66,18 @@ urlpatterns = [
     }), name='complete-profile-bulk-create'),
     
     # Profile export (GDPR compliance)
-    path('export-data/', views.ExportProfileDataView.as_view(), name='export-data'),
+    path('export-data/', views.ExportProfileDataView.as_view({'get': 'export_data'}), name='export-data'),
     
     # Profile validation endpoints
-    path('validate-social-url/', views.ValidateSocialURLView.as_view(), name='validate-social-url'),
-    path('validate-phone/', views.ValidatePhoneView.as_view(), name='validate-phone'),
-    path('validate-skill/', views.ValidateSkillView.as_view(), name='validate-skill'),
+    path('validate-social-url/', views.ValidateSocialURLView.as_view({'post': 'validate_url'}), name='validate-social-url'),
+    path('validate-phone/', views.ValidatePhoneView.as_view({'post': 'validate_phone'}), name='validate-phone'),
+    path('validate-skill/', views.ValidateSkillView.as_view({'post': 'validate_skill'}), name='validate-skill'),
     
     # Profile analytics
-    path('analytics/', views.ProfileAnalyticsView.as_view(), name='analytics'),
+    path('analytics/', views.ProfileAnalyticsView.as_view({'get': 'get_analytics'}), name='analytics'),
     
     # Username suggestions
-    path('username-suggestions/', views.UsernameSuggestionsView.as_view(), name='username-suggestions'),
+    path('username-suggestions/', views.UsernameSuggestionsView.as_view({'get': 'get_suggestions'}), name='username-suggestions'),
     
     # Include router URLs
     path('', include(router.urls)),
