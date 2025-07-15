@@ -4,7 +4,7 @@ from .models import AIUsageLog
 import logging
 from django.db import DatabaseError
 import decimal
-from ai_service.common.signals import ai_usage_logged
+from ai_services.common.signals import ai_usage_logged
 
 # --- Add a logger ---
 logger = logging.getLogger(__name__)
