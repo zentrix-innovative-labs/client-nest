@@ -21,7 +21,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1")
+def get_debug():
+    try:
+        from django.conf import settings
+        # Only use settings.DEBUG if Django is configured
+        if settings.configured:
+            return settings.DEBUG
+    except (ImportError, Exception):
+        pass
+    # Fallback to environment variable
+    return os.environ.get("DEBUG", "False").lower() in ("true", "1")
+
+DEBUG = get_debug()
+
 ENVIRONMENT = os.environ.get("ENVIRONMENT", "production").lower()
 if DEBUG and ENVIRONMENT == "development":
     logger.info("Running in debug mode in a development environment.")
@@ -175,11 +187,11 @@ def main():
         logger.info("Testing content generation...")
         result = client.generate_content(
             system_prompt="You are a helpful assistant that creates engaging social media content.",
-            user_prompt="Write a short, engaging post about artificial intelligence for LinkedIn.",
+            user_prompt="Write a short, engaging post about artificial intelligence for X.",
             user=MockUser(),
             model="deepseek-chat",
             temperature=0.8,
-            max_tokens=200
+            max_tokens=100
         )
         
         logger.info("✓ Content generation successful!")
