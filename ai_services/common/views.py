@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 import json
 import logging
-from client_nest.ai_services.common.deepseek_client import DeepSeekClient, AIClientError, AIAPIError, AIConnectionError
+from ai_services.common.deepseek_client import DeepSeekClient, AIClientError, AIAPIError, AIConnectionError
 
 # Get logger for this module
 logger = logging.getLogger(__name__)
