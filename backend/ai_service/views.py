@@ -28,7 +28,7 @@ if ai_services_path not in sys.path:
 from ai_services.common.deepseek_client import DeepSeekClient, AIClientError, AIAPIError, AIConnectionError
 from rest_framework.permissions import IsAuthenticated
 from celery.result import AsyncResult
-from .serializers import content_serviceGenerationRequestSerializer, ContentGenerationResponseSerializer
+# Removed unused imports: content_serviceGenerationRequestSerializer, ContentGenerationResponseSerializer
 from .tasks import generate_content_task
 from .models import UserTaskMapping
 import logging
