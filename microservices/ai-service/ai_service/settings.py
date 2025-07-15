@@ -133,7 +133,7 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000').split(',')
 
 # Service Configuration
-SERVICE_PORT = os.environ.get('SERVICE_PORT', '8005')
+SERVICE_PORT = int(os.environ.get('SERVICE_PORT', '8005'))
 
 # Service Communication
 SERVICE_URLS = {

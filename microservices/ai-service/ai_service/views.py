@@ -112,9 +112,12 @@ class HashtagOptimizationView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            tokens_consumed = usage_data.get('total_tokens') or \
-                              (usage_data.get('prompt_tokens', 0) + usage_data.get('completion_tokens', 0)) or \
-                              settings.DEFAULT_TOKEN_FALLBACK  # Fallback to estimate
+            prompt_tokens = usage_data.get('prompt_tokens', 0)
+            completion_tokens = usage_data.get('completion_tokens', 0)
+            if prompt_tokens or completion_tokens:
+                tokens_consumed = prompt_tokens + completion_tokens
+            else:
+                tokens_consumed = usage_data.get('total_tokens') or settings.DEFAULT_TOKEN_FALLBACK
             # Use DEEPSEEK_PRICING from settings for cost calculation
             cost_per_1k = getattr(settings, 'DEEPSEEK_PRICING', {}).get('prompt', 0.001)
             cost = (tokens_consumed / 1000) * cost_per_1k
@@ -203,9 +206,12 @@ class OptimalPostingTimeView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            tokens_consumed = usage_data.get('total_tokens') or \
-                              (usage_data.get('prompt_tokens', 0) + usage_data.get('completion_tokens', 0)) or \
-                              settings.DEFAULT_TOKEN_FALLBACK  # Fallback to estimate
+            prompt_tokens = usage_data.get('prompt_tokens', 0)
+            completion_tokens = usage_data.get('completion_tokens', 0)
+            if prompt_tokens or completion_tokens:
+                tokens_consumed = prompt_tokens + completion_tokens
+            else:
+                tokens_consumed = usage_data.get('total_tokens') or settings.DEFAULT_TOKEN_FALLBACK
             cost = (tokens_consumed / 1000) * 0.001  # Calculate based on actual tokens
             
             return Response({

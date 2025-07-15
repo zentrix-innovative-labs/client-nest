@@ -3,6 +3,7 @@ from django.conf import settings
 import requests
 import json
 from content_generation.prompts import get_base_system_prompt, get_user_prompt
+from common.deepseek_client import DeepSeekClient
 
 @shared_task
 def generate_content_task(topic, platform='general', tone='professional'):
@@ -30,14 +31,8 @@ def generate_content_task(topic, platform='general', tone='professional'):
     response.raise_for_status()
     data = response.json()
     raw_content = data["choices"][0]["message"]["content"]
-    try:
-        return json.loads(raw_content)
-    except json.JSONDecodeError as e:
-        return {
-            "error": "Invalid JSON content returned by the AI service.",
-            "details": str(e),
-            "raw_content": raw_content
-        }
+    client = DeepSeekClient()
+    return client._parse_ai_response(raw_content)
 
 @shared_task
 def sentiment_analysis_task(text):
@@ -67,11 +62,5 @@ def sentiment_analysis_task(text):
     response.raise_for_status()
     data = response.json()
     raw_content = data["choices"][0]["message"]["content"]
-    try:
-        return json.loads(raw_content)
-    except json.JSONDecodeError as e:
-        return {
-            "error": "Invalid JSON content returned by the AI service.",
-            "details": str(e),
-            "raw_content": raw_content
-        } 
+    client = DeepSeekClient()
+    return client._parse_ai_response(raw_content) 

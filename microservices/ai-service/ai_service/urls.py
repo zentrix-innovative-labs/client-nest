@@ -35,5 +35,5 @@ urlpatterns = [
     path('api/ai/token/usage/', TokenUsageView.as_view(), name='ai-token-usage'),
     
     # Include content generation URLs for backward compatibility
-    path('api/content/', include('content_generation.urls')),
+    path('api/ai/', include('content_generation.urls')),
 ]
