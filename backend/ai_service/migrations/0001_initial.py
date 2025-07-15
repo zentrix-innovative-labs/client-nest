@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='ai_tasks', to=settings.AUTH_USER_MODEL)),
-                ('model', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='backend_ai_service.AIModel')),
+                ('model', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='ai_service.AIModel')),
             ],
         ),
     ]
