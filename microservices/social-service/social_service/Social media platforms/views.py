@@ -24,6 +24,7 @@ from .youtube_service import YouTubeService
 import os
 from .bluesky_service import BlueskyService
 from .threads_service import ThreadsService
+from .pinterest_service import PinterestService
 
 # Create your views here.
 
@@ -543,5 +544,28 @@ class ThreadsPostView(APIView):
             service = ThreadsService(username, password)
             result = service.post(text)
             return Response({'status': 'success', 'thread_id': result.get('id')})
+        except Exception as e:
+            return Response({'status': 'error', 'message': str(e)}, status=500)
+
+class PinterestPinCreateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        client_id = request.data.get('client_id')
+        client_secret = request.data.get('client_secret')
+        redirect_uri = request.data.get('redirect_uri')
+        token = request.data.get('token')
+        board_id = request.data.get('board_id')
+        image_url = request.data.get('image_url')
+        title = request.data.get('title')
+        description = request.data.get('description')
+        link = request.data.get('link')
+        if not all([client_id, client_secret, redirect_uri, token, board_id, image_url, title, description]):
+            return Response({'status': 'error', 'message': 'Missing required fields'}, status=400)
+        try:
+            service = PinterestService(client_id, client_secret, redirect_uri, token=eval(token))
+            result = service.create_pin(board_id, image_url, title, description, link)
+            return Response({'status': 'success', 'pin_id': result.get('id')})
         except Exception as e:
             return Response({'status': 'error', 'message': str(e)}, status=500)

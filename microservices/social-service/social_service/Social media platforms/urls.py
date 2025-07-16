@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import SocialAccountViewSet, PostAnalyticsViewSet, XConnectionTestView, XPostTestView, LinkedInConnectionTestView, LinkedInPostView, LinkedInUserInfoView, LinkedInImagePostView, FacebookConnectionTestView, SocialAccountsStatusView, XAndLinkedInConnectionTestView, CommentViewSet, YouTubeVideoUploadView, BlueskyPostView, ThreadsPostView
+from .views import SocialAccountViewSet, PostAnalyticsViewSet, XConnectionTestView, XPostTestView, LinkedInConnectionTestView, LinkedInPostView, LinkedInUserInfoView, LinkedInImagePostView, FacebookConnectionTestView, SocialAccountsStatusView, XAndLinkedInConnectionTestView, CommentViewSet, YouTubeVideoUploadView, BlueskyPostView, ThreadsPostView, PinterestPinCreateView
 from .instagram_auth import InstagramAuthView, InstagramCallbackView
 from .x_auth import XAuthView, XCallbackView
 from .facebook_auth import FacebookAuthView, FacebookCallbackView
@@ -33,4 +33,5 @@ urlpatterns = [
     path('youtube/upload/', YouTubeVideoUploadView.as_view(), name='youtube_upload'),
     path('bluesky/post/', BlueskyPostView.as_view(), name='bluesky_post'),
     path('threads/post/', ThreadsPostView.as_view(), name='threads_post'),
+    path('pinterest/pin/', PinterestPinCreateView.as_view(), name='pinterest_pin'),
 ] 
