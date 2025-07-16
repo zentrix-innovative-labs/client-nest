@@ -4,6 +4,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
 from .models import User, UserActivity, UserSession
+from profiles.models import UserProfile
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -21,12 +22,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     phone_number = PhoneNumberField(required=False, allow_blank=True)
     
     class Meta:
-        model = User
+        model = User  # Use User model for registration
         fields = (
-            'email', 'username', 'first_name', 'last_name',
-            'password', 'password_confirm', 'phone_number',
-            'timezone', 'language'
+            'username', 'email', 'first_name', 'last_name', 'phone_number',
         )
+        ref_name = "UserUser"
         extra_kwargs = {
             'email': {'required': True},
             'username': {'required': True},
