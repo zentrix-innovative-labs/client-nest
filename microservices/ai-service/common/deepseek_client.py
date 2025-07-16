@@ -244,7 +244,7 @@ class DeepSeekClient:
                     
         except (KeyError, IndexError) as e:
                 logger.error(f"Failed to extract content from AI response. Error: {e}")
-                raise AIAPIError("Failed to extract content from AI response.")
+                raise AIAPIError(f"Failed to extract content from AI response. Missing key or index: {e}")
 
         except requests.exceptions.Timeout:
             raise AIConnectionError(f"Request timed out after {REQUEST_TIMEOUT} seconds.")
@@ -333,7 +333,7 @@ class DeepSeekClient:
                     
         except (KeyError, IndexError) as e:
             logger.error(f"Failed to extract content from AI sentiment response. Error: {e}")
-            raise AIAPIError("Failed to extract content from AI response.")
+            raise AIAPIError(f"Failed to extract content from AI response. Missing key or index: {e}")
         except requests.exceptions.Timeout:
             raise AIConnectionError(f"Request timed out after {REQUEST_TIMEOUT} seconds.")
         except requests.exceptions.RequestException as e:

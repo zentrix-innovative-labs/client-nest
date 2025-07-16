@@ -196,7 +196,9 @@ TOKEN_BUDGET = {
 }
 
 # Default token fallback for cost calculation
-DEFAULT_TOKEN_FALLBACK = 234  # Estimated tokens for cost calculation fallback
+DEFAULT_TOKEN_FALLBACK = 234  # Fallback value for token estimation in cost calculations.
+# This value is based on an average observed token count for typical requests in our system.
+# If the actual token count cannot be determined, this value is used as a reasonable default.
 
 # Content Generation Settings
 CONTENT_GENERATION = {

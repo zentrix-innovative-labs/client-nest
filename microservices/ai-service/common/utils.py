@@ -55,3 +55,23 @@ def calculate_readability_score(text):
         return round(score, 2)
     except ZeroDivisionError:
         return 0.0 
+
+def calculate_token_usage_cost(usage_data, settings, pricing_key='prompt'):
+    """
+    Calculate the number of tokens consumed and the cost based on usage data and settings.
+    Args:
+        usage_data (dict): Usage data from the AI client (should include prompt_tokens, completion_tokens, or total_tokens).
+        settings (module): Django settings module (should include DEFAULT_TOKEN_FALLBACK and DEEPSEEK_PRICING).
+        pricing_key (str): The pricing key to use from DEEPSEEK_PRICING (default: 'prompt').
+    Returns:
+        tuple: (tokens_consumed, cost)
+    """
+    prompt_tokens = usage_data.get('prompt_tokens', 0)
+    completion_tokens = usage_data.get('completion_tokens', 0)
+    if prompt_tokens or completion_tokens:
+        tokens_consumed = prompt_tokens + completion_tokens
+    else:
+        tokens_consumed = usage_data.get('total_tokens') or getattr(settings, 'DEFAULT_TOKEN_FALLBACK', 234)
+    cost_per_1k = getattr(settings, 'DEEPSEEK_PRICING', {}).get(pricing_key, 0.001)
+    cost = (tokens_consumed / 1000) * cost_per_1k
+    return tokens_consumed, round(cost, 4) 

@@ -14,13 +14,13 @@ import time
 import os
 
 # AI Service configuration - configurable via environment variables
-AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8005")  # Use descriptive env var
+AI_SERVICE_BASE_URL = os.getenv("AI_SERVICE_BASE_URL", "http://localhost:8005")  # Use descriptive env var
 
 def test_hashtag_optimization():
     """Test the hashtag optimization endpoint"""
     print("🧪 Testing Hashtag Optimization Endpoint...")
     
-    url = f"{AI_SERVICE_URL}/api/ai/optimize/hashtags/"
+    url = f"{AI_SERVICE_BASE_URL}/api/ai/optimize/hashtags/"
     
     payload = {
         "content": "Launching our new AI-powered social media management platform!",
@@ -63,7 +63,7 @@ def test_optimal_posting_time():
     """Test the optimal posting time endpoint"""
     print("\n🧪 Testing Optimal Posting Time Endpoint...")
     
-    url = f"{AI_SERVICE_URL}/api/ai/schedule/optimal/"
+    url = f"{AI_SERVICE_BASE_URL}/api/ai/schedule/optimal/"
     
     payload = {
         "platform": "instagram",
@@ -107,7 +107,7 @@ def test_content_generation():
     """Test the content generation endpoint"""
     print("\n📝 Testing Content Generation Endpoint...")
     
-    url = f"{AI_SERVICE_URL}/api/ai/generate/content/"
+    url = f"{AI_SERVICE_BASE_URL}/api/ai/generate/content/"
     
     payload = {
         "topic": "AI in business",
@@ -157,7 +157,7 @@ def test_sentiment_analysis():
     """Test the sentiment analysis endpoint"""
     print("\n🧠 Testing Sentiment Analysis Endpoint...")
     
-    url = f"{AI_SERVICE_URL}/api/ai/analyze/sentiment/"
+    url = f"{AI_SERVICE_BASE_URL}/api/ai/analyze/sentiment/"
     
     payload = {
         "text": "I'm really excited about the new AI features in our product! The team has done an amazing job."
@@ -204,7 +204,7 @@ def test_health_check():
     """Test the health check endpoint"""
     print("\n🏥 Testing Health Check Endpoint...")
     
-    url = f"{AI_SERVICE_URL}/health/"
+    url = f"{AI_SERVICE_BASE_URL}/health/"
     
     try:
         response = requests.get(url, timeout=10)
@@ -233,7 +233,7 @@ def test_usage_stats():
     """Test the usage stats endpoint"""
     print("\n📊 Testing Usage Stats Endpoint...")
     
-    url = f"{AI_SERVICE_URL}/api/ai/usage/stats/"
+    url = f"{AI_SERVICE_BASE_URL}/api/ai/usage/stats/"
     
     try:
         response = requests.get(url, timeout=10)
@@ -274,7 +274,7 @@ def test_content_template_list_and_create():
     Note: POST requires authentication, so expect 403 or 401 if not logged in.
     """
     print("\n🧪 Testing ContentTemplateListView (list and create)...")
-    url = f"{AI_SERVICE_URL}/api/ai/templates/"
+    url = f"{AI_SERVICE_BASE_URL}/api/ai/templates/"
     # Test listing
     response = requests.get(url, timeout=10)
     print(f"List Status Code: {response.status_code}")

@@ -13,6 +13,7 @@ from celery.result import AsyncResult
 from django_celery_results.models import TaskResult
 from common.deepseek_client import DeepSeekClient
 from content_generation.prompts import generate_hashtag_optimization_prompt, generate_optimal_posting_time_prompt
+from common.utils import calculate_token_usage_cost
 
 logger = logging.getLogger(__name__)
 
@@ -112,22 +113,13 @@ class HashtagOptimizationView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            prompt_tokens = usage_data.get('prompt_tokens', 0)
-            completion_tokens = usage_data.get('completion_tokens', 0)
-            if prompt_tokens or completion_tokens:
-                tokens_consumed = prompt_tokens + completion_tokens
-            else:
-                tokens_consumed = usage_data.get('total_tokens') or settings.DEFAULT_TOKEN_FALLBACK
-            # Use DEEPSEEK_PRICING from settings for cost calculation
-            cost_per_1k = getattr(settings, 'DEEPSEEK_PRICING', {}).get('prompt', 0.001)
-            cost = (tokens_consumed / 1000) * cost_per_1k
-            
+            tokens_consumed, cost = calculate_token_usage_cost(usage_data, settings, pricing_key='prompt')
             return Response({
                 'success': True,
                 'data': hashtag_data,
                 'usage': {
                     'tokens_consumed': tokens_consumed,
-                    'cost': round(cost, 4)
+                    'cost': cost
                 }
             }, status=status.HTTP_200_OK)
             
@@ -206,20 +198,13 @@ class OptimalPostingTimeView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            prompt_tokens = usage_data.get('prompt_tokens', 0)
-            completion_tokens = usage_data.get('completion_tokens', 0)
-            if prompt_tokens or completion_tokens:
-                tokens_consumed = prompt_tokens + completion_tokens
-            else:
-                tokens_consumed = usage_data.get('total_tokens') or settings.DEFAULT_TOKEN_FALLBACK
-            cost = (tokens_consumed / 1000) * 0.001  # Calculate based on actual tokens
-            
+            tokens_consumed, cost = calculate_token_usage_cost(usage_data, settings, pricing_key='prompt')
             return Response({
                 'success': True,
                 'data': timing_data,
                 'usage': {
                     'tokens_consumed': tokens_consumed,
-                    'cost': round(cost, 4)
+                    'cost': cost
                 }
             }, status=status.HTTP_200_OK)
             
