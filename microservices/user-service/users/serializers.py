@@ -208,6 +208,7 @@ class UserActivitySerializer(serializers.ModelSerializer):
     """Serializer for user activity"""
     
     user_email = serializers.ReadOnlyField(source='user.email')
+    ip_address = serializers.IPAddressField(required=False, allow_null=True, protocol='IPv4')
     
     class Meta:
         model = UserActivity
@@ -223,6 +224,7 @@ class UserSessionSerializer(serializers.ModelSerializer):
     
     user_email = serializers.ReadOnlyField(source='user.email')
     is_expired = serializers.ReadOnlyField()
+    ip_address = serializers.IPAddressField(required=False, allow_null=True, protocol='IPv4')
     
     class Meta:
         model = UserSession

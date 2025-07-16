@@ -29,6 +29,7 @@ from .utils import (
     get_profile_analytics,
     generate_username_suggestions
 )
+from rest_framework import serializers
 
 User = get_user_model()
 
@@ -473,6 +474,7 @@ class ExportProfileDataView(viewsets.GenericViewSet):
     Export user profile data for GDPR compliance.
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.Serializer  # Add serializer class
     
     @action(detail=False, methods=['get'])
     def export_data(self, request):
@@ -505,6 +507,7 @@ class ValidateSocialURLView(viewsets.GenericViewSet):
     Validate social media URLs.
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.Serializer  # Add serializer class
     
     @action(detail=False, methods=['post'])
     def validate_url(self, request):
@@ -534,6 +537,7 @@ class ValidatePhoneView(viewsets.GenericViewSet):
     Validate phone numbers.
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.Serializer  # Add serializer class
     
     @action(detail=False, methods=['post'])
     def validate_phone(self, request):
@@ -563,6 +567,7 @@ class ValidateSkillView(viewsets.GenericViewSet):
     Validate skill names.
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.Serializer  # Add serializer class
     
     @action(detail=False, methods=['post'])
     def validate_skill(self, request):
@@ -591,6 +596,7 @@ class ProfileAnalyticsView(viewsets.GenericViewSet):
     Get profile analytics and insights.
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.Serializer  # Add serializer class
     
     @action(detail=False, methods=['get'])
     def get_analytics(self, request):
@@ -614,6 +620,7 @@ class UsernameSuggestionsView(viewsets.GenericViewSet):
     Generate username suggestions.
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.Serializer  # Add serializer class
     
     @action(detail=False, methods=['post'])
     def generate_suggestions(self, request):
