@@ -22,10 +22,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     phone_number = PhoneNumberField(required=False, allow_blank=True)
     
     class Meta:
-        model = UserProfile
+        model = User  # Changed from UserProfile to User
         fields = '__all__'
-        ref_name = "UserUserProfile"
-
+        ref_name = "UserUser"
         extra_kwargs = {
             'email': {'required': True},
             'username': {'required': True},
