@@ -34,7 +34,12 @@ User = get_user_model()
 
 # Shared constants
 SUPPORTED_SOCIAL_PLATFORMS = [
-    'linkedin', 'twitter', 'facebook', 'instagram', 'github', 'website'
+    ('linkedin', 'LinkedIn'),
+    ('twitter', 'Twitter'),
+    ('facebook', 'Facebook'),
+    ('instagram', 'Instagram'),
+    ('github', 'GitHub'),
+    ('website', 'Website')
 ]
 
 
