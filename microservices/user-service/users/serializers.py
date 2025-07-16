@@ -23,7 +23,9 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User  # Use User model for registration
-        fields = '__all__'
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'phone_number',
+        )
         ref_name = "UserUser"
         extra_kwargs = {
             'email': {'required': True},
