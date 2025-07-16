@@ -31,17 +31,17 @@ def handle_api_errors(view_func):
         try:
             return view_func(self, request, *args, **kwargs)
         except RequestException as e:
-            logger.error(f"API error: {e}")
+            logger.error("API error: %s", e)
             return Response({
                 'status': 'error',
                 'message': 'Failed to connect to external API',
                 'details': str(e)
             }, status=status.HTTP_502_BAD_GATEWAY)
         except NotFound as e:
-            logger.warning(f"Known HTTP exception: {e}")
+            logger.warning("Known HTTP exception: %s", e)
             raise e
         except Exception as e:
-            logger.exception(f"Unexpected error in {self.__class__.__name__}")
+            logger.exception("Unexpected error in %s", self.__class__.__name__)
             return Response({
                 'status': 'error',
                 'message': 'An unexpected error occurred'
@@ -236,7 +236,7 @@ class LinkedInConnectionTestView(APIView):
                 'account_info': account_info
             })
         except RequestException as e:
-            logger.error(f"LinkedIn API error: {e}")
+            logger.error("LinkedIn API error: %s", e)
             return Response({
                 'status': 'error',
                 'message': 'Failed to connect to LinkedIn API',
@@ -271,7 +271,7 @@ class LinkedInPostView(APIView):
                 'post_id': result.get('id')
             }, status=status.HTTP_201_CREATED)
         except RequestException as e:
-            logger.error(f"LinkedIn API error: {e}")
+            logger.error("LinkedIn API error: %s", e)
             return Response({
                 'status': 'error',
                 'message': 'Failed to connect to LinkedIn API',
@@ -299,7 +299,7 @@ class LinkedInUserInfoView(APIView):
                 'userinfo': userinfo
             })
         except RequestException as e:
-            logger.error(f"LinkedIn API error: {e}")
+            logger.error("LinkedIn API error: %s", e)
             return Response({
                 'status': 'error',
                 'message': 'Failed to connect to LinkedIn API',
@@ -332,8 +332,11 @@ class LinkedInImagePostView(APIView):
         upload_url = upload_resp['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl']
         asset_urn = upload_resp['value']['asset']
         # Step 2: Upload the image using a file object
-        with image.file as image_file:
-            linkedin_service.upload_image(upload_url, image_file)
+        image.file.open()
+        try:
+            linkedin_service.upload_image(upload_url, image.file)
+        finally:
+            image.file.close()
         # Step 3: Post content with image
         result = linkedin_service.post_content_with_image(content, asset_urn)
         return Response({
@@ -373,7 +376,7 @@ class FacebookConnectionTestView(APIView):
             })
 
         except RequestException as e:
-            logger.error(f"Facebook API error: {e}")
+            logger.error("Facebook API error: %s", e)
             return Response({
                 'status': 'error',
                 'message': 'Failed to connect to Facebook API',

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 import uuid
+from django_cryptography.fields import encrypt
 
 User = get_user_model()
 
@@ -16,9 +17,9 @@ class SocialAccount(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='social_media_accounts')
     platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES)
     account_id = models.CharField(max_length=100)
-    access_token = models.TextField()
-    access_token_secret = models.TextField(null=True, blank=True)
-    refresh_token = models.TextField(null=True, blank=True)
+    access_token = encrypt(models.TextField())
+    access_token_secret = encrypt(models.TextField(null=True, blank=True))
+    refresh_token = encrypt(models.TextField(null=True, blank=True))
     token_expires_at = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

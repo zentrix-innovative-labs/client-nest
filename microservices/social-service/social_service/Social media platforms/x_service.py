@@ -90,11 +90,26 @@ class XService:
             }
 
     def upload_media(self, media_file, media_type):
-        """Upload media to X"""
+        """Upload media to X with file size validation and streaming base64 encoding"""
+        import os
+        from base64 import b64encode
+        
+        # Validate file size (10 MB limit)
+        max_file_size = 10 * 1024 * 1024  # 10 MB
+        file_size = os.path.getsize(media_file.name)
+        if file_size > max_file_size:
+            raise ValueError(f"File size exceeds the maximum limit of {max_file_size} bytes.")
+        
+        # Stream base64 encoding
+        def encode_file(file):
+            file.seek(0)
+            for chunk in iter(lambda: file.read(8192), b""):
+                yield b64encode(chunk).decode('utf-8')
+        
         upload_url = X_ENDPOINTS['UPLOAD_URL']
         media_data = {
             'media_type': media_type,
-            'media': base64.b64encode(media_file.read()).decode('utf-8')
+            'media': ''.join(encode_file(media_file))
         }
         response = self.oauth.post(
             upload_url,

@@ -1,0 +1,12 @@
+Django>=4.2
+psycopg2-binary
+requests
+python-decouple
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+django-extensions
+celery
+requests-oauthlib
+python-dotenv 
+django-cryptography 

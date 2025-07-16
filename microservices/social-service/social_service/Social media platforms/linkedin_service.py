@@ -98,12 +98,13 @@ class LinkedInService:
         else:
             raise Exception('Failed to register image upload')
 
-    def upload_image(self, upload_url, image_data):
+    def upload_image(self, upload_url, image_file):
         headers = {
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/octet-stream'
         }
-        response = requests.put(upload_url, headers=headers, data=image_data)
+        with open(image_file, 'rb') as file_stream:
+            response = requests.put(upload_url, headers=headers, data=file_stream)
         if response.status_code in [200, 201]:
             return True
         else:
