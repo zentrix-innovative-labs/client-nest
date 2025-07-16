@@ -23,7 +23,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        fields = (
+            'email', 'username', 'first_name', 'last_name', 'phone_number',
+            'profile_picture', 'date_of_birth', 'gender'
+        )
         ref_name = "UserUserProfile"
 
         extra_kwargs = {
