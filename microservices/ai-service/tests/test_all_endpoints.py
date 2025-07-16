@@ -14,7 +14,7 @@ import time
 import os
 
 # AI Service configuration - configurable via environment variables
-AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8005")
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8005")  # Use descriptive env var
 
 def test_hashtag_optimization():
     """Test the hashtag optimization endpoint"""
@@ -270,13 +270,15 @@ def test_usage_stats():
         assert False, f"Test failed with exception: {str(e)}"
 
 def test_content_template_list_and_create():
-    """Test listing and creating content templates (integration test)"""
+    """Test listing and creating content templates (integration test)
+    Note: POST requires authentication, so expect 403 or 401 if not logged in.
+    """
     print("\n🧪 Testing ContentTemplateListView (list and create)...")
     url = f"{AI_SERVICE_URL}/api/ai/templates/"
     # Test listing
     response = requests.get(url, timeout=10)
     print(f"List Status Code: {response.status_code}")
-    assert response.status_code in [200, 201, 403], f"Expected 200/201/403, got {response.status_code}"
+    assert response.status_code in [200, 201, 403, 401], f"Expected 200/201/403/401, got {response.status_code}"
     if response.status_code == 200:
         data = response.json()
         print(f"List Response: {json.dumps(data, indent=2)}")
@@ -293,9 +295,8 @@ def test_content_template_list_and_create():
         assert data["template"] == "Hello, {name}!", "Template content mismatch"
 
 def test_endpoint_comparison():
-    """Compare implemented endpoints with architecture requirements"""
+    """Compare implemented endpoints with architecture requirements (method+path)"""
     print("\n📋 Endpoint Implementation Status:")
-    
     required_endpoints = [
         "POST /api/ai/generate/content",
         "POST /api/ai/analyze/sentiment", 
@@ -305,7 +306,6 @@ def test_endpoint_comparison():
         "GET /api/ai/usage/stats",
         "GET /health"
     ]
-    
     implemented_endpoints = [
         "✅ GET /health",
         "✅ POST /api/ai/generate/content",
@@ -315,26 +315,20 @@ def test_endpoint_comparison():
         "✅ POST /api/ai/optimize/hashtags",  # NEW
         "✅ POST /api/ai/schedule/optimal"   # NEW
     ]
-    
     # Extract full method+path strings from implemented endpoints (remove "✅ " prefix)
-    implemented_endpoints_cleaned = [endpoint[2:] for endpoint in implemented_endpoints]
-    
+    implemented_endpoints_cleaned = [endpoint[2:].strip() for endpoint in implemented_endpoints]
     # Convert to sets for unordered comparison
     required_set = set(required_endpoints)
     implemented_set = set(implemented_endpoints_cleaned)
-    
     # Find missing and extra endpoints
     missing_endpoints = required_set - implemented_set
     extra_endpoints = implemented_set - required_set
-    
     # Print all implemented endpoints
     for endpoint in implemented_endpoints:
         print(f"  {endpoint}")
-    
     # Assert no missing or extra endpoints
     assert not missing_endpoints, f"Missing endpoints: {missing_endpoints}"
     assert not extra_endpoints, f"Unexpected endpoints: {extra_endpoints}"
-    
     print("\n🎉 All required AI service endpoints are now implemented!")
     return True
 

@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from dataclasses import dataclass
 from django.conf import settings
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class PerformanceMonitor:
         self.error_count = 0
         self.total_requests = 0
         self.start_time = datetime.now()
+        self._lock = threading.Lock()
     
     def record_request(self, response_time: float, token_usage: int, 
                       error_occurred: bool, endpoint: str, user_id: Optional[str] = None):
@@ -44,19 +46,22 @@ class PerformanceMonitor:
             endpoint=endpoint,
             user_id=user_id
         )
-        
-        self.metrics.append(metric)
-        self.total_requests += 1
-        
-        if error_occurred:
-            self.error_count += 1
-        
+        with self._lock:
+            self.metrics.append(metric)
+            self.total_requests += 1
+            if error_occurred:
+                self.error_count += 1
         # Log performance data
         logger.info(f"Performance: {endpoint} - {response_time:.2f}s, {token_usage} tokens, error: {error_occurred}")
     
     def get_performance_summary(self) -> Dict:
         """Get performance summary"""
-        if not self.metrics:
+        with self._lock:
+            metrics_copy = list(self.metrics)
+            error_count = self.error_count
+            total_requests = self.total_requests
+            start_time = self.start_time
+        if not metrics_copy:
             return {
                 'total_requests': 0,
                 'error_rate': 0.0,
@@ -64,33 +69,29 @@ class PerformanceMonitor:
                 'total_token_usage': 0,
                 'uptime': 0.0
             }
-        
-        response_times = [m.response_time for m in self.metrics]
-        token_usages = [m.token_usage for m in self.metrics]
-        
+        response_times = [m.response_time for m in metrics_copy]
+        token_usages = [m.token_usage for m in metrics_copy]
         return {
-            'total_requests': self.total_requests,
-            'error_rate': (self.error_count / self.total_requests) * 100 if self.total_requests > 0 else 0,
+            'total_requests': total_requests,
+            'error_rate': (error_count / total_requests) * 100 if total_requests > 0 else 0,
             'avg_response_time': statistics.mean(response_times),
             'min_response_time': min(response_times),
             'max_response_time': max(response_times),
             'total_token_usage': sum(token_usages),
             'avg_token_usage': statistics.mean(token_usages),
-            'uptime': (datetime.now() - self.start_time).total_seconds(),
+            'uptime': (datetime.now() - start_time).total_seconds(),
             'requests_per_minute': self._calculate_rpm()
         }
     
     def get_endpoint_performance(self, endpoint: str) -> Dict:
         """Get performance metrics for specific endpoint"""
-        endpoint_metrics = [m for m in self.metrics if m.endpoint == endpoint]
-        
+        with self._lock:
+            endpoint_metrics = [m for m in self.metrics if m.endpoint == endpoint]
         if not endpoint_metrics:
             return {'endpoint': endpoint, 'requests': 0}
-        
         response_times = [m.response_time for m in endpoint_metrics]
         token_usages = [m.token_usage for m in endpoint_metrics]
         errors = [m for m in endpoint_metrics if m.error_occurred]
-        
         return {
             'endpoint': endpoint,
             'requests': len(endpoint_metrics),
@@ -101,24 +102,24 @@ class PerformanceMonitor:
         }
     
     def _calculate_rpm(self) -> float:
-        """Calculate requests per minute"""
-        if not self.metrics:
+        with self._lock:
+            total_requests = self.total_requests
+            start_time = self.start_time
+        if not total_requests:
             return 0.0
-        
-        time_diff = datetime.now() - self.start_time
+        time_diff = datetime.now() - start_time
         minutes = time_diff.total_seconds() / 60
-        
-        return self.total_requests / minutes if minutes > 0 else 0.0
+        return total_requests / minutes if minutes > 0 else 0.0
     
     def get_recent_metrics(self, minutes: int = 10) -> List[PerformanceMetrics]:
-        """Get metrics from the last N minutes"""
         cutoff_time = datetime.now() - timedelta(minutes=minutes)
-        return [m for m in self.metrics if m.timestamp > cutoff_time]
+        with self._lock:
+            return [m for m in self.metrics if m.timestamp > cutoff_time]
     
     def clear_old_metrics(self, hours: int = 24):
-        """Clear metrics older than specified hours"""
         cutoff_time = datetime.now() - timedelta(hours=hours)
-        self.metrics = [m for m in self.metrics if m.timestamp > cutoff_time]
+        with self._lock:
+            self.metrics = [m for m in self.metrics if m.timestamp > cutoff_time]
 
 # Global performance monitor instance
 performance_monitor = PerformanceMonitor()

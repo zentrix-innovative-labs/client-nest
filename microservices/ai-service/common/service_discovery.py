@@ -9,11 +9,34 @@ import json
 from typing import Dict, List, Optional
 from datetime import datetime
 from django.conf import settings
+import threading
 
 logger = logging.getLogger(__name__)
 
 class ServiceDiscovery:
     """Service discovery and registration system"""
+    
+    _registry = {}
+    _lock = threading.Lock()
+
+    @classmethod
+    def register_service(cls, name, host, port):
+        with cls._lock:
+            cls._registry[name] = {'host': host, 'port': port}
+
+    @classmethod
+    def discover_services(cls):
+        with cls._lock:
+            return dict(cls._registry)
+
+    @staticmethod
+    def health_check(host, port):
+        import requests
+        try:
+            response = requests.get(f'http://{host}:{port}/health/', timeout=2)
+            return response.status_code == 200
+        except Exception:
+            return False
     
     def __init__(self):
         self.service_name = 'ai-service'

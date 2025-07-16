@@ -5,8 +5,14 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+# Import config validation
+from .config_validation import validate_config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Validate configuration
+validate_config()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
@@ -277,28 +283,3 @@ LOGGING = {
         },
     },
 }
-
-# ===== CONFIGURATION VALIDATION =====
-def validate_configuration():
-    """Validate critical configuration settings"""
-    required_vars = [
-        'DEEPSEEK_API_KEY',
-        'SECRET_KEY',
-        'DB_NAME',
-        'DB_USER', 
-        'DB_PASSWORD',
-        'DB_HOST',
-        'DB_PORT'
-    ]
-    
-    missing_vars = []
-    for var in required_vars:
-        if not os.environ.get(var):
-            missing_vars.append(var)
-    
-    if missing_vars:
-        raise ValueError(f"Missing required environment variables: {', '.join(missing_vars)}")
-
-# Only validate configuration in production or when explicitly requested
-if os.getenv('DJANGO_ENV') == 'production' or os.getenv('VALIDATE_CONFIG') == 'true':
-    validate_configuration()
