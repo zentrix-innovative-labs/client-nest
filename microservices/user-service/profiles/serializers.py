@@ -21,7 +21,18 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        fields = [
+            'id', 'user', 'age', 'full_address', 'interests_list',
+            'social_links', 'completion_percentage', 'user_email',
+            'user_name', 'date_of_birth', 'gender', 'phone_number',
+            'address_line_1', 'address_line_2', 'city', 'state',
+            'postal_code', 'country', 'occupation', 'company',
+            'education_level', 'relationship_status', 'website',
+            'facebook_url', 'twitter_url', 'linkedin_url',
+            'instagram_url', 'github_url', 'interests', 'bio_extended',
+            'show_email', 'show_phone', 'show_address', 'show_birth_date',
+            'created_at', 'updated_at'
+        ]
         ref_name = "ProfilesUserProfile"
         
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
