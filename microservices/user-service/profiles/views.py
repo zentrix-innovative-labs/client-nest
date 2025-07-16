@@ -79,7 +79,12 @@ class ValidateSkillSerializer(serializers.Serializer):
 
 class ProfileAnalyticsSerializer(serializers.Serializer):
     """Serializer for profile analytics"""
-    pass
+    profile_completion = serializers.FloatField(required=True)
+    active_days = serializers.IntegerField(required=True)
+    total_views = serializers.IntegerField(required=True)
+    total_likes = serializers.IntegerField(required=True)
+    total_comments = serializers.IntegerField(required=True)
+    engagement_rate = serializers.FloatField(required=True)
 
 
 class UsernameSuggestionsSerializer(serializers.Serializer):
