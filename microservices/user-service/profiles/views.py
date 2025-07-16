@@ -46,7 +46,20 @@ SUPPORTED_SOCIAL_PLATFORMS = [
 # Dedicated serializers for GenericViewSet actions
 class ExportDataSerializer(serializers.Serializer):
     """Serializer for profile data export"""
-    pass
+    user_id = serializers.IntegerField()
+    full_name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+    profile_completion = serializers.FloatField()
+    preferences = serializers.JSONField()
+    skills = serializers.ListField(
+        child=serializers.CharField(max_length=100)
+    )
+    education = serializers.ListField(
+        child=serializers.JSONField()
+    )
+    experience = serializers.ListField(
+        child=serializers.JSONField()
+    )
 
 
 class ValidateSocialURLSerializer(serializers.Serializer):
@@ -71,7 +84,12 @@ class ValidateSkillSerializer(serializers.Serializer):
 
 class ProfileAnalyticsSerializer(serializers.Serializer):
     """Serializer for profile analytics"""
-    pass
+    profile_completion = serializers.FloatField(required=True)
+    active_days = serializers.IntegerField(required=True)
+    total_views = serializers.IntegerField(required=True)
+    total_likes = serializers.IntegerField(required=True)
+    total_comments = serializers.IntegerField(required=True)
+    engagement_rate = serializers.FloatField(required=True)
 
 
 class UsernameSuggestionsSerializer(serializers.Serializer):
