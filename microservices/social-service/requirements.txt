@@ -10,3 +10,6 @@ celery
 requests-oauthlib
 python-dotenv 
 django-cryptography 
+google-api-python-client
+google-auth-oauthlib
+google-auth 

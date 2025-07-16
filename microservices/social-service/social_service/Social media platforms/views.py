@@ -20,6 +20,8 @@ from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from user_service.mixins import SwaggerFakeViewMixin
+from .youtube_service import YouTubeService
+import os
 
 # Create your views here.
 
@@ -477,3 +479,33 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all().order_by('-created_at')
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+class YouTubeVideoUploadView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        # Expecting: file, title, description, tags (optional)
+        file = request.FILES.get('file')
+        title = request.data.get('title')
+        description = request.data.get('description')
+        tags = request.data.get('tags', '').split(',') if request.data.get('tags') else []
+        if not file or not title or not description:
+            return Response({'status': 'error', 'message': 'file, title, and description are required'}, status=400)
+        # Save file temporarily
+        import tempfile
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp:
+            for chunk in file.chunks():
+                tmp.write(chunk)
+            tmp_path = tmp.name
+        # You should set these paths in your settings or env
+        credentials_path = os.environ.get('YOUTUBE_CREDENTIALS_PATH', 'youtube_client_secret.json')
+        token_path = os.environ.get('YOUTUBE_TOKEN_PATH', 'youtube_token.json')
+        yt_service = YouTubeService(credentials_path, token_path)
+        try:
+            response = yt_service.upload_video(tmp_path, title, description, tags=tags)
+            return Response({'status': 'success', 'video_id': response.get('id')})
+        except Exception as e:
+            return Response({'status': 'error', 'message': str(e)}, status=500)
+        finally:
+            os.remove(tmp_path)
