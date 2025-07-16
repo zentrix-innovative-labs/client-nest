@@ -180,7 +180,7 @@ class UserSession(models.Model):
         related_name='sessions'
     )
     session_key = models.CharField(max_length=40, unique=True)
-    ip_address = models.GenericIPAddressField()
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
     user_agent = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     last_activity = models.DateTimeField(auto_now=True)

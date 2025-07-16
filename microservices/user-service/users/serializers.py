@@ -7,6 +7,11 @@ from .models import User, UserActivity, UserSession
 from profiles.models import UserProfile
 
 
+class IPAddressMixin:
+    """Mixin to add IP address field to serializers"""
+    ip_address = serializers.IPAddressField(required=False, allow_null=True, protocol='both')
+
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Serializer for user registration"""
     
@@ -206,7 +211,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return attrs
 
 
-class UserActivitySerializer(serializers.ModelSerializer):
+class UserActivitySerializer(IPAddressMixin, serializers.ModelSerializer):
     """Serializer for user activity"""
     
     user_email = serializers.ReadOnlyField(source='user.email')
@@ -220,7 +225,7 @@ class UserActivitySerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'timestamp')
 
 
-class UserSessionSerializer(serializers.ModelSerializer):
+class UserSessionSerializer(IPAddressMixin, serializers.ModelSerializer):
     """Serializer for user session"""
     
     user_email = serializers.ReadOnlyField(source='user.email')
