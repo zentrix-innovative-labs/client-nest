@@ -23,6 +23,7 @@ from user_service.mixins import SwaggerFakeViewMixin
 from .youtube_service import YouTubeService
 import os
 from .bluesky_service import BlueskyService
+from .threads_service import ThreadsService
 
 # Create your views here.
 
@@ -525,5 +526,22 @@ class BlueskyPostView(APIView):
             service = BlueskyService(identifier, password)
             result = service.post(text)
             return Response({'status': 'success', 'uri': result['uri']})
+        except Exception as e:
+            return Response({'status': 'error', 'message': str(e)}, status=500)
+
+class ThreadsPostView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        text = request.data.get('text')
+        if not username or not password or not text:
+            return Response({'status': 'error', 'message': 'username, password, and text are required'}, status=400)
+        try:
+            service = ThreadsService(username, password)
+            result = service.post(text)
+            return Response({'status': 'success', 'thread_id': result.get('id')})
         except Exception as e:
             return Response({'status': 'error', 'message': str(e)}, status=500)

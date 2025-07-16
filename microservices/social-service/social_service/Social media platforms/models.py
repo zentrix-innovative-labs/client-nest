@@ -14,6 +14,7 @@ class SocialAccount(models.Model):
         ('linkedin', 'LinkedIn'),
         ('youtube', 'YouTube'),
         ('bluesky', 'Bluesky'),
+        ('threads', 'Threads'),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='social_media_accounts')
