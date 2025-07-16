@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
+from rest_framework import filters, serializers
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -29,9 +29,46 @@ from .utils import (
     get_profile_analytics,
     generate_username_suggestions
 )
-from rest_framework import serializers
 
 User = get_user_model()
+
+
+# Dedicated serializers for GenericViewSet actions
+class ExportDataSerializer(serializers.Serializer):
+    """Serializer for profile data export"""
+    pass
+
+
+class ValidateSocialURLSerializer(serializers.Serializer):
+    """Serializer for social URL validation"""
+    url = serializers.URLField(required=True)
+    platform = serializers.ChoiceField(
+        choices=['linkedin', 'twitter', 'facebook', 'instagram', 'github', 'website'],
+        required=True
+    )
+
+
+class ValidatePhoneSerializer(serializers.Serializer):
+    """Serializer for phone number validation"""
+    phone = serializers.CharField(required=True)
+    country_code = serializers.CharField(required=False, allow_blank=True)
+
+
+class ValidateSkillSerializer(serializers.Serializer):
+    """Serializer for skill validation"""
+    skill_name = serializers.CharField(required=True, max_length=100)
+
+
+class ProfileAnalyticsSerializer(serializers.Serializer):
+    """Serializer for profile analytics"""
+    pass
+
+
+class UsernameSuggestionsSerializer(serializers.Serializer):
+    """Serializer for username suggestions"""
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
@@ -474,7 +511,7 @@ class ExportProfileDataView(viewsets.GenericViewSet):
     Export user profile data for GDPR compliance.
     """
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.Serializer  # Add serializer class
+    serializer_class = ExportDataSerializer
     
     @action(detail=False, methods=['get'])
     def export_data(self, request):
@@ -507,29 +544,26 @@ class ValidateSocialURLView(viewsets.GenericViewSet):
     Validate social media URLs.
     """
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.Serializer  # Add serializer class
+    serializer_class = ValidateSocialURLSerializer
     
     @action(detail=False, methods=['post'])
     def validate_url(self, request):
         """
         Validate a social media URL.
         """
-        url = request.data.get('url')
-        platform = request.data.get('platform')
-        
-        if not url or not platform:
-            return Response(
-                {'error': 'URL and platform are required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        is_valid = validate_social_url(url, platform)
-        
-        return Response({
-            'is_valid': is_valid,
-            'url': url,
-            'platform': platform
-        }, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            url = serializer.validated_data['url']
+            platform = serializer.validated_data['platform']
+            
+            is_valid = validate_social_url(url, platform)
+            
+            return Response({
+                'is_valid': is_valid,
+                'url': url,
+                'platform': platform
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ValidatePhoneView(viewsets.GenericViewSet):
@@ -537,29 +571,26 @@ class ValidatePhoneView(viewsets.GenericViewSet):
     Validate phone numbers.
     """
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.Serializer  # Add serializer class
+    serializer_class = ValidatePhoneSerializer
     
     @action(detail=False, methods=['post'])
     def validate_phone(self, request):
         """
         Validate a phone number.
         """
-        phone = request.data.get('phone')
-        country_code = request.data.get('country_code')
-        
-        if not phone:
-            return Response(
-                {'error': 'Phone number is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        is_valid = validate_phone_number(phone, country_code)
-        
-        return Response({
-            'is_valid': is_valid,
-            'phone': phone,
-            'country_code': country_code
-        }, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            phone = serializer.validated_data['phone']
+            country_code = serializer.validated_data.get('country_code')
+            
+            is_valid = validate_phone_number(phone, country_code)
+            
+            return Response({
+                'is_valid': is_valid,
+                'phone': phone,
+                'country_code': country_code
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ValidateSkillView(viewsets.GenericViewSet):
@@ -567,28 +598,25 @@ class ValidateSkillView(viewsets.GenericViewSet):
     Validate skill names.
     """
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.Serializer  # Add serializer class
+    serializer_class = ValidateSkillSerializer
     
     @action(detail=False, methods=['post'])
     def validate_skill(self, request):
         """
         Validate a skill name.
         """
-        skill_name = request.data.get('skill_name')
-        
-        if not skill_name:
-            return Response(
-                {'error': 'Skill name is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        is_valid = validate_skill_name(skill_name)
-        
-        return Response({
-            'is_valid': is_valid,
-            'skill_name': skill_name,
-            'normalized_name': skill_name.strip().title() if is_valid else None
-        }, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            skill_name = serializer.validated_data['skill_name']
+            
+            is_valid = validate_skill_name(skill_name)
+            
+            return Response({
+                'is_valid': is_valid,
+                'skill_name': skill_name,
+                'normalized_name': skill_name.strip().title() if is_valid else None
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProfileAnalyticsView(viewsets.GenericViewSet):
@@ -596,7 +624,7 @@ class ProfileAnalyticsView(viewsets.GenericViewSet):
     Get profile analytics and insights.
     """
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.Serializer  # Add serializer class
+    serializer_class = ProfileAnalyticsSerializer
     
     @action(detail=False, methods=['get'])
     def get_analytics(self, request):
@@ -620,33 +648,36 @@ class UsernameSuggestionsView(viewsets.GenericViewSet):
     Generate username suggestions.
     """
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = serializers.Serializer  # Add serializer class
+    serializer_class = UsernameSuggestionsSerializer
     
     @action(detail=False, methods=['post'])
     def generate_suggestions(self, request):
         """
         Generate username suggestions based on user input.
         """
-        first_name = request.data.get('first_name', '')
-        last_name = request.data.get('last_name', '')
-        email = request.data.get('email', '')
-        
-        if not any([first_name, last_name, email]):
-            return Response(
-                {'error': 'At least one of first_name, last_name, or email is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            suggestions = generate_username_suggestions(first_name, last_name, email)
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            first_name = serializer.validated_data.get('first_name', '')
+            last_name = serializer.validated_data.get('last_name', '')
+            email = serializer.validated_data.get('email', '')
             
-            return Response({
-                'suggestions': suggestions,
-                'count': len(suggestions)
-            }, status=status.HTTP_200_OK)
+            if not any([first_name, last_name, email]):
+                return Response(
+                    {'error': 'At least one of first_name, last_name, or email is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
-        except Exception as e:
-            return Response(
-                {'error': 'Failed to generate username suggestions'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            try:
+                suggestions = generate_username_suggestions(first_name, last_name, email)
+                
+                return Response({
+                    'suggestions': suggestions,
+                    'count': len(suggestions)
+                }, status=status.HTTP_200_OK)
+                
+            except Exception as e:
+                return Response(
+                    {'error': 'Failed to generate username suggestions'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
