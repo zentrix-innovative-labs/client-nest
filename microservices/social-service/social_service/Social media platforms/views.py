@@ -22,6 +22,7 @@ from django.http import Http404
 from user_service.mixins import SwaggerFakeViewMixin
 from .youtube_service import YouTubeService
 import os
+from .bluesky_service import BlueskyService
 
 # Create your views here.
 
@@ -509,3 +510,20 @@ class YouTubeVideoUploadView(APIView):
             return Response({'status': 'error', 'message': str(e)}, status=500)
         finally:
             os.remove(tmp_path)
+
+class BlueskyPostView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        identifier = request.data.get('identifier')
+        password = request.data.get('password')
+        text = request.data.get('text')
+        if not identifier or not password or not text:
+            return Response({'status': 'error', 'message': 'identifier, password, and text are required'}, status=400)
+        try:
+            service = BlueskyService(identifier, password)
+            result = service.post(text)
+            return Response({'status': 'success', 'uri': result['uri']})
+        except Exception as e:
+            return Response({'status': 'error', 'message': str(e)}, status=500)
