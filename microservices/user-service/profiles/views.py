@@ -32,6 +32,11 @@ from .utils import (
 
 User = get_user_model()
 
+# Shared constants
+SUPPORTED_SOCIAL_PLATFORMS = [
+    'linkedin', 'twitter', 'facebook', 'instagram', 'github', 'website'
+]
+
 
 # Dedicated serializers for GenericViewSet actions
 class ExportDataSerializer(serializers.Serializer):
@@ -43,7 +48,7 @@ class ValidateSocialURLSerializer(serializers.Serializer):
     """Serializer for social URL validation"""
     url = serializers.URLField(required=True)
     platform = serializers.ChoiceField(
-        choices=['linkedin', 'twitter', 'facebook', 'instagram', 'github', 'website'],
+        choices=SUPPORTED_SOCIAL_PLATFORMS,
         required=True
     )
 
