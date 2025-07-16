@@ -7,6 +7,8 @@ Run this for an interactive testing experience
 import os
 import sys
 import django
+import pytest
+from rest_framework.test import APIClient
 
 # Set up Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ai_service.settings')
@@ -14,6 +16,10 @@ django.setup()
 
 from content_generation.logic import ContentGenerator
 from common.deepseek_client import DeepSeekClient
+
+@pytest.fixture
+def client():
+    return APIClient()
 
 def setup_environment():
     """Set up environment variables"""

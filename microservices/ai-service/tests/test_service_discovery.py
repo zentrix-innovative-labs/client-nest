@@ -24,14 +24,14 @@ class TestServiceDiscovery(unittest.TestCase):
         self.assertEqual(services['ai-service']['port'], 9000)
 
     def test_health_check_success(self):
-        with patch('requests.get') as mock_get:
+        with patch('common.service_discovery.requests.get') as mock_get:
             mock_get.return_value.status_code = 200
             result = ServiceDiscovery.health_check('localhost', 8005)
             self.assertTrue(result)
             mock_get.assert_called_once()
 
     def test_health_check_failure(self):
-        with patch('requests.get') as mock_get:
+        with patch('common.service_discovery.requests.get') as mock_get:
             mock_get.side_effect = Exception('Connection error')
             result = ServiceDiscovery.health_check('localhost', 8005)
             self.assertFalse(result)

@@ -18,13 +18,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class ContentGenerationTestAPIView(APIView):
+class ContentGenerationMixin:
     """
-    Test API endpoint for generating social media content using AI (no authentication required).
+    Mixin to handle shared logic for content generation.
     """
-    permission_classes = [AllowAny]
-
-    def post(self, request):
+    def handle_content_generation(self, request, user=None):
         serializer = ContentGenerationRequestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -38,53 +36,7 @@ class ContentGenerationTestAPIView(APIView):
             result = generator.generate_post(
                 topic=serializer.validated_data['topic'],
                 platform=serializer.validated_data['platform'],
-                user=None,  # No user for test endpoint
-                tone=serializer.validated_data['tone'],
-                content_type=serializer.validated_data.get('content_type', 'post'),
-                additional_context=serializer.validated_data.get('additional_context')
-            )
-            
-            if 'error' in result:
-                return Response({'error': result['error']}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-            # Validate response structure
-            response_serializer = ContentGenerationResponseSerializer(data=result)
-            if response_serializer.is_valid():
-                return Response(response_serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response(
-                    {'error': 'Invalid response structure', 'details': response_serializer.errors},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-                
-        except Exception as e:
-            logger.error(f"Error generating content: {str(e)}")
-            return Response(
-                {'error': 'An error occurred while generating content'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-class ContentGenerationAPIView(APIView):
-    """
-    API endpoint for generating social media content using AI.
-    """
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        serializer = ContentGenerationRequestSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            # Initialize AI client and content generator
-            client = DeepSeekClient()
-            generator = ContentGenerator(client)
-            
-            # Generate content
-            result = generator.generate_post(
-                topic=serializer.validated_data['topic'],
-                platform=serializer.validated_data['platform'],
-                user=request.user,
+                user=user,
                 tone=serializer.validated_data['tone'],
                 content_type=serializer.validated_data.get('content_type', 'post'),
                 additional_context=serializer.validated_data.get('additional_context')
@@ -95,7 +47,7 @@ class ContentGenerationAPIView(APIView):
             
             # Save generated content to database
             generated_content = GeneratedContent.objects.create(
-                user=request.user,
+                user=user,
                 topic=serializer.validated_data['topic'],
                 platform=serializer.validated_data['platform'],
                 tone=serializer.validated_data['tone'],
@@ -127,6 +79,24 @@ class ContentGenerationAPIView(APIView):
                 {'error': 'An error occurred while generating content'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class ContentGenerationTestAPIView(APIView):
+    """
+    Test API endpoint for generating social media content using AI (no authentication required).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        return self.handle_content_generation(request, user=None)
+
+class ContentGenerationAPIView(APIView):
+    """
+    API endpoint for generating social media content using AI.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        return self.handle_content_generation(request, user=request.user)
 
 class GeneratedContentListView(APIView):
     """

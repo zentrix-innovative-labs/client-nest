@@ -9,6 +9,7 @@ import decimal
 from unittest.mock import patch
 from django.test import TestCase
 from django.conf import settings
+import os
 
 # Import the function to test
 from content_generation.signals import _calculate_cost
@@ -142,10 +143,12 @@ class TestCalculateCost(TestCase):
         self.assertIsInstance(cost, decimal.Decimal)
         self.assertGreater(cost, 0)
     
-    def test_calculate_cost_thread_safety(self):
+    @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
+    def test_calculate_cost_thread_safety(self, mock_pricing):
         """Test that the function is thread-safe with decimal context"""
         import threading
         import queue
+        os.environ['DEEPSEEK_API_KEY'] = 'dummy-key'
         
         results = queue.Queue()
         
