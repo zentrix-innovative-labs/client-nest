@@ -69,6 +69,19 @@ class UsernameSuggestionsSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
     email = serializers.EmailField(required=False, allow_blank=True)
+    
+    def validate(self, attrs):
+        """Validate that at least one field is provided"""
+        first_name = attrs.get('first_name', '')
+        last_name = attrs.get('last_name', '')
+        email = attrs.get('email', '')
+        
+        if not any([first_name, last_name, email]):
+            raise serializers.ValidationError(
+                "At least one of first_name, last_name, or email is required"
+            )
+        
+        return attrs
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
@@ -563,7 +576,8 @@ class ValidateSocialURLView(viewsets.GenericViewSet):
                 'url': url,
                 'platform': platform
             }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ValidatePhoneView(viewsets.GenericViewSet):
@@ -590,7 +604,8 @@ class ValidatePhoneView(viewsets.GenericViewSet):
                 'phone': phone,
                 'country_code': country_code
             }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ValidateSkillView(viewsets.GenericViewSet):
@@ -616,7 +631,8 @@ class ValidateSkillView(viewsets.GenericViewSet):
                 'skill_name': skill_name,
                 'normalized_name': skill_name.strip().title() if is_valid else None
             }, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProfileAnalyticsView(viewsets.GenericViewSet):
@@ -661,12 +677,6 @@ class UsernameSuggestionsView(viewsets.GenericViewSet):
             last_name = serializer.validated_data.get('last_name', '')
             email = serializer.validated_data.get('email', '')
             
-            if not any([first_name, last_name, email]):
-                return Response(
-                    {'error': 'At least one of first_name, last_name, or email is required'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            
             try:
                 suggestions = generate_username_suggestions(first_name, last_name, email)
                 
@@ -680,4 +690,5 @@ class UsernameSuggestionsView(viewsets.GenericViewSet):
                     {'error': 'Failed to generate username suggestions'},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
