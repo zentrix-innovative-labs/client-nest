@@ -37,7 +37,7 @@ class ContentGenerationView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SentimentAnalysisView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         text = request.data.get('text')
@@ -54,7 +54,7 @@ class SentimentAnalysisView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class HashtagOptimizationView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         """
@@ -127,7 +127,7 @@ class HashtagOptimizationView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class OptimalPostingTimeView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         """
@@ -225,7 +225,7 @@ class ModelHealthView(APIView):
             return Response({'status': 'unhealthy', 'error': str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 class UsageStatsView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     def get(self, request):
         # Real usage/cost stats: aggregate from TaskResult or custom tracking
         total_tasks = TaskResult.objects.count()
@@ -239,7 +239,7 @@ class UsageStatsView(APIView):
         }, status=status.HTTP_200_OK)
 
 class TokenUsageView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     def get(self, request):
         """Get current token usage and budget status"""
         try:

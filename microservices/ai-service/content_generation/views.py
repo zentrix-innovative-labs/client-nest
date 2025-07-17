@@ -80,16 +80,16 @@ class ContentGenerationMixin:
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-class ContentGenerationTestAPIView(APIView):
+class ContentGenerationTestAPIView(ContentGenerationMixin, APIView):
     """
-    Test API endpoint for generating social media content using AI (no authentication required).
+    Test API endpoint for generating social media content using AI (authentication required).
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        return self.handle_content_generation(request, user=None)
+        return self.handle_content_generation(request, user=request.user)
 
-class ContentGenerationAPIView(APIView):
+class ContentGenerationAPIView(ContentGenerationMixin, APIView):
     """
     API endpoint for generating social media content using AI.
     """
