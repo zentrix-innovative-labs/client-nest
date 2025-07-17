@@ -89,12 +89,11 @@ python manage.py runserver 8005
 
 ### Content Generation
 
-- `POST /api/content/generate/` - Generate social media content
-- `GET /api/content/content/` - List generated content
-- `GET /api/content/content/{id}/` - Get specific content
-- `GET /api/content/templates/` - List content templates
-- `POST /api/content/templates/` - Create content template
-- `GET /api/content/usage/` - List AI usage logs
+- `POST /api/ai/generate/content/` - Generate social media content
+- `GET /api/ai/templates/` - List content templates
+- `POST /api/ai/templates/` - Create content template
+- `GET /api/ai/token/usage/` - Get token usage statistics
+- `GET /api/ai/usage/stats/` - Get AI usage statistics
 
 ### Legacy Endpoints (for backward compatibility)
 

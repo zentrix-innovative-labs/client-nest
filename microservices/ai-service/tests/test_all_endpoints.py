@@ -269,6 +269,46 @@ def test_usage_stats():
         print(f"❌ Usage Stats Test ERROR: {str(e)}")
         assert False, f"Test failed with exception: {str(e)}"
 
+def test_token_usage():
+    """Test the token usage endpoint"""
+    print("\n🔑 Testing Token Usage Endpoint...")
+    
+    url = f"{AI_SERVICE_BASE_URL}/api/ai/token/usage/"
+    
+    try:
+        response = requests.get(url, timeout=10)
+        
+        print(f"Status Code: {response.status_code}")
+        
+        # Assertions for response
+        assert response.status_code in [200, 201], f"Expected 200/201, got {response.status_code}"
+        
+        if response.status_code in [200, 201]:
+            data = response.json()
+            print("✅ Token Usage Test PASSED")
+            print(f"Response: {json.dumps(data, indent=2)}")
+            
+            # Token usage returns usage statistics
+            expected_fields = ['token_usage', 'budget_warnings', 'remaining_daily', 'remaining_total', 'estimated_cost']
+            for field in expected_fields:
+                if field in data:
+                    print(f"🔑 {field}: {data[field]}")
+                else:
+                    print(f"⚠️  Missing field: {field}")
+            
+            # Basic structure validation
+            assert isinstance(data, dict), "Response should be a dictionary"
+            assert 'token_usage' in data, "Response missing token_usage field"
+            
+        else:
+            print(f"❌ Token Usage Test FAILED")
+            print(f"Error: {response.text}")
+            assert False, f"Request failed with status {response.status_code}"
+            
+    except Exception as e:
+        print(f"❌ Token Usage Test ERROR: {str(e)}")
+        assert False, f"Test failed with exception: {str(e)}"
+
 def test_content_template_list_and_create():
     """Test listing and creating content templates (integration test)
     Note: POST requires authentication, so expect 403 or 401 if not logged in.
@@ -304,12 +344,14 @@ def test_endpoint_comparison():
         "POST /api/ai/schedule/optimal",
         "GET /api/ai/models/status",
         "GET /api/ai/usage/stats",
+        "GET /api/ai/token/usage",
         "GET /health"
     ]
     implemented_endpoints = [
         "✅ GET /health",
         "✅ POST /api/ai/generate/content",
         "✅ GET /api/ai/usage/stats",
+        "✅ GET /api/ai/token/usage",
         "✅ POST /api/ai/analyze/sentiment",
         "✅ GET /api/ai/models/status",
         "✅ POST /api/ai/optimize/hashtags",  # NEW
@@ -347,6 +389,7 @@ def main():
         ("Hashtag Optimization", test_hashtag_optimization),
         ("Optimal Posting Time", test_optimal_posting_time),
         ("Usage Stats", test_usage_stats),
+        ("Token Usage", test_token_usage),
     ]
     
     test_functions.append(("Content Template List/Create", test_content_template_list_and_create))

@@ -45,7 +45,7 @@ class ServiceDiscovery:
         self.registered_services = {}
         self.health_check_interval = 30  # seconds
     
-    def register_service(self) -> Dict:
+    def register_self(self) -> Dict:
         """Register this service with the service registry"""
         registration_data = {
             'service_name': self.service_name,
@@ -83,8 +83,8 @@ class ServiceDiscovery:
             logger.error(f"Failed to register service: {str(e)}")
             return {'error': str(e)}
     
-    def discover_services(self) -> List[Dict]:
-        """Discover other services in the microservices architecture"""
+    def list_known_services(self) -> List[Dict]:
+        """List known services in the microservices architecture"""
         services = [
             {
                 'name': 'user-service',
@@ -117,7 +117,6 @@ class ServiceDiscovery:
                 'capabilities': ['notifications', 'email_sending']
             }
         ]
-        
         return services
     
     def check_service_health(self, service_url: str) -> Dict:
@@ -148,9 +147,8 @@ class ServiceDiscovery:
     
     def get_healthy_services(self) -> List[Dict]:
         """Get list of healthy services"""
-        services = self.discover_services()
+        services = self.list_known_services()
         healthy_services = []
-        
         for service in services:
             health_status = self.check_service_health(service['health_endpoint'])
             if health_status['status'] == 'healthy':
@@ -158,7 +156,6 @@ class ServiceDiscovery:
                     **service,
                     'health_status': health_status
                 })
-        
         return healthy_services
 
 class MonitoringIntegration:
@@ -313,7 +310,14 @@ class InterServiceCommunication:
                 'error': str(e)
             }
 
-# Global instances
-service_discovery = ServiceDiscovery()
-monitoring_integration = MonitoringIntegration()
-inter_service_comm = InterServiceCommunication() 
+# Global instances - only create if Django settings are configured
+try:
+    from django.conf import settings
+    service_discovery = ServiceDiscovery()
+    monitoring_integration = MonitoringIntegration()
+    inter_service_comm = InterServiceCommunication()
+except (ImportError, Exception):
+    # Django settings not available, skip global instance creation
+    service_discovery = None
+    monitoring_integration = None
+    inter_service_comm = None 
