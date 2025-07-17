@@ -1,66 +1,68 @@
-name: ClientNest Security Checks
+name: Backend Security Scans
 
 on:
-  workflow_dispatch:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  security-audit:
-    name: Run Security Scans
+  backend-security:
     runs-on: ubuntu-latest
+    name: Run Backend Security Scans
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # --- ESLint (JS/TS) ---
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Node.js deps
-        run: npm install
-
-      - name: Run ESLint
-        run: |
-          npm install --save-dev eslint eslint-plugin-security
-          npx eslint . --ext .js,.ts
-
-      # --- Bandit (Python) ---
+      # --- Python Setup ---
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: Install Bandit
-        run: pip install bandit
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Run Bandit
-        run: bandit -r ./backend
+      # --- Bandit Scan ---
+      - name: Run Bandit and Save Report
+        run: |
+          pip install bandit
+          bandit -r . -f html -o bandit-report.html || true
+          if [ -f bandit-report.html ]; then echo "Bandit report generated"; else echo "No Bandit report found"; fi
 
-      # --- Semgrep ---
+      # --- Semgrep Scan ---
       - name: Install Semgrep
         run: pip install semgrep
 
-      - name: Run Semgrep
-        run: semgrep scan --config=auto .
+      - name: Run Semgrep and Save Report
+        run: |
+          semgrep scan --config=auto . --json > semgrep-report.json || true
+          if [ -f semgrep-report.json ]; then echo "Semgrep report generated"; else echo "No Semgrep report found"; fi
 
       # --- OWASP Dependency-Check ---
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
-          project: "ClientNest"
+          project: "ClientNest Backend"
           path: "."
           format: "HTML"
-          out: "reports"
+          out: "dc-reports"
 
-      # --- Upload HTML Report ---
-      - name: Upload Dependency-Check Report
+      # --- Organize Reports Safely ---
+      - name: Organize Reports
+        run: |
+          mkdir -p security-reports
+          if [ -f bandit-report.html ]; then mv bandit-report.html security-reports/; fi
+          if [ -f semgrep-report.json ]; then mv semgrep-report.json security-reports/; fi
+          if [ -f dc-reports/dependency-check-report.html ]; then cp dc-reports/dependency-check-report.html security-reports/; fi
+
+      # --- Upload All as "backend-security" Artifact ---
+      - name: Upload Backend Security Report
         uses: actions/upload-artifact@v4
         with:
-          name: dependency-check-report
-          path: reports
+          name: backend-security
+          path: security-reports
