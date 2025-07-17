@@ -22,18 +22,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = [
-            'id', 'user', 'user_email', 'user_name',
-            'date_of_birth', 'age', 'gender', 'phone_number',
+            'id', 'user', 'age', 'full_address', 'interests_list',
+            'social_links', 'completion_percentage', 'user_email',
+            'user_name', 'date_of_birth', 'gender', 'phone_number',
             'address_line_1', 'address_line_2', 'city', 'state',
-            'postal_code', 'country', 'full_address',
-            'occupation', 'company', 'education_level',
-            'relationship_status', 'website',
+            'postal_code', 'country', 'occupation', 'company',
+            'education_level', 'relationship_status', 'website',
             'facebook_url', 'twitter_url', 'linkedin_url',
-            'instagram_url', 'github_url', 'social_links',
-            'interests', 'interests_list', 'bio_extended',
+            'instagram_url', 'github_url', 'interests', 'bio_extended',
             'show_email', 'show_phone', 'show_address', 'show_birth_date',
-            'completion_percentage', 'created_at', 'updated_at'
+            'created_at', 'updated_at'
         ]
+        ref_name = "ProfilesUserProfile"
+        
         read_only_fields = ['id', 'user', 'created_at', 'updated_at']
     
     def get_social_links(self, obj):
