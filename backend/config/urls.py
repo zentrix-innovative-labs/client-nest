@@ -20,6 +20,19 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="API Documentation",
+        default_version='v1',
+        description="API documentation for the backend services.",
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,16 +43,21 @@ urlpatterns = [
         path('auth/', include([
             path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
             path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-            path('register/', include('users.urls')),  # User registration
+            path('register/', include('user_service.urls')),  # User registration
         ])),
         
         # User management endpoints
-        path('users/', include('users.urls')),
+        path('users/', include('user_service.urls')),
+        
+        # Content management endpoints (posts, comments, schedules)
+        path('content/', include('content_service.urls')),
         
         # Social media endpoints
-        path('social/', include('social_media.urls')),
+        path('social/', include('social_service.urls')),
         
         # Password reset endpoints (JSON API)
         path('password_reset/', include('django_rest_passwordreset.urls', namespace='password_reset')),
     ])),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]

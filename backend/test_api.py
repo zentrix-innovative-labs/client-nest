@@ -6,7 +6,6 @@ Run this script to test the API endpoints
 
 import requests
 import json
-import sys
 
 # Configuration
 BASE_URL = "http://localhost:8000/api"
