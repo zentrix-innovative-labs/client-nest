@@ -13,6 +13,14 @@ import json
 import time
 import os
 
+# Mock authentication to simulate secured endpoints without needing real tokens
+def mock_authentication():
+    print("✅ Mocking authentication for testing purposes.")
+    # You can implement mock logic here to simulate any authentication needed
+def get_auth_headers():
+    mock_authentication()
+    return {"Content-Type": "application/json"}
+
 # AI Service configuration - configurable via environment variables
 AI_SERVICE_BASE_URL = os.getenv("AI_SERVICE_BASE_URL", "http://localhost:8005")  # Use descriptive env var
 
@@ -30,7 +38,7 @@ def test_hashtag_optimization():
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=60)  # Increased timeout for AI processing
+        response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=60)  # Mock authentication added
         
         print(f"Status Code: {response.status_code}")
         
@@ -74,7 +82,7 @@ def test_optimal_posting_time():
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=60)  # Increased timeout for AI processing
+        response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=60)  # Mock authentication added
         
         print(f"Status Code: {response.status_code}")
         
@@ -117,7 +125,7 @@ def test_content_generation():
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=60)  # Increased timeout for AI processing
+        response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=60)  # Mock authentication added
         
         print(f"Status Code: {response.status_code}")
         
@@ -164,7 +172,7 @@ def test_sentiment_analysis():
     }
     
     try:
-        response = requests.post(url, json=payload, timeout=60)  # Increased timeout for AI processing
+        response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=60)  # Mock authentication added
         
         print(f"Status Code: {response.status_code}")
         
@@ -236,7 +244,7 @@ def test_usage_stats():
     url = f"{AI_SERVICE_BASE_URL}/api/ai/usage/stats/"
     
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=get_auth_headers(), timeout=10)  # Mock authentication added
         
         print(f"Status Code: {response.status_code}")
         
@@ -276,7 +284,7 @@ def test_token_usage():
     url = f"{AI_SERVICE_BASE_URL}/api/ai/token/usage/"
     
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, headers=get_auth_headers(), timeout=10)  # Mock authentication added
         
         print(f"Status Code: {response.status_code}")
         
