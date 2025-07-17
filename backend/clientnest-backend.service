@@ -1,0 +1,28 @@
+[Unit]
+Description=ClientNest Backend API
+After=network.target
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/clientnest/backend
+Environment="PATH=/var/www/clientnest/backend/venv/bin"
+Environment="DJANGO_SETTINGS_MODULE=config.settings"
+Environment="DJANGO_SECRET_KEY=o(6#7-g6rrr**)(e^oixs_rb$5-!#5=q63sm8@e)_)3ru4ftoq"
+Environment="DEBUG=False"
+Environment="ALLOWED_HOSTS=clientnest.xyz,www.clientnest.xyz,api.clientnest.xyz"
+Environment="SECURE_SSL_REDIRECT=True"
+Environment="SECURE_HSTS_SECONDS=31536000"
+Environment="SECURE_HSTS_INCLUDE_SUBDOMAINS=True"
+Environment="SECURE_HSTS_PRELOAD=True"
+Environment="SESSION_COOKIE_SECURE=True"
+Environment="CSRF_COOKIE_SECURE=True"
+ExecStart=/var/www/clientnest/backend/venv/bin/gunicorn --config gunicorn.conf.py config.wsgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target 
