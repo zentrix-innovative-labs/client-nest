@@ -128,8 +128,24 @@ class DeepSeekClient:
         return system_prompt, user_prompt
 
     def _estimate_tokens(self, text: str) -> int:
-        """Rough token estimation based on the configured characters-per-token ratio"""
-        return len(text) // CHARS_PER_TOKEN
+        """Improved token estimation using multiple heuristics for better accuracy"""
+        if not text:
+            return 0
+        
+        # Basic character-based estimation
+        char_estimate = len(text) // CHARS_PER_TOKEN
+        
+        # Word-based estimation (more accurate for natural language)
+        words = text.split()
+        # Average tokens per word is around 0.75 for English
+        word_estimate = int(len(words) * 0.75)
+        
+        # Account for punctuation and special characters
+        punctuation_count = sum(1 for char in text if char in '.,!?;:()[]{}"\'')
+        punctuation_tokens = punctuation_count // 2  # Rough estimate
+        
+        # Use the maximum of the estimates for safety
+        return max(char_estimate, word_estimate + punctuation_tokens)
 
     def _parse_ai_response(self, raw_content: str) -> Dict[str, Any]:
         """

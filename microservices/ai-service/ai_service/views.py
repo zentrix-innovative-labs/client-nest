@@ -17,6 +17,12 @@ from common.utils import calculate_token_usage_cost
 
 logger = logging.getLogger(__name__)
 
+# Define pricing key constants to avoid typos
+PRICING_KEY_PROMPT = 'prompt'
+PRICING_KEY_COMPLETION = 'completion'
+PRICING_KEY_CONTENT_GENERATION = 'content_generation'
+PRICING_KEY_SENTIMENT_ANALYSIS = 'sentiment_analysis'
+
 class ContentGenerationView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -113,7 +119,7 @@ class HashtagOptimizationView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            tokens_consumed, cost = calculate_token_usage_cost(usage_data, settings, pricing_key='prompt')
+            tokens_consumed, cost = calculate_token_usage_cost(usage_data, settings, pricing_key=PRICING_KEY_PROMPT)
             return Response({
                 'success': True,
                 'data': hashtag_data,
@@ -198,7 +204,7 @@ class OptimalPostingTimeView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            tokens_consumed, cost = calculate_token_usage_cost(usage_data, settings, pricing_key='prompt')
+            tokens_consumed, cost = calculate_token_usage_cost(usage_data, settings, pricing_key=PRICING_KEY_PROMPT)
             return Response({
                 'success': True,
                 'data': timing_data,

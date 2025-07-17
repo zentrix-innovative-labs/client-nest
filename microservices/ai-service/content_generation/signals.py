@@ -15,8 +15,22 @@ DECIMAL_PRECISION = 10  # Configurable precision for cost calculations
 
 def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decimal:
     """
-    Calculates the cost based on DeepSeek's pricing model using Decimal for precision.
-    Uses a local context to ensure thread-safe precision settings.
+    Calculates the cost of AI API usage based on DeepSeek's pricing model.
+    
+    This function uses Decimal for precision and a local context to ensure thread-safe 
+    precision settings. It calculates the cost for prompt tokens and completion tokens 
+    based on the pricing configuration provided in `settings.DEEPSEEK_PRICING`.
+    
+    Parameters:
+        prompt_tokens (int): The number of tokens in the prompt. Must be a non-negative integer.
+        completion_tokens (int): The number of tokens in the completion. Must be a non-negative integer.
+    
+    Returns:
+        decimal.Decimal: The calculated cost, rounded to the configured precision.
+    
+    Raises:
+        TypeError: If `prompt_tokens` or `completion_tokens` are not integers.
+        ValueError: If `prompt_tokens` or `completion_tokens` are negative.
     """
     # Input validation
     if not isinstance(prompt_tokens, int) or not isinstance(completion_tokens, int):

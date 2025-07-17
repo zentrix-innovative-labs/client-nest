@@ -201,11 +201,33 @@ class HealthCheck:
 class AlertSystem:
     """Alert system for performance issues"""
     
-    @staticmethod
-    def check_alerts() -> List[Dict]:
-        """Check for performance alerts"""
+    # Cache for performance summary to avoid frequent recalculation
+    _cached_summary = None
+    _cache_timestamp = None
+    _cache_duration = 60  # Cache for 60 seconds
+    
+    @classmethod
+    def _get_cached_performance_summary(cls) -> Dict:
+        """Get cached performance summary or calculate new one if cache expired"""
+        import time
+        current_time = time.time()
+        
+        # Check if cache is valid
+        if (cls._cached_summary is None or 
+            cls._cache_timestamp is None or 
+            current_time - cls._cache_timestamp > cls._cache_duration):
+            
+            # Update cache
+            cls._cached_summary = performance_monitor.get_performance_summary()
+            cls._cache_timestamp = current_time
+        
+        return cls._cached_summary
+    
+    @classmethod
+    def check_alerts(cls) -> List[Dict]:
+        """Check for performance alerts using cached performance summary"""
         alerts = []
-        performance_summary = performance_monitor.get_performance_summary()
+        performance_summary = cls._get_cached_performance_summary()
         
         # High error rate alert
         if performance_summary['error_rate'] > 10.0:
