@@ -18,7 +18,7 @@ from common.utils import calculate_token_usage_cost
 logger = logging.getLogger(__name__)
 
 class ContentGenerationView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         topic = request.data.get('topic')

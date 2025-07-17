@@ -120,8 +120,8 @@ class APIIntegrationTests(APITestCase):
         """Test health check endpoint"""
         response = self.client.get('/health/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('status', response.data)
-        self.assertEqual(response.data['status'], 'healthy')
+        self.assertIn('status', response.json())
+        self.assertEqual(response.json()['status'], 'healthy')
     
     def test_content_generation_endpoint(self):
         """Test content generation API endpoint"""
@@ -139,9 +139,9 @@ class APIIntegrationTests(APITestCase):
                 'call_to_action': 'Test CTA'
             }
             
-            response = self.client.post('/api/content/generate/test/', data)
+            response = self.client.post('/api/ai/generate/content/', data)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertIn('content', response.data)
+            self.assertIn('content', response.json())
     
     def test_token_usage_endpoint(self):
         """Test token usage endpoint"""

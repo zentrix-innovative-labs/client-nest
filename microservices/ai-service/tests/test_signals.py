@@ -25,6 +25,8 @@ class TestCalculateCost(TestCase):
             'prompt': '0.001',      # $0.001 per 1K prompt tokens
             'completion': '0.002'    # $0.002 per 1K completion tokens
         }
+        from django.conf import settings as dj_settings
+        dj_settings.DEEPSEEK_PRICING = self.mock_pricing
     
     @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
     def test_calculate_cost_normal_usage(self, mock_pricing):
@@ -143,39 +145,30 @@ class TestCalculateCost(TestCase):
         self.assertIsInstance(cost, decimal.Decimal)
         self.assertGreater(cost, 0)
     
-    @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
-    def test_calculate_cost_thread_safety(self, mock_pricing):
+    def test_calculate_cost_thread_safety(self):
         """Test that the function is thread-safe with decimal context"""
         import threading
         import queue
+        import os
         os.environ['DEEPSEEK_API_KEY'] = 'dummy-key'
-        
         results = queue.Queue()
-        
         def calculate_cost_thread():
-            """Thread function to calculate cost"""
             try:
                 cost = _calculate_cost(prompt_tokens=1000, completion_tokens=2000)
                 results.put(('success', cost))
             except Exception as e:
                 results.put(('error', str(e)))
-        
-        # Run multiple threads simultaneously
         threads = []
         for _ in range(5):
             thread = threading.Thread(target=calculate_cost_thread)
             threads.append(thread)
             thread.start()
-        
-        # Wait for all threads to complete
         for thread in threads:
             thread.join()
-        
-        # Check that all threads completed successfully
         for _ in range(5):
             status, result = results.get()
-            self.assertEqual(status, 'success')
-            self.assertIsInstance(result, decimal.Decimal)
+            assert status == 'success', f"Thread failed with error: {result}"
+            assert isinstance(result, decimal.Decimal)
 
 
 if __name__ == '__main__':

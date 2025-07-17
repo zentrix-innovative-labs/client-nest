@@ -34,6 +34,6 @@ urlpatterns = [
     path('api/ai/usage/stats/', UsageStatsView.as_view(), name='ai-usage-stats'),
     path('api/ai/token/usage/', TokenUsageView.as_view(), name='ai-token-usage'),
     
-    # Include content generation URLs for backward compatibility
-    path('api/ai/', include('content_generation.urls')),
+    # Legacy endpoints (if still needed)
+    # path('api/ai/legacy/', include('content_generation.urls')),
 ]
