@@ -8,6 +8,7 @@ from .views import (
     UserSessionViewSet
 )
 
+
 # Create router for viewsets
 router = DefaultRouter()
 router.register(r'users', UserViewSet, basename='user')

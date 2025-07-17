@@ -4,6 +4,12 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
 from .models import User, UserActivity, UserSession
+from profiles.models import UserProfile
+
+
+class IPAddressMixin:
+    """Mixin to add IP address field to serializers"""
+    ip_address = serializers.IPAddressField(required=False, allow_null=True, protocol='both')
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -21,12 +27,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     phone_number = PhoneNumberField(required=False, allow_blank=True)
     
     class Meta:
-        model = User
+        model = User  # Use User model for registration
         fields = (
-            'email', 'username', 'first_name', 'last_name',
-            'password', 'password_confirm', 'phone_number',
-            'timezone', 'language'
+            'username', 'email', 'first_name', 'last_name', 'phone_number',
         )
+        ref_name = "UserUser"
         extra_kwargs = {
             'email': {'required': True},
             'username': {'required': True},
@@ -206,7 +211,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         return attrs
 
 
-class UserActivitySerializer(serializers.ModelSerializer):
+class UserActivitySerializer(IPAddressMixin, serializers.ModelSerializer):
     """Serializer for user activity"""
     
     user_email = serializers.ReadOnlyField(source='user.email')
@@ -220,7 +225,7 @@ class UserActivitySerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'timestamp')
 
 
-class UserSessionSerializer(serializers.ModelSerializer):
+class UserSessionSerializer(IPAddressMixin, serializers.ModelSerializer):
     """Serializer for user session"""
     
     user_email = serializers.ReadOnlyField(source='user.email')
