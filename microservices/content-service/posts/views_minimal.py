@@ -53,6 +53,7 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.like_count = F('like_count') + 1
         post.save()
+        post.refresh_from_db()
         
         return Response(
             {'message': 'Post liked', 'like_count': post.like_count},
