@@ -65,7 +65,7 @@ class PostViewSet(viewsets.ModelViewSet):
         """Increment view count atomically and return updated value"""
         post = self.get_object()
         post.view_count = F('view_count') + 1
-        post.save(update_fields=['view_count'])
+        post.save()
         updated_count = type(post).objects.filter(pk=post.pk).values_list('view_count', flat=True)[0]
         return Response(
             {'message': 'View counted', 'view_count': updated_count},
