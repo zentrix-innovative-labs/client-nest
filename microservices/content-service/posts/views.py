@@ -53,7 +53,7 @@ class PostViewSet(viewsets.ModelViewSet):
         """Like a post atomically"""
         post = self.get_object()
         post.like_count = F('like_count') + 1
-        post.save(update_fields=['like_count'])
+        post.save()
         post.refresh_from_db()
         return Response(
             {'message': 'Post liked'},
