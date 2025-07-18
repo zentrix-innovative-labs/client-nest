@@ -50,13 +50,13 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        """Like a post atomically"""
+        """Like a post atomically and return updated value"""
         post = self.get_object()
         post.like_count = F('like_count') + 1
         post.save()
-        post.refresh_from_db()
+        updated_count = type(post).objects.filter(pk=post.pk).values_list('like_count', flat=True)[0]
         return Response(
-            {'message': 'Post liked'},
+            {'message': 'Post liked', 'like_count': updated_count},
             status=status.HTTP_200_OK
         )
     
@@ -65,7 +65,7 @@ class PostViewSet(viewsets.ModelViewSet):
         """Increment view count atomically and return updated value"""
         post = self.get_object()
         post.view_count = F('view_count') + 1
-        post.save()
+        post.save(update_fields=['view_count'])
         updated_count = type(post).objects.filter(pk=post.pk).values_list('view_count', flat=True)[0]
         return Response(
             {'message': 'View counted', 'view_count': updated_count},
