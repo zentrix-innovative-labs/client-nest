@@ -3,7 +3,7 @@ URL patterns for AI integration functionality.
 """
 
 from django.urls import path
-from .views import content_serviceGenerationAPIView, TaskStatusAPIView
+from .views import ContentGenerationAPIView, TaskStatusAPIView
 
 urlpatterns = [
     path('generate-content/', ContentGenerationAPIView.as_view(), name='generate-content'),
