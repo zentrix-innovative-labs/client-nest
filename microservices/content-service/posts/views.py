@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from .models import Post
 from .serializers import PostSerializer, PostCreateSerializer, PostUpdateSerializer
+from django.db.models import F
 
 class PostViewSet(viewsets.ModelViewSet):
     """Minimal ViewSet for managing posts"""
@@ -49,11 +50,11 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        """Like a post"""
+        """Like a post atomically"""
         post = self.get_object()
-        post.like_count += 1
-        post.save()
-        
+        post.like_count = F('like_count') + 1
+        post.save(update_fields=['like_count'])
+        post.refresh_from_db(fields=['like_count'])
         return Response(
             {'message': 'Post liked', 'like_count': post.like_count},
             status=status.HTTP_200_OK
@@ -61,11 +62,11 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def view(self, request, pk=None):
-        """Increment view count"""
+        """Increment view count atomically"""
         post = self.get_object()
-        post.view_count += 1
-        post.save()
-        
+        post.view_count = F('view_count') + 1
+        post.save(update_fields=['view_count'])
+        post.refresh_from_db(fields=['view_count'])
         return Response(
             {'message': 'View counted', 'view_count': post.view_count},
             status=status.HTTP_200_OK
