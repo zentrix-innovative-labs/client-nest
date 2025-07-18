@@ -57,9 +57,9 @@ def generate_content_endpoint(request):
                 'error': 'temperature must be a number between 0 and 2.'
             }, status=400)
         
-        if not isinstance(max_tokens, int) or max_tokens < 1 or max_tokens > 4000:
+        if not isinstance(max_tokens, int) or max_tokens < 1 or max_tokens > MAX_TOKENS_LIMIT:
             return JsonResponse({
-                'error': 'max_tokens must be an integer between 1 and 4000.'
+                'error': f'max_tokens must be an integer between 1 and {MAX_TOKENS_LIMIT}.'
             }, status=400)
         
         # Initialize client and generate content
