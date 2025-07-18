@@ -51,7 +51,7 @@ class PostViewSet(viewsets.ModelViewSet):
     def like(self, request, pk=None):
         """Like a post"""
         post = self.get_object()
-        post.like_count += 1
+        post.like_count = F('like_count') + 1
         post.save()
         
         return Response(
