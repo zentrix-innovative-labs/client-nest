@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post
+from .models_minimal import Post
 
 class PostSerializer(serializers.ModelSerializer):
     """Basic serializer for Post model"""
@@ -37,4 +37,4 @@ class PostUpdateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Post
-        fields = ['title', 'content', 'status', 'post_type', 'scheduled_at']
+        fields = ['title', 'content', 'status', 'post_type', 'scheduled_at'] 

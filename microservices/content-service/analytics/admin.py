@@ -40,8 +40,6 @@ class PostAnalyticsAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'platform', 'data_date', 'last_synced',
-        ('engagement_rate', admin.RangeFilter),
-        ('reach', admin.RangeFilter)
     )
     search_fields = ('post__title', 'post__content', 'post__owner__username')
     readonly_fields = (
@@ -213,7 +211,6 @@ class EngagementMetricAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'analytics__platform', 'analytics__data_date', 'hour',
-        ('reach', admin.RangeFilter)
     )
     search_fields = ('analytics__post__title',)
     readonly_fields = ('analytics', 'hour', 'engagement_total')
@@ -242,8 +239,6 @@ class UserAnalyticsAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'period_start', 'period_end',
-        ('total_posts', admin.RangeFilter),
-        ('average_engagement_rate', admin.RangeFilter)
     )
     search_fields = ('user__username', 'user__email')
     readonly_fields = (
@@ -360,8 +355,6 @@ class PlatformAnalyticsAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'platform', 'data_date',
-        ('follower_count', admin.RangeFilter),
-        ('average_engagement_rate', admin.RangeFilter)
     )
     search_fields = ('user__username', 'user__email')
     readonly_fields = ('user', 'platform', 'data_date', 'created_at', 'updated_at')
@@ -491,7 +484,6 @@ class AnalyticsInsightAdmin(admin.ModelAdmin):
     )
     list_filter = (
         'insight_type', 'priority', 'status',
-        ('confidence_score', admin.RangeFilter),
         'created_at'
     )
     search_fields = ('title', 'description', 'user__username')
@@ -661,8 +653,8 @@ class AnalyticsOverviewAdmin(admin.ModelAdmin):
         return super().changelist_view(request, extra_context=extra_context)
 
 # Register the overview admin
-admin.site.register_view(
-    'analytics/overview/',
-    view=AnalyticsOverviewAdmin().changelist_view,
-    name='Analytics Overview'
-)
+# admin.site.register_view(
+#     'analytics/overview/',
+#     view=AnalyticsOverviewAdmin().changelist_view,
+#     name='Analytics Overview'
+# )

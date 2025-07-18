@@ -3,8 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from .models import Post
-from .serializers import PostSerializer, PostCreateSerializer, PostUpdateSerializer
+from .models_minimal import Post
+from .serializers_minimal import PostSerializer, PostCreateSerializer, PostUpdateSerializer
 
 class PostViewSet(viewsets.ModelViewSet):
     """Minimal ViewSet for managing posts"""
@@ -69,4 +69,4 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response(
             {'message': 'View counted', 'view_count': post.view_count},
             status=status.HTTP_200_OK
-        )
+        ) 
