@@ -54,9 +54,8 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.like_count = F('like_count') + 1
         post.save(update_fields=['like_count'])
-        post.refresh_from_db(fields=['like_count'])
         return Response(
-            {'message': 'Post liked', 'like_count': post.like_count},
+            {'message': 'Post liked'},
             status=status.HTTP_200_OK
         )
     
@@ -66,8 +65,7 @@ class PostViewSet(viewsets.ModelViewSet):
         post = self.get_object()
         post.view_count = F('view_count') + 1
         post.save(update_fields=['view_count'])
-        post.refresh_from_db(fields=['view_count'])
         return Response(
-            {'message': 'View counted', 'view_count': post.view_count},
+            {'message': 'View counted'},
             status=status.HTTP_200_OK
         )
