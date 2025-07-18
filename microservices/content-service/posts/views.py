@@ -62,11 +62,12 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def view(self, request, pk=None):
-        """Increment view count atomically"""
+        """Increment view count atomically and return updated value"""
         post = self.get_object()
         post.view_count = F('view_count') + 1
         post.save(update_fields=['view_count'])
+        updated_count = type(post).objects.filter(pk=post.pk).values_list('view_count', flat=True)[0]
         return Response(
-            {'message': 'View counted'},
+            {'message': 'View counted', 'view_count': updated_count},
             status=status.HTTP_200_OK
         )
