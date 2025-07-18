@@ -42,7 +42,7 @@ if DEBUG and ENVIRONMENT == "development":
 DEEPSEEK_API_KEY = config('DEEPSEEK_API_KEY', default='')
 BASE_URL = "https://api.deepseek.com/v1"
 REQUEST_TIMEOUT = 30  # seconds
-SUPPORTED_MODELS = {"deepseek-chat", "deepseek-coder"}
+SUPPORTED_MODELS = {"deepseek-chat", "deepseek-coder", "deepseek/deepseek-r1-0528:free"}
 
 # --- Custom Exceptions ---
 class AIClientError(Exception):
