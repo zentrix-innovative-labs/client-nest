@@ -114,5 +114,8 @@ REST_FRAMEWORK = {
 }
 
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True 
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000']
+else:
+    CORS_ALLOWED_ORIGINS = ['https://trusted-domain.com']
+CORS_ALLOW_CREDENTIALS = True
