@@ -63,10 +63,11 @@ class PostViewSet(viewsets.ModelViewSet):
     def view(self, request, pk=None):
         """Increment view count"""
         post = self.get_object()
-        post.view_count += 1
-        post.save()
+        from django.db.models import F
+        Post.objects.filter(pk=post.pk).update(view_count=F('view_count') + 1)
+        post.refresh_from_db()
         
         return Response(
             {'message': 'View counted', 'view_count': post.view_count},
             status=status.HTTP_200_OK
-        ) 
+        )
