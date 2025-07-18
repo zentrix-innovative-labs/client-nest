@@ -28,7 +28,6 @@ from celery.result import AsyncResult
 # Removed unused imports: content_serviceGenerationRequestSerializer, ContentGenerationResponseSerializer
 from .tasks import generate_content_task
 from .models import UserTaskMapping
-import logging
 from django.db import DatabaseError
 
 logger = logging.getLogger(__name__)
