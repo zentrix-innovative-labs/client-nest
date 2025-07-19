@@ -51,10 +51,10 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
         """Like a post atomically and return updated value"""
-        post = self.get_object()
-        post.like_count = F('like_count') + 1
-        post.save()
-        updated_count = type(post).objects.filter(pk=post.pk).values_list('like_count', flat=True)[0]
+        updated = Post.objects.filter(pk=pk, user=request.user).update(like_count=F('like_count') + 1)
+        if not updated:
+            return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
+        updated_count = Post.objects.filter(pk=pk).values_list('like_count', flat=True)[0]
         return Response(
             {'message': 'Post liked', 'like_count': updated_count},
             status=status.HTTP_200_OK
@@ -63,10 +63,10 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def view(self, request, pk=None):
         """Increment view count atomically and return updated value"""
-        post = self.get_object()
-        post.view_count = F('view_count') + 1
-        post.save(update_fields=['view_count'])
-        updated_count = type(post).objects.filter(pk=post.pk).values_list('view_count', flat=True)[0]
+        updated = Post.objects.filter(pk=pk, user=request.user).update(view_count=F('view_count') + 1)
+        if not updated:
+            return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
+        updated_count = Post.objects.filter(pk=pk).values_list('view_count', flat=True)[0]
         return Response(
             {'message': 'View counted', 'view_count': updated_count},
             status=status.HTTP_200_OK
