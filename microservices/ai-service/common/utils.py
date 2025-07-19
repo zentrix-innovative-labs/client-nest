@@ -21,7 +21,9 @@ def calculate_readability_score(text):
     A higher score means easier to read.
     This is a simplified implementation.
     """
-    words = text.split()
+    # Convert text to lowercase once before processing
+    text_lower = text.lower()
+    words = text_lower.split()
     num_words = len(words)
     
     # Improved sentence counting using regex to better handle various sentence endings.
@@ -40,7 +42,6 @@ def calculate_readability_score(text):
 
     for word in words:
         # A very basic syllable counter
-        word = word.lower()
         syllable_count = len(re.findall(r'[aeiouy]+', word))
         if word.endswith('e'):
             syllable_count -= 1

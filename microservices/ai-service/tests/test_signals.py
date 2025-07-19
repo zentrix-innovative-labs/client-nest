@@ -7,7 +7,7 @@ Tests the _calculate_cost function with various scenarios
 import unittest
 import decimal
 from unittest.mock import patch
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.conf import settings
 import os
 
@@ -18,15 +18,16 @@ from content_generation.signals import _calculate_cost
 class TestCalculateCost(TestCase):
     """Test cases for the _calculate_cost function"""
     
+    @override_settings(DEEPSEEK_PRICING={
+        'prompt': '0.001',      # $0.001 per 1K prompt tokens
+        'completion': '0.002'    # $0.002 per 1K completion tokens
+    })
     def setUp(self):
         """Set up test fixtures"""
-        # Mock the pricing settings for consistent testing
         self.mock_pricing = {
             'prompt': '0.001',      # $0.001 per 1K prompt tokens
             'completion': '0.002'    # $0.002 per 1K completion tokens
         }
-        from django.conf import settings as dj_settings
-        dj_settings.DEEPSEEK_PRICING = self.mock_pricing
     
     @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
     def test_calculate_cost_normal_usage(self, mock_pricing):

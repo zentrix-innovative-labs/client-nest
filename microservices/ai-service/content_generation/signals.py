@@ -48,12 +48,11 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
         prompt_cost_per_1k = decimal.Decimal(str(pricing['prompt']))
         completion_cost_per_1k = decimal.Decimal(str(pricing['completion']))
         
-        # Use Decimal for all calculations to avoid floating point inaccuracies
-        prompt_cost = (decimal.Decimal(prompt_tokens) / decimal.Decimal(1000)) * prompt_cost_per_1k
-        completion_cost = (decimal.Decimal(completion_tokens) / decimal.Decimal(1000)) * completion_cost_per_1k
+        # Calculate total cost in a single expression for better readability
+        total_cost = ((decimal.Decimal(prompt_tokens) / decimal.Decimal(1000)) * prompt_cost_per_1k) + \
+                     ((decimal.Decimal(completion_tokens) / decimal.Decimal(1000)) * completion_cost_per_1k)
         
-        result = prompt_cost + completion_cost
-        return result.quantize(decimal.Decimal('1.' + '0' * DECIMAL_PRECISION))
+        return total_cost.quantize(decimal.Decimal('1.' + '0' * DECIMAL_PRECISION))
 
 @receiver(ai_usage_logged)
 def log_ai_usage_receiver(sender, **kwargs):

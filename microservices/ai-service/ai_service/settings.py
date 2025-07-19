@@ -1,4 +1,5 @@
 import os
+import decimal
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -178,12 +179,22 @@ AI_MODELS = {
 }
 
 # DeepSeek Pricing Configuration
+# Per-token pricing (primary pricing model)
+DEEPSEEK_TOKEN_PRICING = {
+    "prompt": decimal.Decimal('0.001'),  # Cost per 1000 prompt tokens
+    "completion": decimal.Decimal('0.002'),  # Cost per 1000 completion tokens
+}
+
+# Per-request pricing (legacy/fallback pricing model)
+DEEPSEEK_REQUEST_PRICING = {
+    "content_generation": decimal.Decimal('0.010'),  # $0.01 per request
+    "sentiment_analysis": decimal.Decimal('0.005'),  # $0.005 per request
+}
+
+# Combined pricing for backward compatibility
 DEEPSEEK_PRICING = {
-    "content_generation": 0.01,  # Example: $0.01 per request
-    "sentiment_analysis": 0.005,  # Example: $0.005 per request
-    "prompt": 0.001,  # Cost per 1000 prompt tokens
-    "completion": 0.002,  # Cost per 1000 completion tokens
-    # Add other endpoints as needed
+    **DEEPSEEK_TOKEN_PRICING,
+    **DEEPSEEK_REQUEST_PRICING,
 }
 
 # Token Optimization Settings (for 1M token budget)
