@@ -8,8 +8,9 @@ not in environment variables. Only API_KEY and API_SECRET are needed for OAuth f
 import os
 from dotenv import load_dotenv
 
-# This loads the .env file from the backend directory
-load_dotenv(os.path.join(os.path.dirname(__file__), '../.env'))
+# Load the .env file dynamically based on ENV_PATH environment variable or default to '../.env'
+env_path = os.getenv('ENV_PATH', os.path.join(os.path.dirname(__file__), '../.env'))
+load_dotenv(env_path)
 
 X_CONFIG = {
     'API_KEY': os.getenv('X_API_KEY'),

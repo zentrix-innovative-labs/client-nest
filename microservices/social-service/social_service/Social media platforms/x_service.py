@@ -90,33 +90,56 @@ class XService:
             }
 
     def upload_media(self, media_file, media_type):
-        """Upload media to X with file size validation and streaming base64 encoding"""
+        """Upload media to X using chunked upload to avoid loading the entire file into memory."""
         import os
         from base64 import b64encode
         
-        # Validate file size (10 MB limit)
+        # Validate file size (10 MB limit for this implementation, can be increased for chunked uploads)
         max_file_size = 10 * 1024 * 1024  # 10 MB
         file_size = os.path.getsize(media_file.name)
         if file_size > max_file_size:
             raise ValueError(f"File size exceeds the maximum limit of {max_file_size} bytes.")
         
-        # Stream base64 encoding
-        def encode_file(file):
-            file.seek(0)
-            for chunk in iter(lambda: file.read(8192), b""):
-                yield b64encode(chunk).decode('utf-8')
-        
         upload_url = X_ENDPOINTS['UPLOAD_URL']
-        media_data = {
+        
+        # 1. INIT
+        init_data = {
+            'command': 'INIT',
             'media_type': media_type,
-            'media': ''.join(encode_file(media_file))
+            'total_bytes': file_size
         }
-        response = self.oauth.post(
-            upload_url,
-            data=media_data
-        )
-        response.raise_for_status()
-        return response.json()
+        init_resp = self.oauth.post(upload_url, data=init_data)
+        init_resp.raise_for_status()
+        media_id = init_resp.json()['media_id_string']
+        
+        # 2. APPEND (chunked upload)
+        chunk_size = 4 * 1024 * 1024  # 4 MB per Twitter docs
+        segment_index = 0
+        media_file.seek(0)
+        while True:
+            chunk = media_file.read(chunk_size)
+            if not chunk:
+                break
+            append_data = {
+                'command': 'APPEND',
+                'media_id': media_id,
+                'segment_index': segment_index
+            }
+            files = {
+                'media': chunk
+            }
+            append_resp = self.oauth.post(upload_url, data=append_data, files=files)
+            append_resp.raise_for_status()
+            segment_index += 1
+        
+        # 3. FINALIZE
+        finalize_data = {
+            'command': 'FINALIZE',
+            'media_id': media_id
+        }
+        finalize_resp = self.oauth.post(upload_url, data=finalize_data)
+        finalize_resp.raise_for_status()
+        return finalize_resp.json()
 
     def get_analytics(self, tweet_id):
         """Get analytics for a specific tweet"""

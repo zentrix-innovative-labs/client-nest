@@ -103,7 +103,8 @@ class LinkedInService:
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/octet-stream'
         }
-        with open(image_file, 'rb') as file_stream:
+        file_path = image_file.name if hasattr(image_file, 'name') else image_file
+        with open(file_path, 'rb') as file_stream:
             response = requests.put(upload_url, headers=headers, data=file_stream)
         if response.status_code in [200, 201]:
             return True

@@ -7,6 +7,8 @@ from google.auth.transport.requests import Request
 
 class YouTubeService:
     SCOPES = ['https://www.googleapis.com/auth/youtube.upload', 'https://www.googleapis.com/auth/youtube.readonly']
+    # Default YouTube category ID for 'People & Blogs'
+    DEFAULT_CATEGORY_ID = '22'
 
     def __init__(self, credentials_path, token_path):
         self.credentials_path = credentials_path
@@ -28,7 +30,7 @@ class YouTubeService:
                 token.write(creds.to_json())
         return build('youtube', 'v3', credentials=creds)
 
-    def upload_video(self, file_path, title, description, tags=None, categoryId='22', privacyStatus='private'):
+    def upload_video(self, file_path, title, description, tags=None, categoryId=DEFAULT_CATEGORY_ID, privacyStatus='private'):
         body = {
             'snippet': {
                 'title': title,

@@ -25,6 +25,7 @@ import os
 from .bluesky_service import BlueskyService
 from .threads_service import ThreadsService
 from .pinterest_service import PinterestService
+import json
 
 # Create your views here.
 
@@ -336,12 +337,18 @@ class LinkedInImagePostView(APIView):
         upload_resp = linkedin_service.register_image_upload()
         upload_url = upload_resp['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl']
         asset_urn = upload_resp['value']['asset']
-        # Step 2: Upload the image using a file object
+        # Step 2: Upload the image using a temporary file path
+        import tempfile, os
         image.file.open()
         try:
-            linkedin_service.upload_image(upload_url, image.file)
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(image.file.read())
+                temp_file_path = temp_file.name
+            linkedin_service.upload_image(upload_url, temp_file_path)
         finally:
             image.file.close()
+            if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
         # Step 3: Post content with image
         result = linkedin_service.post_content_with_image(content, asset_urn)
         return Response({
@@ -564,7 +571,7 @@ class PinterestPinCreateView(APIView):
         if not all([client_id, client_secret, redirect_uri, token, board_id, image_url, title, description]):
             return Response({'status': 'error', 'message': 'Missing required fields'}, status=400)
         try:
-            service = PinterestService(client_id, client_secret, redirect_uri, token=eval(token))
+            service = PinterestService(client_id, client_secret, redirect_uri, token=json.loads(token))
             result = service.create_pin(board_id, image_url, title, description, link)
             return Response({'status': 'success', 'pin_id': result.get('id')})
         except Exception as e:
