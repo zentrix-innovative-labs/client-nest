@@ -16,7 +16,7 @@ from .models import (
     AnalyticsCache, AnalyticsTimeframe, ReportStatus
 )
 from posts.models import Post, SocialAccount
-from media.models import MediaFile
+# from media.models import MediaFile  # TODO: Create media app
 
 User = get_user_model()
 logger = logging.getLogger(__name__)

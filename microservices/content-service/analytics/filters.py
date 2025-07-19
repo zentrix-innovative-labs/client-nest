@@ -290,14 +290,15 @@ class UserAnalyticsFilter(django_filters.FilterSet):
         lookup_expr='lte'
     )
     
-    total_engagement_min = django_filters.NumberFilter(
-        field_name='total_engagement',
-        lookup_expr='gte'
-    )
-    total_engagement_max = django_filters.NumberFilter(
-        field_name='total_engagement',
-        lookup_expr='lte'
-    )
+    # total_engagement is a property, not a field
+    # total_engagement_min = django_filters.NumberFilter(
+    #     field_name='total_engagement',
+    #     lookup_expr='gte'
+    # )
+    # total_engagement_max = django_filters.NumberFilter(
+    #     field_name='total_engagement',
+    #     lookup_expr='lte'
+    # )
     
     average_engagement_rate_min = django_filters.NumberFilter(
         field_name='average_engagement_rate',
@@ -333,7 +334,7 @@ class UserAnalyticsFilter(django_filters.FilterSet):
         model = UserAnalytics
         fields = [
             'period_start', 'period_end', 'total_posts',
-            'total_engagement', 'average_engagement_rate'
+            'average_engagement_rate'
         ]
     
     def filter_by_timeframe(self, queryset, name, value):
@@ -662,4 +663,4 @@ class EngagementMetricFilter(django_filters.FilterSet):
     
     class Meta:
         model = EngagementMetric
-        fields = ['hour', 'likes', 'comments', 'shares']
+        fields = ['hour', 'metric_type', 'value']
