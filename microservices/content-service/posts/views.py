@@ -54,7 +54,9 @@ class PostViewSet(viewsets.ModelViewSet):
         updated = Post.objects.filter(pk=pk, user=request.user).update(like_count=F('like_count') + 1)
         if not updated:
             return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
-        updated_count = Post.objects.filter(pk=pk).values_list('like_count', flat=True)[0]
+        updated_count = Post.objects.filter(pk=pk).values_list('like_count', flat=True).first()
+        if updated_count is None:
+            return Response({'error': 'Post not found'}, status=status.HTTP_404_NOT_FOUND)
         return Response(
             {'message': 'Post liked', 'like_count': updated_count},
             status=status.HTTP_200_OK
