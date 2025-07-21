@@ -16,7 +16,7 @@ from gateway_core.models import ServiceRegistry, RouteConfiguration, CircuitBrea
 logger = logging.getLogger(__name__)
 
 @api_view(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])
-@permission_classes([AllowAny])  # Authentication is handled by middleware
+@permission_classes([IsAuthenticated])  # Enforce authentication for all routed requests
 def route_request(request, path=''):
     """
     Main routing function that forwards requests to appropriate microservices
