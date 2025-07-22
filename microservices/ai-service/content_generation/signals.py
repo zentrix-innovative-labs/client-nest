@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 # Decimal precision configuration for financial calculations
 DECIMAL_PRECISION = 10  # Configurable precision for cost calculations
+QUANTIZATION_PATTERN = decimal.Decimal('1.' + '0' * DECIMAL_PRECISION)
 
 def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decimal:
     """
@@ -52,7 +53,7 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
         total_cost = ((decimal.Decimal(prompt_tokens) / decimal.Decimal(1000)) * prompt_cost_per_1k) + \
                      ((decimal.Decimal(completion_tokens) / decimal.Decimal(1000)) * completion_cost_per_1k)
         
-        return total_cost.quantize(decimal.Decimal('1.' + '0' * DECIMAL_PRECISION))
+        return total_cost.quantize(QUANTIZATION_PATTERN)
 
 @receiver(ai_usage_logged)
 def log_ai_usage_receiver(sender, **kwargs):

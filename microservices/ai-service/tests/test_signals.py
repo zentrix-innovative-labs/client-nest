@@ -146,12 +146,11 @@ class TestCalculateCost(TestCase):
         self.assertIsInstance(cost, decimal.Decimal)
         self.assertGreater(cost, 0)
     
+    @override_settings(DEEPSEEK_API_KEY='dummy-key')
     def test_calculate_cost_thread_safety(self):
         """Test that the function is thread-safe with decimal context"""
         import threading
         import queue
-        import os
-        os.environ['DEEPSEEK_API_KEY'] = 'dummy-key'
         results = queue.Queue()
         def calculate_cost_thread():
             try:

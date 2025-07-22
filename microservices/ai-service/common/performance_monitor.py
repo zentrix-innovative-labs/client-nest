@@ -205,6 +205,7 @@ class AlertSystem:
     _cached_summary = None
     _cache_timestamp = None
     _cache_duration = 60  # Cache for 60 seconds
+    _cache_lock = threading.Lock()
     
     @classmethod
     def _get_cached_performance_summary(cls) -> Dict:
@@ -213,13 +214,14 @@ class AlertSystem:
         current_time = time.time()
         
         # Check if cache is valid
-        if (cls._cached_summary is None or 
-            cls._cache_timestamp is None or 
-            current_time - cls._cache_timestamp > cls._cache_duration):
+        with cls._cache_lock:
+            if (cls._cached_summary is None or 
+                cls._cache_timestamp is None or 
+                current_time - cls._cache_timestamp > cls._cache_duration):
             
-            # Update cache
-            cls._cached_summary = performance_monitor.get_performance_summary()
-            cls._cache_timestamp = current_time
+                # Update cache
+                cls._cached_summary = performance_monitor.get_performance_summary()
+                cls._cache_timestamp = current_time
         
         return cls._cached_summary
     

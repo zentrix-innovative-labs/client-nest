@@ -22,7 +22,7 @@ def get_auth_headers():
     return {"Content-Type": "application/json"}
 
 # AI Service configuration - configurable via environment variables
-AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8005")  # Use descriptive env var
+AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8005")
 
 def test_hashtag_optimization():
     """Test the hashtag optimization endpoint"""

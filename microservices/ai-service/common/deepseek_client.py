@@ -98,6 +98,8 @@ class TokenBudgetExceededError(AIClientError):
     pass
 
 class DeepSeekClient:
+    SYSTEM_PROMPT_MAX_LENGTH = 500
+    USER_PROMPT_MAX_LENGTH = 300
     """
     A token-optimized, production-ready client for the DeepSeek API.
     Optimized for 1M token budget with efficient prompts and monitoring.
@@ -118,12 +120,10 @@ class DeepSeekClient:
     def _optimize_prompt(self, system_prompt: str, user_prompt: str) -> tuple[str, str]:
         """Optimize prompts to use fewer tokens"""
         # Shorten system prompt
-        if len(system_prompt) > 500:
-            system_prompt = system_prompt[:500] + "..."
-        
-        # Shorten user prompt
-        if len(user_prompt) > 300:
-            user_prompt = user_prompt[:300] + "..."
+        if len(system_prompt) > self.SYSTEM_PROMPT_MAX_LENGTH:
+            system_prompt = system_prompt[:self.SYSTEM_PROMPT_MAX_LENGTH] + "..."
+        if len(user_prompt) > self.USER_PROMPT_MAX_LENGTH:
+            user_prompt = user_prompt[:self.USER_PROMPT_MAX_LENGTH] + "..."
         
         return system_prompt, user_prompt
 
