@@ -5,12 +5,13 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-fallback-dev-key')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-content-service-minimal-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# Default to False for security - must explicitly set DEBUG=true in environment for development
 DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -114,8 +115,8 @@ REST_FRAMEWORK = {
 }
 
 # CORS Configuration
-if DEBUG:
-    CORS_ALLOWED_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000']
-else:
-    CORS_ALLOWED_ORIGINS = ['https://trusted-domain.com']
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # Frontend development server
+    'http://127.0.0.1:3000',  # Alternative localhost
+]
+CORS_ALLOW_CREDENTIALS = True 

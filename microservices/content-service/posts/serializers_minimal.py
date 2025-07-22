@@ -29,6 +29,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
         fields = ['title', 'content', 'status', 'post_type', 'scheduled_at']
     
     def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
 
 class PostUpdateSerializer(serializers.ModelSerializer):
