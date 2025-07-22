@@ -20,6 +20,9 @@ if os.environ.get('VALIDATE_CONFIG_ON_IMPORT', 'false').lower() == 'true':
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
     raise ValueError("The SECRET_KEY environment variable is required but was not found or is empty.")
+# Add minimum length and complexity validation
+if len(SECRET_KEY) < 32 or SECRET_KEY.islower() or SECRET_KEY.isalpha() or SECRET_KEY.isdigit():
+    raise ValueError("The SECRET_KEY must be at least 32 characters and contain a mix of upper/lowercase letters, numbers, and symbols.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'

@@ -119,6 +119,7 @@ class DeepSeekClient:
 
     def _optimize_prompt(self, system_prompt: str, user_prompt: str) -> tuple[str, str]:
         """Optimize prompts to use fewer tokens"""
+        content_generation_settings = getattr(settings, 'CONTENT_GENERATION', {})
         # Shorten system prompt
         if len(system_prompt) > self.SYSTEM_PROMPT_MAX_LENGTH:
             system_prompt = system_prompt[:self.SYSTEM_PROMPT_MAX_LENGTH] + "..."
@@ -201,12 +202,13 @@ class DeepSeekClient:
         """
         Generates content using the DeepSeek API with token optimization.
         """
+        content_generation_settings = getattr(settings, 'CONTENT_GENERATION', {})
         # Optimize prompts for token efficiency
-        if settings.CONTENT_GENERATION.get('OPTIMIZE_PROMPTS', True):
+        if content_generation_settings.get('OPTIMIZE_PROMPTS', True):
             system_prompt, user_prompt = self._optimize_prompt(system_prompt, user_prompt)
         
         # Estimate token usage
-        estimated_tokens = self._estimate_tokens(system_prompt + user_prompt) + settings.CONTENT_GENERATION['MAX_TOKENS_PER_REQUEST']
+        estimated_tokens = self._estimate_tokens(system_prompt + user_prompt) + content_generation_settings.get('MAX_TOKENS_PER_REQUEST', 0)
         
         # Check budget before making request
         if not token_tracker.check_budget(estimated_tokens):
@@ -220,7 +222,7 @@ class DeepSeekClient:
                 {"role": "user", "content": user_prompt}
             ],
             "temperature": kwargs.get("temperature", 0.8),
-            "max_tokens": settings.CONTENT_GENERATION['MAX_TOKENS_PER_REQUEST'],
+            "max_tokens": content_generation_settings.get('MAX_TOKENS_PER_REQUEST', 0),
             "stream": False
         }
 

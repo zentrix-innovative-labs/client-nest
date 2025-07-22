@@ -18,23 +18,21 @@ from content_generation.signals import _calculate_cost
 class TestCalculateCost(TestCase):
     """Test cases for the _calculate_cost function"""
     
-    @override_settings(DEEPSEEK_PRICING={
-        'prompt': '0.001',      # $0.001 per 1K prompt tokens
-        'completion': '0.002'    # $0.002 per 1K completion tokens
-    })
     def setUp(self):
         """Set up test fixtures"""
         self.mock_pricing = {
             'prompt': '0.001',      # $0.001 per 1K prompt tokens
             'completion': '0.002'    # $0.002 per 1K completion tokens
         }
+        self.mock_pricing_patch = patch('content_generation.signals.settings.DEEPSEEK_PRICING')
+        self.mock_pricing_mock = self.mock_pricing_patch.start()
+        self.mock_pricing_mock.__getitem__.side_effect = self.mock_pricing.__getitem__
+
+    def tearDown(self):
+        self.mock_pricing_patch.stop()
     
-    @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
-    def test_calculate_cost_normal_usage(self, mock_pricing):
+    def test_calculate_cost_normal_usage(self):
         """Test normal token usage scenarios"""
-        mock_pricing.__getitem__.side_effect = self.mock_pricing.__getitem__
-        
-        # Test case 1: Normal usage
         cost = _calculate_cost(prompt_tokens=1000, completion_tokens=2000)
         expected = decimal.Decimal('0.001') + decimal.Decimal('0.004')  # 0.001 + 0.004
         self.assertEqual(cost, expected)
@@ -44,10 +42,8 @@ class TestCalculateCost(TestCase):
         expected = decimal.Decimal('0.0005') + decimal.Decimal('0.003')  # 0.0005 + 0.003
         self.assertEqual(cost, expected)
     
-    @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
-    def test_calculate_cost_zero_tokens(self, mock_pricing):
+    def test_calculate_cost_zero_tokens(self):
         """Test edge case with zero tokens"""
-        mock_pricing.__getitem__.side_effect = self.mock_pricing.__getitem__
         
         # Test zero tokens
         cost = _calculate_cost(prompt_tokens=0, completion_tokens=0)
@@ -64,10 +60,8 @@ class TestCalculateCost(TestCase):
         expected = decimal.Decimal('0.001')
         self.assertEqual(cost, expected)
     
-    @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
-    def test_calculate_cost_small_token_counts(self, mock_pricing):
+    def test_calculate_cost_small_token_counts(self):
         """Test with very small token counts"""
-        mock_pricing.__getitem__.side_effect = self.mock_pricing.__getitem__
         
         # Test single tokens
         cost = _calculate_cost(prompt_tokens=1, completion_tokens=1)
@@ -79,10 +73,8 @@ class TestCalculateCost(TestCase):
         expected = decimal.Decimal('0.0001') + decimal.Decimal('0.0001')
         self.assertEqual(cost, expected)
     
-    @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
-    def test_calculate_cost_large_token_counts(self, mock_pricing):
+    def test_calculate_cost_large_token_counts(self):
         """Test with large token counts"""
-        mock_pricing.__getitem__.side_effect = self.mock_pricing.__getitem__
         
         # Test large token counts
         cost = _calculate_cost(prompt_tokens=10000, completion_tokens=5000)
@@ -94,10 +86,8 @@ class TestCalculateCost(TestCase):
         expected = decimal.Decimal('0.1') + decimal.Decimal('0.4')
         self.assertEqual(cost, expected)
     
-    @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
-    def test_calculate_cost_decimal_precision(self, mock_pricing):
+    def test_calculate_cost_decimal_precision(self):
         """Test decimal precision handling"""
-        mock_pricing.__getitem__.side_effect = self.mock_pricing.__getitem__
         
         # Test that calculations maintain precision
         cost = _calculate_cost(prompt_tokens=333, completion_tokens=667)
@@ -105,15 +95,14 @@ class TestCalculateCost(TestCase):
         expected = decimal.Decimal('0.001667')
         self.assertEqual(cost, expected)
     
-    @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
-    def test_calculate_cost_different_pricing(self, mock_pricing):
+    def test_calculate_cost_different_pricing(self):
         """Test with different pricing models"""
         # Test with different pricing
         different_pricing = {
             'prompt': '0.0005',     # $0.0005 per 1K prompt tokens
             'completion': '0.0015'   # $0.0015 per 1K completion tokens
         }
-        mock_pricing.__getitem__.side_effect = different_pricing.__getitem__
+        self.mock_pricing_mock.__getitem__.side_effect = different_pricing.__getitem__
         
         cost = _calculate_cost(prompt_tokens=1000, completion_tokens=1000)
         expected = decimal.Decimal('0.0005') + decimal.Decimal('0.0015')
@@ -135,10 +124,8 @@ class TestCalculateCost(TestCase):
         with self.assertRaises(TypeError):
             _calculate_cost(prompt_tokens=100, completion_tokens="100")
     
-    @patch('content_generation.signals.settings.DEEPSEEK_PRICING')
-    def test_calculate_cost_rounding_behavior(self, mock_pricing):
+    def test_calculate_cost_rounding_behavior(self):
         """Test rounding behavior with decimal precision"""
-        mock_pricing.__getitem__.side_effect = self.mock_pricing.__getitem__
         
         # Test that rounding follows decimal precision settings
         cost = _calculate_cost(prompt_tokens=1234, completion_tokens=5678)

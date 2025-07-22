@@ -32,6 +32,10 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
     Raises:
         TypeError: If `prompt_tokens` or `completion_tokens` are not integers.
         ValueError: If `prompt_tokens` or `completion_tokens` are negative.
+    
+    Example:
+        >>> _calculate_cost(1000, 2000)
+        Decimal('0.0050000000')
     """
     # Input validation
     if not isinstance(prompt_tokens, int) or not isinstance(completion_tokens, int):
