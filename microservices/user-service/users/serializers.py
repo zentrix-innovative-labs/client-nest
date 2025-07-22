@@ -29,7 +29,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = User  # Use User model for registration
         fields = (
-            'username', 'email', 'first_name', 'last_name', 'phone_number',
+            'username', 'email', 'first_name', 'last_name', 'phone_number', 'password', 'password_confirm'
         )
         ref_name = "UserUser"
         extra_kwargs = {
