@@ -49,16 +49,10 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        """
-        Atomically increment the like count for a post and return the updated count.
-        
-        This action ensures that the like count is incremented safely in a concurrent environment
-        using Django's F expressions. The updated like count is included in the response.
-        """
+        """Like a post"""
         post = self.get_object()
-        post.like_count = F('like_count') + 1
+        post.like_count += 1
         post.save()
-        post.refresh_from_db()
         
         return Response(
             {'message': 'Post liked', 'like_count': post.like_count},
@@ -69,10 +63,10 @@ class PostViewSet(viewsets.ModelViewSet):
     def view(self, request, pk=None):
         """Increment view count"""
         post = self.get_object()
-        Post.objects.filter(pk=post.pk).update(view_count=F('view_count') + 1)
-        post.refresh_from_db()
+        post.view_count += 1
+        post.save()
         
         return Response(
             {'message': 'View counted', 'view_count': post.view_count},
             status=status.HTTP_200_OK
-        )
+        ) 
