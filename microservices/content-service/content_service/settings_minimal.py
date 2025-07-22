@@ -1,16 +1,22 @@
 import os
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
+<<<<<<< HEAD
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-content-service-minimal-key')
+=======
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-content-service-minimal-key')
+>>>>>>> d4775bc (Fix 1)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Default to False for security - must explicitly set DEBUG=true in environment for development
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0').split(',')
 
 # Application definition
 INSTALLED_APPS = [
