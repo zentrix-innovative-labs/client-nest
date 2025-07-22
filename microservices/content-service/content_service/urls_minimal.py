@@ -14,5 +14,5 @@ def health_check(request):
 
 urlpatterns = [
     path('health/', health_check, name='health-check'),
-    path('', include('posts.urls')),
-]
+    path('', include('posts.urls_minimal')),
+] 
