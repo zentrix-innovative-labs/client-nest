@@ -4,6 +4,12 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from phonenumber_field.serializerfields import PhoneNumberField
 from .models import User, UserActivity, UserSession
+from profiles.models import UserProfile
+
+
+class IPAddressMixin:
+    """Mixin to add IP address field to serializers"""
+    ip_address = serializers.IPAddressField(required=False, allow_null=True, protocol='both')
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -21,12 +27,11 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     phone_number = PhoneNumberField(required=False, allow_blank=True)
     
     class Meta:
-        model = User
+        model = User  # Use User model for registration
         fields = (
-            'email', 'username', 'first_name', 'last_name',
-            'password', 'password_confirm', 'phone_number',
-            'timezone', 'language'
+            'username', 'email', 'first_name', 'last_name', 'phone_number', 'password', 'password_confirm'
         )
+        ref_name = "UserUser"
         extra_kwargs = {
             'email': {'required': True},
             'username': {'required': True},
@@ -34,9 +39,30 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             'last_name': {'required': False},
         }
     
+    def validate_password(self, value):
+        """Validate password strength"""
+        try:
+            validate_password(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
+    
     def validate(self, attrs):
-        if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError("Passwords don't match.")
+        """Validate that passwords match and meet requirements"""
+        password = attrs.get('password')
+        password_confirm = attrs.get('password_confirm')
+        
+        if password != password_confirm:
+            raise serializers.ValidationError({
+                'password_confirm': "Passwords don't match."
+            })
+        
+        # Additional validation to ensure password is not None or empty
+        if not password:
+            raise serializers.ValidationError({
+                'password': "Password is required."
+            })
+        
         return attrs
     
     def validate_email(self, value):
@@ -50,8 +76,17 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return value
     
     def create(self, validated_data):
-        validated_data.pop('password_confirm')
+        """Create user with properly hashed password"""
+        # Remove password_confirm as it's not needed for user creation
+        validated_data.pop('password_confirm', None)
         password = validated_data.pop('password')
+        
+        # Ensure password is not empty (additional safety check)
+        if not password:
+            raise serializers.ValidationError("Password cannot be empty.")
+        
+        # Create user with hashed password using create_user method
+        # This ensures password is properly hashed using Django's built-in methods
         user = User.objects.create_user(password=password, **validated_data)
         return user
 
@@ -156,21 +191,56 @@ class ChangePasswordSerializer(serializers.Serializer):
         required=True
     )
     
+    def validate_new_password(self, value):
+        """Validate new password strength"""
+        try:
+            validate_password(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
+    
     def validate_old_password(self, value):
+        """Validate old password is correct"""
         user = self.context['request'].user
         if not user.check_password(value):
             raise serializers.ValidationError("Old password is incorrect.")
         return value
     
     def validate(self, attrs):
-        if attrs['new_password'] != attrs['new_password_confirm']:
-            raise serializers.ValidationError("New passwords don't match.")
+        """Validate that new passwords match and are different from old password"""
+        new_password = attrs.get('new_password')
+        new_password_confirm = attrs.get('new_password_confirm')
+        old_password = attrs.get('old_password')
+        
+        if new_password != new_password_confirm:
+            raise serializers.ValidationError({
+                'new_password_confirm': "New passwords don't match."
+            })
+        
+        # Ensure new password is different from old password
+        if old_password == new_password:
+            raise serializers.ValidationError({
+                'new_password': "New password must be different from the current password."
+            })
+        
         return attrs
     
     def save(self, **kwargs):
+        """Save new password with proper validation"""
         user = self.context['request'].user
-        user.set_password(self.validated_data['new_password'])
+        new_password = self.validated_data['new_password']
+        
+        # Additional safety check
+        if not new_password:
+            raise serializers.ValidationError("New password cannot be empty.")
+        
+        # Use Django's set_password method to ensure proper hashing
+        user.set_password(new_password)
         user.save()
+        
+        # Optionally, you could invalidate all sessions here for security
+        # This would force re-login on all devices
+        
         return user
 
 
@@ -200,13 +270,30 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         required=True
     )
     
+    def validate_new_password(self, value):
+        """Validate new password strength"""
+        try:
+            validate_password(value)
+        except ValidationError as e:
+            raise serializers.ValidationError(list(e.messages))
+        return value
+    
     def validate(self, attrs):
+        """Validate that passwords match"""
         if attrs['new_password'] != attrs['new_password_confirm']:
-            raise serializers.ValidationError("Passwords don't match.")
+            raise serializers.ValidationError({
+                'new_password_confirm': "Passwords don't match."
+            })
         return attrs
+    
+    def save(self, user):
+        """Save the new password for the user"""
+        user.set_password(self.validated_data['new_password'])
+        user.save()
+        return user
 
 
-class UserActivitySerializer(serializers.ModelSerializer):
+class UserActivitySerializer(IPAddressMixin, serializers.ModelSerializer):
     """Serializer for user activity"""
     
     user_email = serializers.ReadOnlyField(source='user.email')
@@ -220,7 +307,7 @@ class UserActivitySerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'timestamp')
 
 
-class UserSessionSerializer(serializers.ModelSerializer):
+class UserSessionSerializer(IPAddressMixin, serializers.ModelSerializer):
     """Serializer for user session"""
     
     user_email = serializers.ReadOnlyField(source='user.email')

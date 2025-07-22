@@ -47,4 +47,4 @@ class Post(models.Model):
         """Calculate engagement rate"""
         if self.view_count > 0:
             return ((self.like_count + self.comment_count + self.share_count) / self.view_count) * 100
-        return 0
+        return 0 
