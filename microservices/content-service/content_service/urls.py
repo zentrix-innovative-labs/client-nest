@@ -12,7 +12,16 @@ def health_check(request):
         'version': '1.0.0-minimal'
     })
 
+@csrf_exempt
+def health_service(request):
+    """Health Service Infor"""
+    return JsonResponse({
+        'service': 'content-service',
+        'version': '1.0.0-minimal',
+        'description': 'Content Mgt Service'
+    })
+
 urlpatterns = [
+    path('', health_service, name='health-service'),
     path('health/', health_check, name='health-check'),
-    path('', include('posts.urls')),
 ]
