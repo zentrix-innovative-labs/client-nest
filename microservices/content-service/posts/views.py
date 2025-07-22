@@ -63,7 +63,7 @@ class PostViewSet(viewsets.ModelViewSet):
     def view(self, request, pk=None):
         """Increment view count"""
         post = self.get_object()
-        post.view_count += 1
+        post.view_count = F('view_count') + 1
         post.save()
         
         return Response(
