@@ -14,6 +14,7 @@ from django_celery_results.models import TaskResult
 from common.deepseek_client import DeepSeekClient
 from content_generation.prompts import generate_hashtag_optimization_prompt, generate_optimal_posting_time_prompt
 from common.utils import calculate_token_usage_cost
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +120,15 @@ class HashtagOptimizationView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            tokens_consumed, cost = calculate_token_usage_cost(usage_data, settings, pricing_key=PRICING_KEY_PROMPT)
+            pricing_config = cache.get('pricing_config')
+            if not pricing_config:
+                pricing_config = {
+                    'settings': settings,
+                    'pricing_key': PRICING_KEY_PROMPT
+                }
+                cache.set('pricing_config', pricing_config, timeout=3600)  # Cache for 1 hour
+
+            tokens_consumed, cost = calculate_token_usage_cost(usage_data, pricing_config['settings'], pricing_key=pricing_config['pricing_key'])
             return Response({
                 'success': True,
                 'data': hashtag_data,
@@ -204,7 +213,15 @@ class OptimalPostingTimeView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            tokens_consumed, cost = calculate_token_usage_cost(usage_data, settings, pricing_key=PRICING_KEY_PROMPT)
+            pricing_config = cache.get('pricing_config')
+            if not pricing_config:
+                pricing_config = {
+                    'settings': settings,
+                    'pricing_key': PRICING_KEY_PROMPT
+                }
+                cache.set('pricing_config', pricing_config, timeout=3600)  # Cache for 1 hour
+
+            tokens_consumed, cost = calculate_token_usage_cost(usage_data, pricing_config['settings'], pricing_key=pricing_config['pricing_key'])
             return Response({
                 'success': True,
                 'data': timing_data,

@@ -24,7 +24,7 @@ class TestCalculateCost(TestCase):
             'prompt': '0.001',      # $0.001 per 1K prompt tokens
             'completion': '0.002'    # $0.002 per 1K completion tokens
         }
-        self.mock_pricing_patch = patch('content_generation.signals.settings.DEEPSEEK_PRICING')
+        self.mock_pricing_patch = patch('settings.DEEPSEEK_PRICING')
         self.mock_pricing_mock = self.mock_pricing_patch.start()
         self.mock_pricing_mock.__getitem__.side_effect = self.mock_pricing.__getitem__
 

@@ -2,6 +2,7 @@ import os
 import decimal
 from pathlib import Path
 from dotenv import load_dotenv
+import re
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,9 +21,13 @@ if os.environ.get('VALIDATE_CONFIG_ON_IMPORT', 'false').lower() == 'true':
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
     raise ValueError("The SECRET_KEY environment variable is required but was not found or is empty.")
-# Add minimum length and complexity validation
-if len(SECRET_KEY) < 32 or SECRET_KEY.islower() or SECRET_KEY.isalpha() or SECRET_KEY.isdigit():
-    raise ValueError("The SECRET_KEY must be at least 32 characters and contain a mix of upper/lowercase letters, numbers, and symbols.")
+# Robust validation for minimum length and character diversity
+if (len(SECRET_KEY) < 32 or
+    not re.search(r'[A-Z]', SECRET_KEY) or
+    not re.search(r'[a-z]', SECRET_KEY) or
+    not re.search(r'\d', SECRET_KEY) or
+    not re.search(r'[^\w]', SECRET_KEY)):
+    raise ValueError("The SECRET_KEY must be at least 32 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'

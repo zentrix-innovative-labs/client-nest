@@ -6,6 +6,7 @@ import logging
 from django.db import DatabaseError
 import decimal
 from common.signals import ai_usage_logged
+from typing import TypedDict
 
 # --- Add a logger ---
 logger = logging.getLogger(__name__)
@@ -13,6 +14,10 @@ logger = logging.getLogger(__name__)
 # Decimal precision configuration for financial calculations
 DECIMAL_PRECISION = 10  # Configurable precision for cost calculations
 QUANTIZATION_PATTERN = decimal.Decimal('1.' + '0' * DECIMAL_PRECISION)
+
+class DeepSeekPricing(TypedDict):
+    prompt: float
+    completion: float
 
 def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decimal:
     """
@@ -23,8 +28,10 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
     based on the pricing configuration provided in `settings.DEEPSEEK_PRICING`.
     
     Parameters:
-        prompt_tokens (int): The number of tokens in the prompt. Must be a non-negative integer.
-        completion_tokens (int): The number of tokens in the completion. Must be a non-negative integer.
+        prompt_tokens (int): Number of prompt tokens.
+        completion_tokens (int): Number of completion tokens.
+    Settings:
+        settings.DEEPSEEK_PRICING (DeepSeekPricing): Pricing dictionary with 'prompt' and 'completion' keys.
     
     Returns:
         decimal.Decimal: The calculated cost, rounded to the configured precision.

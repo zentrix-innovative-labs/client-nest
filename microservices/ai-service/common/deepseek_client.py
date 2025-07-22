@@ -98,8 +98,8 @@ class TokenBudgetExceededError(AIClientError):
     pass
 
 class DeepSeekClient:
-    SYSTEM_PROMPT_MAX_LENGTH = 500
-    USER_PROMPT_MAX_LENGTH = 300
+    DEFAULT_SYSTEM_PROMPT_MAX_LENGTH = 500
+    DEFAULT_USER_PROMPT_MAX_LENGTH = 300
     """
     A token-optimized, production-ready client for the DeepSeek API.
     Optimized for 1M token budget with efficient prompts and monitoring.
@@ -120,11 +120,13 @@ class DeepSeekClient:
     def _optimize_prompt(self, system_prompt: str, user_prompt: str) -> tuple[str, str]:
         """Optimize prompts to use fewer tokens"""
         content_generation_settings = getattr(settings, 'CONTENT_GENERATION', {})
+        system_prompt_max_length = content_generation_settings.get('SYSTEM_PROMPT_MAX_LENGTH', self.DEFAULT_SYSTEM_PROMPT_MAX_LENGTH)
+        user_prompt_max_length = content_generation_settings.get('USER_PROMPT_MAX_LENGTH', self.DEFAULT_USER_PROMPT_MAX_LENGTH)
         # Shorten system prompt
-        if len(system_prompt) > self.SYSTEM_PROMPT_MAX_LENGTH:
-            system_prompt = system_prompt[:self.SYSTEM_PROMPT_MAX_LENGTH] + "..."
-        if len(user_prompt) > self.USER_PROMPT_MAX_LENGTH:
-            user_prompt = user_prompt[:self.USER_PROMPT_MAX_LENGTH] + "..."
+        if len(system_prompt) > system_prompt_max_length:
+            system_prompt = system_prompt[:system_prompt_max_length] + "..."
+        if len(user_prompt) > user_prompt_max_length:
+            user_prompt = user_prompt[:user_prompt_max_length] + "..."
         
         return system_prompt, user_prompt
 
