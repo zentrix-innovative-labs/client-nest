@@ -13,7 +13,8 @@ from .config_validation import validate_config
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Validate configuration
-validate_config()
+if os.environ.get('VALIDATE_CONFIG_ON_IMPORT', 'false').lower() == 'true':
+    validate_config()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
