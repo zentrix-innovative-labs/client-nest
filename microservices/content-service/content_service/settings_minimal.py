@@ -114,5 +114,8 @@ REST_FRAMEWORK = {
 }
 
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',  # Frontend development server
+    'http://127.0.0.1:3000',  # Alternative localhost
+]
 CORS_ALLOW_CREDENTIALS = True 
