@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
+from django.db.models import F
 from .models import Post
 from .serializers import PostSerializer, PostCreateSerializer, PostUpdateSerializer
 
@@ -63,8 +64,8 @@ class PostViewSet(viewsets.ModelViewSet):
     def view(self, request, pk=None):
         """Increment view count"""
         post = self.get_object()
-        post.view_count = F('view_count') + 1
-        post.save()
+        Post.objects.filter(pk=post.pk).update(view_count=F('view_count') + 1)
+        post.refresh_from_db()
         
         return Response(
             {'message': 'View counted', 'view_count': post.view_count},

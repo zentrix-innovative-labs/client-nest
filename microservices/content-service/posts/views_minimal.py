@@ -67,6 +67,8 @@ class PostViewSet(viewsets.ModelViewSet):
         post.view_count = F('view_count') + 1
         post.save(update_fields=['view_count'])
         
+        post.refresh_from_db() # Ensure updated value is fetched from the database
+        
         return Response(
             {'message': 'View counted', 'view_count': post.view_count},
             status=status.HTTP_200_OK

@@ -1,16 +1,11 @@
 import os
-import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-<<<<<<< HEAD
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-content-service-minimal-key')
-=======
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-content-service-minimal-key')
->>>>>>> d4775bc (Fix 1)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Default to False for security - must explicitly set DEBUG=true in environment for development
