@@ -14,7 +14,7 @@ def health_check(request):
 
 @csrf_exempt
 def health_service(request):
-    """Health Service Infor"""
+    """Health Service Information"""
     return JsonResponse({
         'service': 'content-service',
         'version': '1.0.0-minimal',
