@@ -4,7 +4,13 @@ from .models import AIUsageLog
 import logging
 from django.db import DatabaseError
 import decimal
-from ai_services.common.signals import ai_usage_logged
+
+try:
+    from ai_services.common.signals import ai_usage_logged
+except ImportError:
+    # Fallback: define the signal locally if import fails
+    from django.dispatch import Signal
+    ai_usage_logged = Signal()
 
 # --- Add a logger ---
 logger = logging.getLogger(__name__)

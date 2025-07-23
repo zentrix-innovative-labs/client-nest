@@ -234,6 +234,12 @@ FACEBOOK_APP_ID = os.environ.get('FACEBOOK_APP_ID')
 FACEBOOK_APP_SECRET = os.environ.get('FACEBOOK_APP_SECRET')
 FACEBOOK_REDIRECT_URI = os.environ.get('FACEBOOK_REDIRECT_URI')
 
+# DeepSeek AI pricing configuration
+DEEPSEEK_PRICING = {
+    'prompt': '0.00014',  # $0.14 per 1K tokens
+    'completion': '0.00028'  # $0.28 per 1K tokens
+}
+
 # ===== CORS CONFIGURATION =====
 CORS_ALLOWED_ORIGINS = [
     "https://www.clientnest.xyz",
@@ -242,4 +248,3 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
 # =============================
-
