@@ -1,5 +1,5 @@
 
 from django.dispatch import Signal
 
-# Signal for logging AI usage
+# Define the ai_usage_logged signal
 ai_usage_logged = Signal()
