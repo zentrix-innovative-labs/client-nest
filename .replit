@@ -4,4 +4,4 @@ modules = ["python-3.12", "nodejs-20", "web"]
 channel = "stable-25_05"
 
 [deployment]
-run = ["sh", "-c", "cd backend && python manage.py runserver 0.0.0.0:5000"]
+run = ["sh", "-c", "cd backend && gunicorn config.wsgi:application --bind 0.0.0.0:5000"]
