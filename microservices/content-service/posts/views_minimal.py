@@ -3,9 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from django.db.models import F
-from .models import Post
-from .serializers import PostSerializer, PostCreateSerializer, PostUpdateSerializer
+from .models_minimal import Post
+from .serializers_minimal import PostSerializer, PostCreateSerializer, PostUpdateSerializer
 
 class PostViewSet(viewsets.ModelViewSet):
     """Minimal ViewSet for managing posts"""
@@ -52,8 +51,9 @@ class PostViewSet(viewsets.ModelViewSet):
     def like(self, request, pk=None):
         """Like a post"""
         post = self.get_object()
-        Post.objects.filter(pk=post.pk).update(like_count=F('like_count') + 1)
-        post.refresh_from_db()
+        post.like_count = F('like_count') + 1
+        post.save()
+        post.refresh_from_db()  # Ensure updated value is fetched from the database
         
         return Response(
             {'message': 'Post liked', 'like_count': post.like_count},
@@ -64,10 +64,12 @@ class PostViewSet(viewsets.ModelViewSet):
     def view(self, request, pk=None):
         """Increment view count"""
         post = self.get_object()
-        Post.objects.filter(pk=post.pk).update(view_count=F('view_count') + 1)
-        post.refresh_from_db()
+        post.view_count = F('view_count') + 1
+        post.save(update_fields=['view_count'])
+        
+        post.refresh_from_db() # Ensure updated value is fetched from the database
         
         return Response(
             {'message': 'View counted', 'view_count': post.view_count},
             status=status.HTTP_200_OK
-        )
+        ) 
