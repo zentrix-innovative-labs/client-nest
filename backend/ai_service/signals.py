@@ -6,7 +6,12 @@ from django.db import DatabaseError
 import decimal
 
 try:
-    from ai_services.common.signals import ai_usage_logged
+    import sys
+import os
+# Add the parent directory to Python path to access ai_services
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+
+from ai_services.common.signals import ai_usage_logged
 except ImportError:
     # Fallback: define the signal locally if import fails
     from django.dispatch import Signal
