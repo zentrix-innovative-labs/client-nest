@@ -71,6 +71,8 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+**Alternatively, you can run the backend and all dependencies using Docker Compose. See the main project README for details.**
+
 ### 6. Test APIs
 ```bash
 python test_api.py

@@ -1,11 +1,10 @@
 # ClientNest 🏢
 
 > **AI-Powered Client Relationship Management Platform**
-update
 
 ClientNest is a comprehensive CRM solution that leverages artificial intelligence to transform how businesses manage client relationships, automate workflows, and drive growth through intelligent insights.
 
-## 🌟 Overview
+## ⭐️ Overview
 
 ClientNest combines traditional CRM functionality with cutting-edge AI capabilities to provide:
 
@@ -15,55 +14,31 @@ ClientNest combines traditional CRM functionality with cutting-edge AI capabilit
 - **Multi-Channel Communication**: Unified communication across email, chat, and social media
 - **Advanced Reporting**: Real-time dashboards and customizable analytics
 - **Scalable Architecture**: Designed for future mobile development with modular components
+- **Personalized Recommendations**: Integrated recommendation system powered by a dedicated ML microservice
 
-## 📊 Key Features
+## 🧠 Recommendation System & ML Service
 
-### 🎯 Core CRM Features
-- **Contact Management**: Comprehensive client profiles with interaction history
-- **Deal Pipeline**: Visual sales pipeline with customizable stages
-- **Task Management**: Automated task creation and assignment
-- **Communication Hub**: Unified inbox for all client communications
-- **Document Management**: Secure file storage and sharing
-
-### 🤖 AI-Powered Features
-- **Smart Lead Scoring**: AI-driven lead qualification and prioritization
-- **Predictive Analytics**: Sales forecasting and client behavior prediction
-- **Content Generation**: AI-assisted email and proposal creation
-- **Sentiment Analysis**: Real-time analysis of client communications
-- **Automated Insights**: Intelligent recommendations and alerts
-
-### 📈 Analytics & Reporting
-- **Real-time Dashboards**: Live metrics and KPI tracking
-- **Custom Reports**: Drag-and-drop report builder
-- **Data Export**: Multiple format support (PDF, Excel, CSV)
-- **Automated Reports**: Scheduled report generation and delivery
-- **Performance Metrics**: Team and individual performance tracking
-
-### 🔮 Future Mobile Features (Planned)
-- **Offline Sync**: Work without internet, sync when connected
-- **Push Notifications**: Real-time alerts for important events
-- **Voice Notes**: Quick voice-to-text note taking
-- **GPS Integration**: Location-based client visit tracking
-- **Biometric Security**: Fingerprint and face ID authentication
+ClientNest includes a robust recommendation system and a dedicated ML microservice:
+- **Recommendation System**: Delivers personalized content and churn predictions, integrated with the Django backend.
+- **ML Service**: FastAPI-based microservice providing collaborative, content-based, and hybrid recommendations, as well as churn prediction APIs.
+- **Integration**: The backend communicates with the ML service via HTTP for real-time recommendations and analytics.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-
 - **Node.js** (v18+)
 - **Python** (3.9+)
 - **Docker** and Docker Compose
 - **Git**
 - **AWS CLI** (for cloud deployment)
 
-### Local Development Setup
+### Local Development Setup (Non-Docker)
 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/zentrix-innovative-labs/client-nest.git
    cd client-nest
    ```
-
 2. **Backend Setup**
    ```bash
    cd backend
@@ -102,25 +77,25 @@ The backend requires a `.env` file in the `backend/` directory. You can copy `ba
    ```bash
    # The frontend directory is not present in this repository. If/when it is added, follow the instructions in that directory.
    ```
-
 4. **Database Setup**
    ```bash
-   docker-compose up -d postgres redis
+   docker-compose up -d db redis
+   # (Now uses PostgreSQL 14 by default)
    ```
-
 5. **Environment Variables**
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
+### Dockerized Development (Recommended)
 ### Docker Development
 
 > **Note:** If you wish to use Docker Compose for Postgres/Redis, ensure a `docker-compose.yml` file is present. If not, you must install and run Postgres and Redis manually.
 
 ```bash
-# Start all services
-docker-compose up -d
+# Start all services (backend, ML service, db, redis)
+docker-compose up --build
 
 # View logs
 docker-compose logs -f
@@ -129,7 +104,11 @@ docker-compose logs -f
 docker-compose down
 ```
 
-## 📁 Project Structure
+- The backend will be available at `http://localhost:8000`
+- The ML service will be available at `http://localhost:8001`
+- PostgreSQL 14 and Redis are started automatically
+
+## 📦 Project Structure
 
 ```
 clientnest/
@@ -282,8 +261,6 @@ terraform apply
 # Deploy application
 ./scripts/deploy.sh production
 ```
-
-
 
 ## 🔐 Security
 
