@@ -97,6 +97,13 @@ class XService:
         file_size = os.path.getsize(media_file.name)
         if file_size > max_file_size:
             raise ValueError(f"File size exceeds the maximum limit of {max_file_size} bytes.")
+
+        # Re-check file size immediately before reading/uploading
+        media_file.seek(0, os.SEEK_END)
+        current_size = media_file.tell()
+        media_file.seek(0)
+        if current_size != file_size:
+            raise ValueError("File size changed after initial validation. Aborting upload for security.")
         
         upload_url = X_ENDPOINTS['UPLOAD_URL']
         

@@ -8,7 +8,7 @@ from .models import SocialAccount
 import requests
 import urllib.parse
 from .linkedin_config import LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET, LINKEDIN_REDIRECT_URI
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 import uuid
 
 class LinkedInAuthView(APIView):
@@ -27,8 +27,10 @@ class LinkedInAuthView(APIView):
         return redirect(url)
 
 class LinkedInCallbackView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
         code = request.GET.get('code')
         state = request.GET.get('state')
         session_state = request.session.get('linkedin_state')
@@ -61,8 +63,6 @@ class LinkedInCallbackView(APIView):
             if not linkedin_id:
                 return Response({'error': 'LinkedIn user ID not found in profile data', 'details': profile_data}, status=400)
             # Save the access token and LinkedIn user ID to the user's SocialAccount
-            if not request.user or not request.user.is_authenticated:
-                return Response({'error': 'User not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
             social_account, created = SocialAccount.objects.get_or_create(
                 user=request.user,
                 platform='linkedin',

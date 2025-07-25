@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 ('author_id', models.CharField(max_length=100)),
                 ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('social_account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='social_service.socialaccount')),
+                ('social_account', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='social_media.socialaccount')),
             ],
         ),
     ]
