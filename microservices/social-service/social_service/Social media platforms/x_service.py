@@ -90,12 +90,10 @@ class XService:
             }
 
     def upload_media(self, media_file, media_type):
-        """Upload media to X using chunked upload to avoid loading the entire file into memory."""
+        """Upload media to X using streaming chunked upload for improved memory efficiency."""
         import os
-        from base64 import b64encode
-        
-        # Validate file size (10 MB limit for this implementation, can be increased for chunked uploads)
-        max_file_size = 10 * 1024 * 1024  # 10 MB
+        # Make max file size configurable via environment variable (default 10 MB)
+        max_file_size = int(os.getenv('X_MAX_FILE_SIZE', 10 * 1024 * 1024))  # 10 MB default
         file_size = os.path.getsize(media_file.name)
         if file_size > max_file_size:
             raise ValueError(f"File size exceeds the maximum limit of {max_file_size} bytes.")

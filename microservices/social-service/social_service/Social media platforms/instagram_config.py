@@ -9,8 +9,10 @@ INSTAGRAM_CONFIG = {
     'SCOPE': [
         'user_profile',
         'user_media'
-    ]
-}
+    ],
+    'USE_PROXY': os.getenv('USE_PROXY', 'False').lower() == 'true',  # Default to False for security
+    'PROXY_URL': 'https://api.allorigins.win/raw?url=',  # Example proxy service
+}  # Note: Using a proxy can pose security risks. Ensure the proxy service is trusted and suitable for your use case.
 
 # Instagram API Endpoints
 INSTAGRAM_ENDPOINTS = {
@@ -18,10 +20,4 @@ INSTAGRAM_ENDPOINTS = {
     'TOKEN_URL': 'https://api.instagram.com/oauth/access_token',
     'GRAPH_URL': 'https://graph.instagram.com/me',
     'MEDIA_URL': 'https://graph.instagram.com/me/media'
-}
-
-# Proxy Configuration (if needed)
-PROXY_CONFIG = {
-    'USE_PROXY': True,
-    'PROXY_URL': 'https://api.allorigins.win/raw?url=',  # Example proxy service
 } 

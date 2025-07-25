@@ -339,16 +339,12 @@ class LinkedInImagePostView(APIView):
         asset_urn = upload_resp['value']['asset']
         # Step 2: Upload the image using a temporary file path
         import tempfile, os
-        image.file.open()
-        try:
-            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                temp_file.write(image.file.read())
-                temp_file_path = temp_file.name
-            linkedin_service.upload_image(upload_url, temp_file_path)
-        finally:
-            image.file.close()
-            if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
-                os.remove(temp_file_path)
+        with image.file as opened_file, tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            temp_file.write(opened_file.read())
+            temp_file_path = temp_file.name
+        linkedin_service.upload_image(upload_url, temp_file_path)
+        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
         # Step 3: Post content with image
         result = linkedin_service.post_content_with_image(content, asset_urn)
         return Response({
@@ -503,8 +499,11 @@ class YouTubeVideoUploadView(APIView):
         if not file or not title or not description:
             return Response({'status': 'error', 'message': 'file, title, and description are required'}, status=400)
         # Save file temporarily
-        import tempfile
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp:
+        import tempfile, os
+        # Extract file extension from uploaded file name, default to .mp4 if not available
+        original_name = getattr(file, 'name', None)
+        ext = os.path.splitext(original_name)[1] if original_name else '.mp4'
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
             for chunk in file.chunks():
                 tmp.write(chunk)
             tmp_path = tmp.name
@@ -571,7 +570,12 @@ class PinterestPinCreateView(APIView):
         if not all([client_id, client_secret, redirect_uri, token, board_id, image_url, title, description]):
             return Response({'status': 'error', 'message': 'Missing required fields'}, status=400)
         try:
-            service = PinterestService(client_id, client_secret, redirect_uri, token=json.loads(token))
+            parsed_token = None
+            try:
+                parsed_token = json.loads(token)
+            except json.JSONDecodeError:
+                return Response({'status': 'error', 'message': 'Invalid token format'}, status=400)
+            service = PinterestService(client_id, client_secret, redirect_uri, token=parsed_token)
             result = service.create_pin(board_id, image_url, title, description, link)
             return Response({'status': 'success', 'pin_id': result.get('id')})
         except Exception as e:
