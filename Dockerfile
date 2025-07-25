@@ -7,6 +7,8 @@ ENV PYTHONUNBUFFERED=1
 
 # Set working directory
 WORKDIR /app
+COPY . /app
+
 
 # Install dependencies
 COPY requirements.txt .
