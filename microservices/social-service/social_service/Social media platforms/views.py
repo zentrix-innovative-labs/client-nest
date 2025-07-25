@@ -26,6 +26,7 @@ from .bluesky_service import BlueskyService
 from .threads_service import ThreadsService
 from .pinterest_service import PinterestService
 import json
+import tempfile
 
 # Create your views here.
 
@@ -500,7 +501,11 @@ class YouTubeVideoUploadView(APIView):
         # Save file temporarily
         # Extract file extension from uploaded file name, default to .mp4 if not available
         original_name = getattr(file, 'name', None)
-        ext = os.path.splitext(original_name)[1] if original_name else '.mp4'
+        ext = os.path.splitext(original_name)[1].lower() if original_name else '.mp4'
+        # Validate file extension against an allowlist of safe video formats
+        allowed_extensions = {'.mp4', '.avi', '.mov', '.mkv'}
+        if ext not in allowed_extensions:
+            return Response({'status': 'error', 'message': f'Invalid file extension: {ext}. Allowed extensions are {", ".join(allowed_extensions)}'}, status=400)
         with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
             for chunk in file.chunks():
                 tmp.write(chunk)

@@ -1,6 +1,9 @@
 import requests
 from .x_config import X_CONFIG, X_ENDPOINTS
-from .models import SocialAccount
+try:
+    from .models import SocialAccount
+except ImportError:
+    from social_service.models import SocialAccount
 from django.conf import settings
 import json
 import base64
@@ -92,14 +95,18 @@ class XService:
 
     def upload_media(self, media_file, media_type):
         """Upload media to X using streaming chunked upload for improved memory efficiency."""
-        # Make max file size configurable via environment variable (default 10 MB)
+        # Make max file size configurable via environment variable (default 10 MB, hard cap 100 MB)
+        ENV_MAX_MB = 100
         max_file_size = int(os.getenv('X_MAX_FILE_SIZE', 10 * 1024 * 1024))  # 10 MB default
+        hard_max_file_size = ENV_MAX_MB * 1024 * 1024
+        if max_file_size > hard_max_file_size:
+            max_file_size = hard_max_file_size
         file_size = os.path.getsize(media_file.name)
         if file_size > max_file_size:
             raise ValueError(f"File size exceeds the maximum limit of {max_file_size} bytes.")
 
         # Re-check file size immediately before reading/uploading
-        media_file.seek(0, os.SEEK_END)
+        media_file.seek(0, 2)
         current_size = media_file.tell()
         media_file.seek(0)
         if current_size != file_size:

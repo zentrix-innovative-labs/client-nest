@@ -1,5 +1,6 @@
 import requests
 from .linkedin_config import LINKEDIN_API_BASE_URL
+import os
 
 class LinkedInService:
     def __init__(self, social_account):
@@ -103,7 +104,14 @@ class LinkedInService:
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/octet-stream'
         }
-        file_path = image_file.name if hasattr(image_file, 'name') else image_file
+        if hasattr(image_file, 'name') and callable(getattr(image_file, 'read', None)):
+            file_path = image_file.name
+        elif isinstance(image_file, str):
+            if not os.path.isfile(image_file):
+                raise ValueError(f"Invalid file path: {image_file}")
+            file_path = image_file
+        else:
+            raise TypeError("image_file must be a file-like object or a valid string file path")
         with open(file_path, 'rb') as file_stream:
             response = requests.put(upload_url, headers=headers, data=file_stream)
         if response.status_code in [200, 201]:
