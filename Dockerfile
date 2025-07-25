@@ -1,23 +1,24 @@
 # Use official Python image
 FROM python:3.11
 
-# Set environment vars
+# Environment settings
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Set working directory
+# Set working directory to /app/backend
 WORKDIR /app/backend
-COPY backend /app/backend
 
-# Install dependencies
-COPY requirements.txt .
+# Copy backend requirements
+COPY backend/requirements.txt /app/backend/
+
+# Install Python dependencies
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy project files
-COPY . .
+# Copy backend source code
+COPY backend /app/backend
 
-# Expose Django's port
+# Expose Django dev server port
 EXPOSE 8000
 
-# Run development server
+# Start Django
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
