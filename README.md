@@ -77,7 +77,7 @@ ClientNest combines traditional CRM functionality with cutting-edge AI capabilit
    cp .env.example .env  # Copy the example env file and edit as needed
    # Edit .env with your configuration (see below for required variables)
    python manage.py migrate
-   python manage.py runserver
+  c
    ```
 
 #### Required Environment Variables
