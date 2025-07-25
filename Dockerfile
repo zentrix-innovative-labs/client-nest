@@ -1,5 +1,5 @@
 # Use official Python image
-FROM python:3.10
+FROM python:3.11
 
 # Set environment vars
 ENV PYTHONDONTWRITEBYTECODE=1
