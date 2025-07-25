@@ -338,7 +338,6 @@ class LinkedInImagePostView(APIView):
         upload_url = upload_resp['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl']
         asset_urn = upload_resp['value']['asset']
         # Step 2: Upload the image using a temporary file path
-        import tempfile, os
         with image.file as opened_file, tempfile.NamedTemporaryFile(delete=False) as temp_file:
             temp_file.write(opened_file.read())
             temp_file_path = temp_file.name
@@ -499,7 +498,6 @@ class YouTubeVideoUploadView(APIView):
         if not file or not title or not description:
             return Response({'status': 'error', 'message': 'file, title, and description are required'}, status=400)
         # Save file temporarily
-        import tempfile, os
         # Extract file extension from uploaded file name, default to .mp4 if not available
         original_name = getattr(file, 'name', None)
         ext = os.path.splitext(original_name)[1] if original_name else '.mp4'

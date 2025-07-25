@@ -7,6 +7,7 @@ import base64
 from datetime import datetime
 from requests_oauthlib import OAuth1Session
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,6 @@ class XService:
 
     def upload_media(self, media_file, media_type):
         """Upload media to X using streaming chunked upload for improved memory efficiency."""
-        import os
         # Make max file size configurable via environment variable (default 10 MB)
         max_file_size = int(os.getenv('X_MAX_FILE_SIZE', 10 * 1024 * 1024))  # 10 MB default
         file_size = os.path.getsize(media_file.name)
@@ -140,8 +140,9 @@ class XService:
         return finalize_resp.json()
 
     def get_analytics(self, tweet_id):
-        """Get analytics for a specific tweet"""
-        return self._make_request('GET', f'tweets/{tweet_id}/metrics')
+        """Get analytics for a specific tweet (Twitter API v2)"""
+        params = {'tweet.fields': 'public_metrics,non_public_metrics,organic_metrics'}
+        return self._make_request('GET', f'tweets/{tweet_id}', params=params)
 
     def get_timeline(self, user_id=None, max_results=10):
         """Get user's timeline"""
@@ -154,21 +155,23 @@ class XService:
         """Delete a tweet"""
         return self._make_request('DELETE', f'tweets/{tweet_id}')
 
-    def get_mentions(self, max_results=10):
-        """Get mentions of the authenticated user"""
+    def get_mentions(self, user_id, max_results=10):
+        """Get mentions of the specified user (Twitter API v2)"""
+        if not user_id:
+            raise ValueError("user_id is required to fetch mentions.")
         params = {'max_results': max_results}
-        return self._make_request('GET', 'tweets/mentions', params=params)
+        return self._make_request('GET', f'users/{user_id}/mentions', params=params)
 
-    def get_followers(self, user_id=None, max_results=10):
+    def get_followers(self, user_id, max_results=10):
         """Get user's followers"""
+        if not user_id:
+            raise ValueError("user_id is required to fetch followers.")
         params = {'max_results': max_results}
-        if user_id:
-            params['user_id'] = user_id
-        return self._make_request('GET', 'users/followers', params=params)
+        return self._make_request('GET', f'users/{user_id}/followers', params=params)
 
-    def get_following(self, user_id=None, max_results=10):
-        """Get users that the authenticated user follows"""
+    def get_following(self, user_id, max_results=10):
+        """Get users that the specified user follows"""
+        if not user_id:
+            raise ValueError("user_id is required for the 'get_following' method.")
         params = {'max_results': max_results}
-        if user_id:
-            params['user_id'] = user_id
-        return self._make_request('GET', 'users/following', params=params) 
+        return self._make_request('GET', f'users/{user_id}/following', params=params) 

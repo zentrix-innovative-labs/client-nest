@@ -20,4 +20,9 @@ INSTAGRAM_ENDPOINTS = {
     'TOKEN_URL': 'https://api.instagram.com/oauth/access_token',
     'GRAPH_URL': 'https://graph.instagram.com/me',
     'MEDIA_URL': 'https://graph.instagram.com/me/media'
+}
+
+PROXY_CONFIG = {
+    'USE_PROXY': INSTAGRAM_CONFIG['USE_PROXY'],
+    'PROXY_URL': INSTAGRAM_CONFIG['PROXY_URL'],
 } 
