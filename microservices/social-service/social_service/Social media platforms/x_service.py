@@ -95,10 +95,10 @@ class XService:
 
     def upload_media(self, media_file, media_type):
         """Upload media to X using streaming chunked upload for improved memory efficiency."""
-        # Make max file size configurable via environment variable (default 10 MB, hard cap 100 MB)
+        BYTES_PER_MB = 1024 * 1024
         ENV_MAX_MB = 100
-        max_file_size = int(os.getenv('X_MAX_FILE_SIZE', 10 * 1024 * 1024))  # 10 MB default
-        hard_max_file_size = ENV_MAX_MB * 1024 * 1024
+        max_file_size = int(os.getenv('X_MAX_FILE_SIZE', 10 * BYTES_PER_MB))  # 10 MB default
+        hard_max_file_size = ENV_MAX_MB * BYTES_PER_MB
         if max_file_size > hard_max_file_size:
             max_file_size = hard_max_file_size
         file_size = os.path.getsize(media_file.name)
@@ -110,7 +110,7 @@ class XService:
         current_size = media_file.tell()
         media_file.seek(0)
         if current_size != file_size:
-            raise ValueError("File size changed after initial validation. Aborting upload for security.")
+            raise ValueError("File size changed after initial validation. This may indicate tampering, corruption, or unexpected modifications to the file. Aborting upload for security.")
         
         upload_url = X_ENDPOINTS['UPLOAD_URL']
         

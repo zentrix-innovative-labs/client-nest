@@ -1,6 +1,7 @@
 import requests
 from .linkedin_config import LINKEDIN_API_BASE_URL
 import os
+import io
 
 class LinkedInService:
     def __init__(self, social_account):
@@ -104,7 +105,7 @@ class LinkedInService:
             'Authorization': f'Bearer {self.access_token}',
             'Content-Type': 'application/octet-stream'
         }
-        if hasattr(image_file, 'name') and callable(getattr(image_file, 'read', None)):
+        if isinstance(image_file, io.IOBase):
             file_path = image_file.name
         elif isinstance(image_file, str):
             if not os.path.isfile(image_file):

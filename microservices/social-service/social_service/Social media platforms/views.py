@@ -339,12 +339,15 @@ class LinkedInImagePostView(APIView):
         upload_url = upload_resp['value']['uploadMechanism']['com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest']['uploadUrl']
         asset_urn = upload_resp['value']['asset']
         # Step 2: Upload the image using a temporary file path
-        with image.file as opened_file, tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            temp_file.write(opened_file.read())
-            temp_file_path = temp_file.name
-        linkedin_service.upload_image(upload_url, temp_file_path)
-        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
+        temp_file_path = None
+        try:
+            with image.file as opened_file, tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                temp_file.write(opened_file.read())
+                temp_file_path = temp_file.name
+            linkedin_service.upload_image(upload_url, temp_file_path)
+        finally:
+            if temp_file_path and os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
         # Step 3: Post content with image
         result = linkedin_service.post_content_with_image(content, asset_urn)
         return Response({
@@ -503,24 +506,28 @@ class YouTubeVideoUploadView(APIView):
         original_name = getattr(file, 'name', None)
         ext = os.path.splitext(original_name)[1].lower() if original_name else '.mp4'
         # Validate file extension against an allowlist of safe video formats
-        allowed_extensions = {'.mp4', '.avi', '.mov', '.mkv'}
+        # Get allowed extensions from environment variable or use default
+        allowed_extensions_env = os.environ.get('YOUTUBE_ALLOWED_EXTENSIONS', '.mp4,.avi,.mov,.mkv')
+        allowed_extensions = set(ext.strip().lower() for ext in allowed_extensions_env.split(','))
         if ext not in allowed_extensions:
             return Response({'status': 'error', 'message': f'Invalid file extension: {ext}. Allowed extensions are {", ".join(allowed_extensions)}'}, status=400)
-        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
-            for chunk in file.chunks():
-                tmp.write(chunk)
-            tmp_path = tmp.name
-        # You should set these paths in your settings or env
-        credentials_path = os.environ.get('YOUTUBE_CREDENTIALS_PATH', 'youtube_client_secret.json')
-        token_path = os.environ.get('YOUTUBE_TOKEN_PATH', 'youtube_token.json')
-        yt_service = YouTubeService(credentials_path, token_path)
+        tmp_path = None
         try:
+            with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+                for chunk in file.chunks():
+                    tmp.write(chunk)
+                tmp_path = tmp.name
+            # You should set these paths in your settings or env
+            credentials_path = os.environ.get('YOUTUBE_CREDENTIALS_PATH', 'youtube_client_secret.json')
+            token_path = os.environ.get('YOUTUBE_TOKEN_PATH', 'youtube_token.json')
+            yt_service = YouTubeService(credentials_path, token_path)
             response = yt_service.upload_video(tmp_path, title, description, tags=tags)
             return Response({'status': 'success', 'video_id': response.get('id')})
         except Exception as e:
             return Response({'status': 'error', 'message': str(e)}, status=500)
         finally:
-            os.remove(tmp_path)
+            if tmp_path and os.path.exists(tmp_path):
+                os.remove(tmp_path)
 
 class BlueskyPostView(APIView):
     permission_classes = [permissions.IsAuthenticated]
