@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from rest_framework.fields import IPAddressField as DRFIPAddressField
+from django.core.validators import validate_ipv4_address, validate_ipv6_address
+from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -8,9 +11,34 @@ from profiles.models import UserProfile
 
 
 
+class SafeIPAddressField(DRFIPAddressField):
+    def __init__(self, *args, protocol='ipv4', **kwargs):
+        # Manually add validator since DRF is breaking it
+        self.protocol = protocol
+        validators = []
+
+        if protocol == 'ipv4':
+            validators = [validate_ipv4_address]
+        elif protocol == 'ipv6':
+            validators = [validate_ipv6_address]
+        else:
+            # Allow both
+            def validate_ip(value):
+                try:
+                    validate_ipv4_address(value)
+                except ValidationError:
+                    validate_ipv6_address(value)
+            validators = [validate_ip]
+
+        super().__init__(*args, validators=validators, **kwargs)
+
+
+
 class IPAddressMixin:
     """Mixin to add IP address field to serializers"""
-    ip_address = serializers.IPAddressField(protocol='ipv4', required=False, allow_null=True)
+   class IPAddressMixin:
+    ip_address = SafeIPAddressField(required=False, allow_null=True)
+
 
 
 
