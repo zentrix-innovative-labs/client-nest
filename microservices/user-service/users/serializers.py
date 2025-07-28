@@ -9,29 +9,17 @@ from .models import User, UserActivity, UserSession
 from profiles.models import UserProfile
 
 
-# Safe workaround for DRF IPAddressField unpacking error
+
+# users/serializers.py
+from rest_framework import serializers
+from rest_framework.fields import ip_address_validators
+
 class SafeIPAddressField(serializers.IPAddressField):
-    def __init__(self, *args, protocol='both', **kwargs):
-        self.protocol = protocol
-        validators = []
-
-        if protocol == 'ipv4':
-            validators = [validate_ipv4_address]
-        elif protocol == 'ipv6':
-            validators = [validate_ipv6_address]
-        else:
-            def validate_ip(value):
-                try:
-                    validate_ipv4_address(value)
-                except ValidationError:
-                    validate_ipv6_address(value)
-            validators = [validate_ip]
-
-        super().__init__(*args, validators=validators, **kwargs)
-
+    def __init__(self, *args, **kwargs):
+        validator = ip_address_validators(protocol=self.protocol, unpack_ipv4=self.unpack_ipv4)[0]
+        super().__init__(*args, validators=[validator], **kwargs)
 
 class IPAddressMixin:
-    """Mixin to add IP address field to serializers"""
     ip_address = SafeIPAddressField(required=False, allow_null=True)
 
 
