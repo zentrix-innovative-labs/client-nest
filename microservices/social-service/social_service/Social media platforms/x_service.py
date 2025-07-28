@@ -125,7 +125,7 @@ class XService:
         media_id = init_resp.json()['media_id_string']
         
         # 2. APPEND (chunked upload)
-        chunk_size = 4 * 1024 * 1024  # 4 MB per Twitter docs
+        chunk_size = 4 * BYTES_PER_MB  # 4 MB per Twitter docs
         segment_index = 0
         media_file.seek(0)
         while True:
