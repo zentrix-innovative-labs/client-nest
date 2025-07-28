@@ -321,15 +321,12 @@ class ResendVerificationSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         try:
-            user = User.objects.get(email=value,
-        if not user:
-            raise serializers.ValidationError("Unable to log in with provided credentials.", code='authorization')
-
-        if not user.is_active:
-            raise serializers.ValidationError("User account is disabled.", code='authorization')
-
-        attrs['user'] = user
-        return attrs
+            user = User.objects.get(email=value, is_active=True)
+            if user.is_verified:
+                raise serializers.ValidationError("This email is already verified.")
+        except User.DoesNotExist:
+            raise serializers.ValidationError("No active user found with this email address.")
+        return value
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
