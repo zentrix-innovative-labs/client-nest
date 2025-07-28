@@ -9,14 +9,21 @@ from .models import User, UserActivity, UserSession
 from profiles.models import UserProfile
 
 
-
-# users/serializers.py
 from rest_framework import serializers
 from rest_framework.fields import ip_address_validators
 
 class SafeIPAddressField(serializers.IPAddressField):
     def __init__(self, *args, **kwargs):
-        validator = ip_address_validators(protocol=self.protocol, unpack_ipv4=self.unpack_ipv4)[0]
+        # Set default protocol if not specified
+        self.protocol = kwargs.pop('protocol', 'both')  # 'both', 'ipv4', or 'ipv6'
+        self.unpack_ipv4 = kwargs.pop('unpack_ipv4', False)
+        
+        # Get the validator
+        validator = ip_address_validators(
+            protocol=self.protocol,
+            unpack_ipv4=self.unpack_ipv4
+        )[0]  # Get first item (validator) from tuple
+        
         super().__init__(*args, validators=[validator], **kwargs)
 
 class IPAddressMixin:
