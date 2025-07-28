@@ -9,7 +9,8 @@ from profiles.models import UserProfile
 
 class IPAddressMixin:
     """Mixin to add IP address field to serializers"""
-   ip_address = serializers.IPAddressField(required=False, allow_null=True)
+    ip_address = serializers.IPAddressField(required=False, allow_null=True)
+
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Serializer for user registration"""
@@ -346,26 +347,4 @@ class ResendVerificationSerializer(serializers.Serializer):
             user = User.objects.get(email=value, is_active=True)
             if user.is_verified:
                 raise serializers.ValidationError(
-                    "This email is already verified."
-                )
-        except User.DoesNotExist:
-            raise serializers.ValidationError(
-                "No active user found with this email address."
-            )
-        return value
-
-
-class UserStatsSerializer(serializers.Serializer):
-    """Serializer for user statistics"""
-    
-    total_users = serializers.IntegerField()
-    verified_users = serializers.IntegerField()
-    premium_users = serializers.IntegerField()
-    active_sessions = serializers.IntegerField()
-    recent_activities = serializers.IntegerField()
-    
-    class Meta:
-        fields = (
-            'total_users', 'verified_users', 'premium_users',
-            'active_sessions', 'recent_activities'
-        )
+                    "This
