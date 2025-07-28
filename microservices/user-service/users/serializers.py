@@ -12,22 +12,40 @@ from profiles.models import UserProfile
 from rest_framework import serializers
 from rest_framework.fields import ip_address_validators
 
-class SafeIPAddressField(serializers.IPAddressField):
+class SafeIPAddressField(serializers.CharField):  # Inherit from CharField instead
     def __init__(self, *args, **kwargs):
-        # Set default protocol if not specified
-        self.protocol = kwargs.pop('protocol', 'both')  # 'both', 'ipv4', or 'ipv6'
+        self.protocol = kwargs.pop('protocol', 'both')
         self.unpack_ipv4 = kwargs.pop('unpack_ipv4', False)
         
-        # Get the validator
-        validator = ip_address_validators(
+        # Get validators from DRF's implementation
+        validator_result = ip_address_validators(
             protocol=self.protocol,
             unpack_ipv4=self.unpack_ipv4
-        )[0]  # Get first item (validator) from tuple
+        )
         
-        super().__init__(*args, validators=[validator], **kwargs)
+        # Handle different DRF versions
+        if isinstance(validator_result, tuple):  # Older DRF versions
+            validators, _ = validator_result
+        else:  # Newer DRF versions (3.14+)
+            validators = validator_result
+        
+        kwargs['validators'] = validators
+        super().__init__(*args, **kwargs)
+
+    def to_internal_value(self, data):
+        # Add any custom validation here
+        return super().to_internal_value(data)
+
+    def to_representation(self, value):
+        # Add any custom formatting here
+        return super().to_representation(value)
 
 class IPAddressMixin:
-    ip_address = SafeIPAddressField(required=False, allow_null=True)
+    ip_address = SafeIPAddressField(
+        required=False,
+        allow_null=True,
+        protocol='both'  # Explicitly set protocol
+    )
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
