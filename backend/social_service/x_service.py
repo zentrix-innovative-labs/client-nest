@@ -135,4 +135,65 @@ class XService:
         params = {'max_results': max_results}
         if user_id:
             params['user_id'] = user_id
-        return self._make_request('GET', 'users/following', params=params) 
+        return self._make_request('GET', 'users/following', params=params)
+        
+    def post_comment(self, tweet_id, text):
+        """
+        Post a comment (reply) to a specific tweet
+        
+        Args:
+            tweet_id (str): The ID of the tweet to reply to
+            text (str): The text of the reply
+            
+        Returns:
+            dict: Response containing the created reply data or error information
+        """
+        try:
+            # For Twitter API v2, we use the same endpoint as posting a tweet
+            # but include the in_reply_to_tweet_id parameter
+            data = {
+                'text': text,
+                'reply': {
+                    'in_reply_to_tweet_id': str(tweet_id)
+                }
+            }
+            
+            # Use the OAuth session to make the request
+            response = self.oauth.post(
+                f"{X_ENDPOINTS['API_URL']}/tweets",
+                json=data
+            )
+            
+            logger.info(f"Response status code: {response.status_code}")
+            logger.debug(f"Response headers: {redact_headers(response.headers)}")
+            logger.debug(f"Response content: {response.text[:200]}{'...' if len(response.text) > 200 else ''}")
+            
+            if response.status_code != 201:  # 201 Created is the success status code for Twitter API v2
+                return {
+                    'status': 'error',
+                    'message': f'X API returned status code {response.status_code}: {response.text}'
+                }
+            
+            try:
+                response_data = response.json()
+                tweet_data = response_data.get('data', {})
+                return {
+                    'status': 'success',
+                    'id': tweet_data.get('id'),
+                    'text': tweet_data.get('text'),
+                    'in_reply_to_tweet_id': tweet_id,
+                    'created_at': tweet_data.get('created_at')
+                }
+            except ValueError as e:
+                logger.exception("JSON parsing error in post_comment")
+                return {
+                    'status': 'error',
+                    'message': f'Invalid JSON response from X API: {response.text}'
+                }
+                
+        except Exception as e:
+            logger.exception("Exception in post_comment")
+            return {
+                'status': 'error',
+                'message': str(e)
+            }
