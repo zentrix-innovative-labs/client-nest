@@ -1,5 +1,6 @@
 FROM python:3.11-slim
 
+LABEL build.path="C:\\Users\\keffa\\client-nest\\microservices\\user-service"
 # Install system dependencies needed by psycopg2 and others
 RUN apt-get update && apt-get install -y \
     gcc \
