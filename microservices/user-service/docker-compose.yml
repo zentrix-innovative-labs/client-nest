@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   user-db:
-    image: postgres:15-alpine
+    image: postgres:15
     container_name: clientnest-user-db
     environment:
       POSTGRES_DB: client-nest
