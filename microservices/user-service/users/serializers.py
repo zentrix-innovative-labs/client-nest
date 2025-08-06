@@ -9,7 +9,7 @@ from profiles.models import UserProfile
 
 class IPAddressMixin:
     """Mixin to add IP address field to serializers"""
-    ip_address = serializers.IPAddressField(required=False, allow_null=True, protocol='both')
+    ip_address = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
