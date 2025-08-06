@@ -125,6 +125,14 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Get queryset based on user permissions"""
+        # Handle schema generation (swagger fake view)
+        if getattr(self, 'swagger_fake_view', False):
+            return UserProfile.objects.none()
+        
+        # Handle anonymous users
+        if not self.request.user.is_authenticated:
+            return UserProfile.objects.none()
+        
         if self.request.user.is_staff:
             return UserProfile.objects.all().select_related('user')
         return UserProfile.objects.filter(user=self.request.user).select_related('user')
@@ -230,6 +238,14 @@ class UserPreferenceViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Get queryset based on user permissions"""
+        # Handle schema generation (swagger fake view)
+        if getattr(self, 'swagger_fake_view', False):
+            return UserPreference.objects.none()
+        
+        # Handle anonymous users
+        if not self.request.user.is_authenticated:
+            return UserPreference.objects.none()
+        
         if self.request.user.is_staff:
             return UserPreference.objects.all().select_related('user')
         return UserPreference.objects.filter(user=self.request.user).select_related('user')
@@ -283,6 +299,14 @@ class UserSkillViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Get queryset based on user permissions"""
+        # Handle schema generation (swagger fake view)
+        if getattr(self, 'swagger_fake_view', False):
+            return UserSkill.objects.none()
+        
+        # Handle anonymous users
+        if not self.request.user.is_authenticated:
+            return UserSkill.objects.none()
+        
         if self.request.user.is_staff:
             return UserSkill.objects.all().select_related('user')
         return UserSkill.objects.filter(user=self.request.user).select_related('user')
@@ -347,6 +371,14 @@ class UserEducationViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Get queryset based on user permissions"""
+        # Handle schema generation (swagger fake view)
+        if getattr(self, 'swagger_fake_view', False):
+            return UserEducation.objects.none()
+        
+        # Handle anonymous users
+        if not self.request.user.is_authenticated:
+            return UserEducation.objects.none()
+        
         if self.request.user.is_staff:
             return UserEducation.objects.all().select_related('user')
         return UserEducation.objects.filter(user=self.request.user).select_related('user')
@@ -387,6 +419,14 @@ class UserExperienceViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Get queryset based on user permissions"""
+        # Handle schema generation (swagger fake view)
+        if getattr(self, 'swagger_fake_view', False):
+            return UserExperience.objects.none()
+        
+        # Handle anonymous users
+        if not self.request.user.is_authenticated:
+            return UserExperience.objects.none()
+        
         if self.request.user.is_staff:
             return UserExperience.objects.all().select_related('user')
         return UserExperience.objects.filter(user=self.request.user).select_related('user')
@@ -448,6 +488,14 @@ class CompleteProfileViewSet(viewsets.ReadOnlyModelViewSet):
     
     def get_queryset(self):
         """Get queryset with all related data"""
+        # Handle schema generation (swagger fake view)
+        if getattr(self, 'swagger_fake_view', False):
+            return User.objects.none()
+        
+        # Handle anonymous users
+        if not self.request.user.is_authenticated:
+            return User.objects.none()
+        
         queryset = User.objects.select_related(
             'profile', 'preferences'
         ).prefetch_related(
