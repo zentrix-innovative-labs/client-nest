@@ -45,7 +45,7 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
         Decimal('0.0050000000')
     """
     # Input validation
-    if not isinstance(prompt_tokens, int) or not isinstance(completion_tokens, int):
+    if not all(isinstance(token, int) for token in (prompt_tokens, completion_tokens)):
         raise TypeError("Token counts must be integers")
     
     if prompt_tokens < 0 or completion_tokens < 0:
