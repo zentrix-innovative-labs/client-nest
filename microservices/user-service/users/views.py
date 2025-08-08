@@ -434,6 +434,14 @@ class UserActivityViewSet(ReadOnlyModelViewSet):
     ordering = ['-timestamp']
     
     def get_queryset(self):
+        # Handle schema generation (swagger fake view)
+        if getattr(self, 'swagger_fake_view', False):
+            return UserActivity.objects.none()
+        
+        # Handle anonymous users
+        if not self.request.user.is_authenticated:
+            return UserActivity.objects.none()
+        
         if self.request.user.is_staff:
             return UserActivity.objects.all()
         return UserActivity.objects.filter(user=self.request.user)
@@ -450,6 +458,14 @@ class UserSessionViewSet(ReadOnlyModelViewSet):
     ordering = ['-last_activity']
     
     def get_queryset(self):
+        # Handle schema generation (swagger fake view)
+        if getattr(self, 'swagger_fake_view', False):
+            return UserSession.objects.none()
+        
+        # Handle anonymous users
+        if not self.request.user.is_authenticated:
+            return UserSession.objects.none()
+        
         if self.request.user.is_staff:
             return UserSession.objects.all()
         return UserSession.objects.filter(user=self.request.user)

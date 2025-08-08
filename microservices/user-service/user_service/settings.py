@@ -10,7 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-user-service-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=True, cast=bool)
+# Default to False for security - must explicitly set DEBUG=true in environment for development
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0', cast=lambda v: [s.strip() for s in v.split(',')])
 
@@ -78,16 +79,27 @@ TEMPLATES = [
 WSGI_APPLICATION = 'user_service.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('POSTGRES_DB_NAME'),
-        'USER': config('POSTGRES_DB_USER'),
-        'PASSWORD': config('POSTGRES_DB_PASSWORD'),
-        'HOST': config('POSTGRES_DB_HOST'),
-        'PORT': config('POSTGRES_DB_PORT'),
+# Use SQLite for development if specified, otherwise PostgreSQL
+USE_SQLITE = config('USE_SQLITE', default=False, cast=bool)
+
+if USE_SQLITE:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('POSTGRES_DB_NAME', default='client-nest'),
+            'USER': config('POSTGRES_DB_USER', default='postgres'),
+            'PASSWORD': config('POSTGRES_DB_PASSWORD', default='postgres'),
+            'HOST': config('POSTGRES_DB_HOST', default='localhost'),
+            'PORT': config('POSTGRES_DB_PORT', default='5432'),
+        }
+    }
 
 # Cache configuration
 # CACHES = {

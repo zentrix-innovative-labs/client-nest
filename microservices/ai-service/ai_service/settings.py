@@ -33,9 +33,7 @@ if (len(SECRET_KEY) < 32 or
     raise ValueError("The SECRET_KEY must be at least 32 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-
-# Default to False for security - must explicitly set DEBUG=true in environment for development
-DEBUG = os.environ.get('DEBUG', 'false').lower() == 'true'
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 

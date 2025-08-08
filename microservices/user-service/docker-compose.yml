@@ -1,0 +1,58 @@
+services:
+  # PostgreSQL Database
+  user-db:
+    image: postgres:15
+    container_name: clientnest-user-db
+    environment:
+      POSTGRES_DB: client-nest
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: markCole256
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"  # Use different port to avoid conflicts
+    networks:
+      - clientnest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # User Service
+  user-service:
+    build: .
+    container_name: clientnest-user-service
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-user-service-key-change-in-production
+      - POSTGRES_DB_NAME=client-nest
+      - POSTGRES_DB_USER=postgres
+      - POSTGRES_DB_PASSWORD=markCole256
+      - POSTGRES_DB_HOST=user-db
+      - POSTGRES_DB_PORT=5432
+      - USE_SQLITE=False
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,user-service
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./logs:/app/logs
+      - ./media:/app/media
+    depends_on:
+      user-db:
+        condition: service_healthy
+    networks:
+      - clientnest-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  clientnest-network:
+    driver: bridge
+
+volumes:
+  user_db_data:
