@@ -4,7 +4,17 @@ from .models import AIUsageLog
 import logging
 from django.db import DatabaseError
 import decimal
-from ai_service.common.signals import ai_usage_logged
+
+try:
+    import sys
+    import os
+    # Add the parent directory to Python path to access ai_services
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+    from ai_services.common.signals import ai_usage_logged
+except ImportError:
+    # Fallback: define the signal locally if import fails
+    from django.dispatch import Signal
+    ai_usage_logged = Signal()
 
 # --- Add a logger ---
 logger = logging.getLogger(__name__)
@@ -22,11 +32,11 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
         pricing = settings.DEEPSEEK_PRICING
         prompt_cost_per_1k = decimal.Decimal(pricing['prompt'])
         completion_cost_per_1k = decimal.Decimal(pricing['completion'])
-        
+
         # Use Decimal for all calculations to avoid floating point inaccuracies
         prompt_cost = (decimal.Decimal(prompt_tokens) / decimal.Decimal(1000)) * prompt_cost_per_1k
         completion_cost = (decimal.Decimal(completion_tokens) / decimal.Decimal(1000)) * completion_cost_per_1k
-        
+
         return prompt_cost + completion_cost
 
 @receiver(ai_usage_logged)
@@ -41,7 +51,7 @@ def log_ai_usage_receiver(sender, **kwargs):
 
     prompt_tokens = usage_data.get("prompt_tokens", 0)
     completion_tokens = usage_data.get("completion_tokens", 0)
-    
+
     cost = _calculate_cost(prompt_tokens, completion_tokens)
 
     try:
@@ -55,4 +65,4 @@ def log_ai_usage_receiver(sender, **kwargs):
             response_time_ms=response_time_ms
         )
     except DatabaseError as e:
-        logger.error(f"Database error while logging AI usage: {e}") 
+        logger.error(f"Database error while logging AI usage: {e}")
