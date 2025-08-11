@@ -18,4 +18,5 @@ urlpatterns = [
     path('api/v1/queue/messages/', include('message_broker.urls')),
     path('api/v1/queue/workers/', include('worker_management.urls')),
     path('django-rq/', include('django_rq.urls')),
+    path('api/', include('api.urls')),
 ]
