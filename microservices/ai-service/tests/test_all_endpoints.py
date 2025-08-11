@@ -21,10 +21,8 @@ def get_auth_headers():
     mock_authentication()
     return {"Content-Type": "application/json"}
 
-AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8005")
-
 class TestAIServiceEndpoints:
-    AI_SERVICE_URL = AI_SERVICE_URL
+    AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8005")
 
     def test_hashtag_optimization(self):
         """Test the hashtag optimization endpoint"""
@@ -157,7 +155,7 @@ class TestAIServiceEndpoints:
             else:
                 print(f"❌ Content Generation Test FAILED")
                 print(f"Error: {response.text}")
-                self.fail(f"Request failed with status {response.status_code}")
+                assert False, f"Request failed with status {response.status_code}"
                 
         except Exception as e:
             print(f"❌ Content Generation Test ERROR: {str(e)}")

@@ -24,6 +24,12 @@ PRICING_KEY_COMPLETION = 'completion'
 PRICING_KEY_CONTENT_GENERATION = 'content_generation'
 PRICING_KEY_SENTIMENT_ANALYSIS = 'sentiment_analysis'
 
+# Module-level pricing configuration - initialized once at import time
+MODULE_PRICING_CONFIG = {
+    'settings': settings,
+    'pricing_key': PRICING_KEY_PROMPT
+}
+
 class ContentGenerationView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -120,15 +126,8 @@ class HashtagOptimizationView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            pricing_config = cache.get('pricing_config')
-            if not pricing_config:
-                pricing_config = {
-                    'settings': settings,
-                    'pricing_key': PRICING_KEY_PROMPT
-                }
-                cache.set('pricing_config', pricing_config, timeout=3600)  # Cache for 1 hour
 
-            tokens_consumed, cost = calculate_token_usage_cost(usage_data, pricing_config['settings'], pricing_key=pricing_config['pricing_key'])
+            tokens_consumed, cost = calculate_token_usage_cost(usage_data, MODULE_PRICING_CONFIG['settings'], pricing_key=MODULE_PRICING_CONFIG['pricing_key'])
             return Response({
                 'success': True,
                 'data': hashtag_data,
@@ -213,15 +212,8 @@ class OptimalPostingTimeView(APIView):
             
             # Calculate actual usage from client if available
             usage_data = getattr(client, 'last_usage', {})
-            pricing_config = cache.get('pricing_config')
-            if not pricing_config:
-                pricing_config = {
-                    'settings': settings,
-                    'pricing_key': PRICING_KEY_PROMPT
-                }
-                cache.set('pricing_config', pricing_config, timeout=3600)  # Cache for 1 hour
 
-            tokens_consumed, cost = calculate_token_usage_cost(usage_data, pricing_config['settings'], pricing_key=pricing_config['pricing_key'])
+            tokens_consumed, cost = calculate_token_usage_cost(usage_data, MODULE_PRICING_CONFIG['settings'], pricing_key=MODULE_PRICING_CONFIG['pricing_key'])
             return Response({
                 'success': True,
                 'data': timing_data,

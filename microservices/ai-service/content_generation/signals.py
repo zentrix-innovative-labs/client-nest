@@ -38,18 +38,29 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
     
     Raises:
         TypeError: If `prompt_tokens` or `completion_tokens` are not integers.
-        ValueError: If `prompt_tokens` or `completion_tokens` are negative.
+        ValueError: If `prompt_tokens` or `completion_tokens` are negative or exceed maximum limits.
     
     Example:
         >>> _calculate_cost(1000, 2000)
         Decimal('0.0050000000')
     """
+    # Define maximum token limits to prevent performance issues
+    MAX_PROMPT_TOKENS = 1_000_000  # 1 million tokens
+    MAX_COMPLETION_TOKENS = 1_000_000  # 1 million tokens
+    
     # Input validation
     if not all(isinstance(token, int) for token in (prompt_tokens, completion_tokens)):
         raise TypeError("Token counts must be integers")
     
     if prompt_tokens < 0 or completion_tokens < 0:
         raise ValueError("Token counts must be non-negative")
+    
+    # Validate maximum bounds to prevent performance issues
+    if prompt_tokens > MAX_PROMPT_TOKENS:
+        raise ValueError(f"Prompt tokens ({prompt_tokens}) exceed maximum limit ({MAX_PROMPT_TOKENS})")
+    
+    if completion_tokens > MAX_COMPLETION_TOKENS:
+        raise ValueError(f"Completion tokens ({completion_tokens}) exceed maximum limit ({MAX_COMPLETION_TOKENS})")
     
     with decimal.localcontext() as ctx:
         # Set precision for Decimal calculations within this context
