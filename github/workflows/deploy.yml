@@ -25,3 +25,9 @@ jobs:
                (git -C ~/app pull && \
                npm install --production && \
                sudo systemctl restart your-service)"
+               # On EC2 instance:
+sudo nano /etc/sudoers.d/deployer
+deployer ALL=(ALL) NOPASSWD: /bin/systemctl restart your-service
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKAfuBnX/jE0JOvaOeRYVgh0c7NuX9CPytG27PTSyONi ssebuedwin624@gmail.com
+echo "CONTENTS_OF_NEW_PUB_KEY" | sudo tee /home/deployer/.ssh/authorized_keys
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICaLf04WkjjBHqGgZMsfNpl50O6aBYvQG9dG/zCZ0OiO keffa@DESKTOP-32EHUS0
