@@ -8,6 +8,10 @@ import os
 import sys
 import django
 
+# Set up Django environment before importing Django modules
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ai_service.settings')
+django.setup()
+
 from content_generation.logic import ContentGenerator
 from common.deepseek_client import DeepSeekClient
 
@@ -196,10 +200,6 @@ def test_api_endpoints():
         print(f"❌ Error testing health check: {e}")
 
 if __name__ == "__main__":
-    # Set up Django environment
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ai_service.settings')
-    django.setup()
-    
     # Check for required environment variables
     required_vars = [
         'DEEPSEEK_API_KEY',
