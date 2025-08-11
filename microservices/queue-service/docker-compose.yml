@@ -1,22 +1,86 @@
-version: '3'
+version: '3.9'
+
 services:
+  # PostgreSQL Database for Queue Service
+  queue-db:
+    image: postgres:15
+    container_name: clientnest-queue-db
+    environment:
+      POSTGRES_DB: client-nest
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: markCole256
+    volumes:
+      - queue_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"  # Expose default port for queue-service
+    networks:
+      - clientnest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Queue Service Web (Django)
   web:
     build: .
     command: gunicorn queue_service.wsgi:application --bind 0.0.0.0:8000
+    container_name: clientnest-queue-service
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-queue-service-key-change-in-production
+      - POSTGRES_DB_NAME=client-nest
+      - POSTGRES_DB_USER=postgres
+      - POSTGRES_DB_PASSWORD=markCole256
+      - POSTGRES_DB_HOST=queue-db
+      - POSTGRES_DB_PORT=5432
+      - USE_SQLITE=False
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,queue-service
     volumes:
       - .:/app
+      - ./logs:/app/logs
+      - ./media:/app/media
     ports:
-      - "8000:8000"
+      - "8002:8000"
     depends_on:
-      - redis
+      queue-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - clientnest-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Celery Worker
   worker:
     build: .
     command: celery -A queue_service worker --loglevel=info
     volumes:
       - .:/app
     depends_on:
-      - redis
+      queue-db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - clientnest-network
+
+  # Redis for Celery/Queue
   redis:
     image: redis:7
     ports:
       - "6379:6379"
+    networks:
+      - clientnest-network
+
+networks:
+  clientnest-network:
+    driver: bridge
+
+volumes:
+  queue_db_data:
