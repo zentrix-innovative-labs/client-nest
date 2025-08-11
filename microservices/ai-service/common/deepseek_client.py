@@ -138,7 +138,7 @@ class DeepSeekClient:
         return system_prompt, user_prompt
 
     def _estimate_tokens(self, text: str) -> int:
-        """Improved token estimation using multiple heuristics for better accuracy"""
+        """Improved token estimation using multiple heuristics with configurable safety margin"""
         if not text:
             return 0
         
@@ -154,8 +154,19 @@ class DeepSeekClient:
         punctuation_count = sum(1 for char in text if char in '.,!?;:()[]{}"\'')
         punctuation_tokens = punctuation_count // 2  # Rough estimate
         
-        # Use the maximum of the estimates for safety
-        return max(char_estimate, word_estimate + punctuation_tokens)
+        # Calculate weighted average instead of maximum for better accuracy
+        # Character estimate gets 30% weight, word estimate gets 60%, punctuation gets 10%
+        weighted_estimate = int(
+            char_estimate * 0.3 + 
+            word_estimate * 0.6 + 
+            punctuation_tokens * 0.1
+        )
+        
+        # Apply configurable safety margin (default 15% buffer)
+        safety_margin = float(os.environ.get('TOKEN_ESTIMATION_SAFETY_MARGIN', '0.15'))
+        final_estimate = int(weighted_estimate * (1 + safety_margin))
+        
+        return max(final_estimate, 1)  # Ensure at least 1 token for non-empty text
 
     def _parse_ai_response(self, raw_content: str) -> Dict[str, Any]:
         """

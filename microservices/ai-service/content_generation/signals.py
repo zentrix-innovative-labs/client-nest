@@ -1,4 +1,5 @@
 # microservices/ai-service/content_generation/signals.py
+import os
 from django.dispatch import Signal, receiver
 from django.conf import settings
 from .models import AIUsageLog
@@ -19,6 +20,12 @@ class DeepSeekPricing(TypedDict):
     prompt: float
     completion: float
 
+# Module-level constants for performance optimization
+# These are loaded once at module import time rather than on every function call
+MAX_PROMPT_TOKENS = int(os.environ.get('MAX_PROMPT_TOKENS_VALIDATION', '1000000'))  # Configurable via env var
+MAX_COMPLETION_TOKENS = int(os.environ.get('MAX_COMPLETION_TOKENS_VALIDATION', '1000000'))  # Configurable via env var
+ENABLE_TOKEN_VALIDATION = os.environ.get('ENABLE_TOKEN_VALIDATION', 'true').lower() == 'true'
+
 def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decimal:
     """
     Calculates the cost of AI API usage based on DeepSeek's pricing model.
@@ -27,11 +34,16 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
     precision settings. It calculates the cost for prompt tokens and completion tokens 
     based on the pricing configuration provided in `settings.DEEPSEEK_PRICING`.
     
+    Performance optimized with configurable validation that can be disabled in production.
+    
     Parameters:
         prompt_tokens (int): Number of prompt tokens.
         completion_tokens (int): Number of completion tokens.
     Settings:
         settings.DEEPSEEK_PRICING (DeepSeekPricing): Pricing dictionary with 'prompt' and 'completion' keys.
+        MAX_PROMPT_TOKENS_VALIDATION: Environment variable for max prompt tokens (default: 1M)
+        MAX_COMPLETION_TOKENS_VALIDATION: Environment variable for max completion tokens (default: 1M)
+        ENABLE_TOKEN_VALIDATION: Environment variable to enable/disable validation (default: true)
     
     Returns:
         decimal.Decimal: The calculated cost, rounded to the configured precision.
@@ -44,23 +56,22 @@ def _calculate_cost(prompt_tokens: int, completion_tokens: int) -> decimal.Decim
         >>> _calculate_cost(1000, 2000)
         Decimal('0.0050000000')
     """
-    # Define maximum token limits to prevent performance issues
-    MAX_PROMPT_TOKENS = 1_000_000  # 1 million tokens
-    MAX_COMPLETION_TOKENS = 1_000_000  # 1 million tokens
-    
-    # Input validation
-    if not all(isinstance(token, int) for token in (prompt_tokens, completion_tokens)):
-        raise TypeError("Token counts must be integers")
-    
-    if prompt_tokens < 0 or completion_tokens < 0:
-        raise ValueError("Token counts must be non-negative")
-    
-    # Validate maximum bounds to prevent performance issues
-    if prompt_tokens > MAX_PROMPT_TOKENS:
-        raise ValueError(f"Prompt tokens ({prompt_tokens}) exceed maximum limit ({MAX_PROMPT_TOKENS})")
-    
-    if completion_tokens > MAX_COMPLETION_TOKENS:
-        raise ValueError(f"Completion tokens ({completion_tokens}) exceed maximum limit ({MAX_COMPLETION_TOKENS})")
+    # Lightweight validation - only perform expensive checks if enabled
+    if ENABLE_TOKEN_VALIDATION:
+        # Type validation
+        if not all(isinstance(token, int) for token in (prompt_tokens, completion_tokens)):
+            raise TypeError("Token counts must be integers")
+        
+        # Range validation
+        if prompt_tokens < 0 or completion_tokens < 0:
+            raise ValueError("Token counts must be non-negative")
+        
+        # Maximum bounds validation - using module-level constants for performance
+        if prompt_tokens > MAX_PROMPT_TOKENS:
+            raise ValueError(f"Prompt tokens ({prompt_tokens}) exceed maximum limit ({MAX_PROMPT_TOKENS})")
+        
+        if completion_tokens > MAX_COMPLETION_TOKENS:
+            raise ValueError(f"Completion tokens ({completion_tokens}) exceed maximum limit ({MAX_COMPLETION_TOKENS})")
     
     with decimal.localcontext() as ctx:
         # Set precision for Decimal calculations within this context

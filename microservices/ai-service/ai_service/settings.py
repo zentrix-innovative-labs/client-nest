@@ -7,18 +7,22 @@ import re
 # Load environment variables from .env file
 load_dotenv()
 
-# Import config validation
-from .config_validation import validate_config
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Validate configuration
+# Configuration validation
 # Note: Configuration validation on import can slow down startup significantly.
-# Consider moving this to application startup or using lazy initialization.
-# Set VALIDATE_CONFIG_ON_IMPORT=true only when needed for debugging.
+# To validate configuration, call run_config_validation_if_enabled() from an application startup hook,
+# such as AppConfig.ready() or wsgi.py. Set VALIDATE_CONFIG_ON_IMPORT=true only when needed for debugging.
+def run_config_validation_if_enabled():
+    """Run configuration validation if enabled via environment variable."""
+    if os.environ.get('VALIDATE_CONFIG_ON_IMPORT', 'false').lower() == 'true':
+        from .config_validation import validate_config
+        validate_config()
+
+# Only run validation on import if explicitly enabled (for debugging)
 if os.environ.get('VALIDATE_CONFIG_ON_IMPORT', 'false').lower() == 'true':
-    validate_config()
+    run_config_validation_if_enabled()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get('SECRET_KEY')
