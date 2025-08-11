@@ -154,8 +154,8 @@ class TestCalculateCost(TestCase):
             thread.join()
         for _ in range(5):
             status, result = results.get()
-            assert status == 'success', f"Thread failed with error: {result}"
-            assert isinstance(result, decimal.Decimal)
+            self.assertEqual(status, 'success', f"Thread failed with error: {result}")
+            self.assertIsInstance(result, decimal.Decimal)
 
 
 if __name__ == '__main__':

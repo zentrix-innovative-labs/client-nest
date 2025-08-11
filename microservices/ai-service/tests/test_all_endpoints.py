@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """
-Comprehensive test script for all AI service endpoints:
+Comprehensive integration test script for all AI service endpoints:
 - Content Generation
 - Sentiment Analysis
 - Hashtag Optimization
 - Optimal Posting Time Suggestion
 - Health Check
+
+Note: This is designed as a standalone integration test script with verbose output.
+For proper unittest framework compliance, see test_endpoints_unittest.py.
+This script uses plain assertions intentionally for integration testing purposes.
 """
 
 import requests
