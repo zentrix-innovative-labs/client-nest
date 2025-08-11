@@ -67,11 +67,7 @@ ClientNest combines traditional CRM functionality with cutting-edge AI capabilit
 2. **Backend Setup**
    ```bash
    cd backend
-<<<<<<< HEAD
-   ls -l requirements.txt
-=======
    python -m venv venv  # Or use python -m venv .venv for consistency
->>>>>>> cb7131cc5cdddf04cf006f596486dffb2d1e5f63
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
    cp .env.example .env  # Copy the example env file and edit as needed
