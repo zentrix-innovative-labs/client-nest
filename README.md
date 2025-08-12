@@ -34,7 +34,7 @@ ClientNest combines traditional CRM functionality with cutting-edge AI capabilit
 
 ### 📈 Analytics & Reporting
 - **Real-time Dashboards**: Live metrics and KPI tracking
-- **Custom Reports**: Drag-and-drop report builder
+- **Custom Reports**: Drag-and-source venv/bin/activate drop report builder
 - **Data Export**: Multiple format support (PDF, Excel, CSV)
 - **Automated Reports**: Scheduled report generation and delivery
 - **Performance Metrics**: Team and individual performance tracking
@@ -68,7 +68,7 @@ ClientNest combines traditional CRM functionality with cutting-edge AI capabilit
    ```bash
    cd backend
    python -m venv venv  # Or use python -m venv .venv for consistency
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+    # On Windows: venv\Scripts\activate
    pip install -r requirements.txt
    cp .env.example .env  # Copy the example env file and edit as needed
    # Edit .env with your configuration (see below for required variables)
