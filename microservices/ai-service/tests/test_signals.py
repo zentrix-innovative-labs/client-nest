@@ -6,6 +6,8 @@ Tests the _calculate_cost function with various scenarios
 
 import unittest
 import decimal
+import threading
+import queue
 from unittest.mock import patch
 from django.test import TestCase, override_settings
 from django.conf import settings
@@ -15,21 +17,15 @@ import os
 from content_generation.signals import _calculate_cost
 
 
+# Default pricing for most tests
+DEFAULT_PRICING = {
+    'prompt': '0.001',      # $0.001 per 1K prompt tokens
+    'completion': '0.002'   # $0.002 per 1K completion tokens
+}
+
+@override_settings(DEEPSEEK_PRICING=DEFAULT_PRICING)
 class TestCalculateCost(TestCase):
     """Test cases for the _calculate_cost function"""
-    
-    def setUp(self):
-        """Set up test fixtures"""
-        self.mock_pricing = {
-            'prompt': '0.001',      # $0.001 per 1K prompt tokens
-            'completion': '0.002'    # $0.002 per 1K completion tokens
-        }
-        self.mock_pricing_patch = patch('content_generation.signals.settings.DEEPSEEK_PRICING')
-        self.mock_pricing_mock = self.mock_pricing_patch.start()
-        self.mock_pricing_mock.__getitem__.side_effect = self.mock_pricing.__getitem__
-
-    def tearDown(self):
-        self.mock_pricing_patch.stop()
     
     def test_calculate_cost_normal_usage(self):
         """Test normal token usage scenarios"""
@@ -95,15 +91,12 @@ class TestCalculateCost(TestCase):
         expected = decimal.Decimal('0.001667')
         self.assertEqual(cost, expected)
     
+    @override_settings(DEEPSEEK_PRICING={
+        'prompt': '0.0005',     # $0.0005 per 1K prompt tokens
+        'completion': '0.0015'  # $0.0015 per 1K completion tokens
+    })
     def test_calculate_cost_different_pricing(self):
         """Test with different pricing models"""
-        # Test with different pricing
-        different_pricing = {
-            'prompt': '0.0005',     # $0.0005 per 1K prompt tokens
-            'completion': '0.0015'   # $0.0015 per 1K completion tokens
-        }
-        self.mock_pricing_mock.__getitem__.side_effect = different_pricing.__getitem__
-        
         cost = _calculate_cost(prompt_tokens=1000, completion_tokens=1000)
         expected = decimal.Decimal('0.0005') + decimal.Decimal('0.0015')
         self.assertEqual(cost, expected)
@@ -136,8 +129,6 @@ class TestCalculateCost(TestCase):
     @override_settings(DEEPSEEK_API_KEY='dummy-key')
     def test_calculate_cost_thread_safety(self):
         """Test that the function is thread-safe with decimal context"""
-        import threading
-        import queue
         results = queue.Queue()
         def calculate_cost_thread():
             try:

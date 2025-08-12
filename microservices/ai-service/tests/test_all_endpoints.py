@@ -16,6 +16,7 @@ import requests
 import json
 import time
 import os
+from .test_utils import validate_endpoint_coverage, TestConfiguration
 
 # Mock authentication to simulate secured endpoints without needing real tokens
 def mock_authentication():
@@ -42,7 +43,7 @@ class TestAIServiceEndpoints:
         }
         
         try:
-            response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=60)  # Mock authentication added
+            response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=TestConfiguration.API_TIMEOUT)  # Optimized timeout
             
             print(f"Status Code: {response.status_code}")
             
@@ -86,7 +87,7 @@ class TestAIServiceEndpoints:
         }
         
         try:
-            response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=60)  # Mock authentication added
+            response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=TestConfiguration.API_TIMEOUT)  # Optimized timeout
             
             print(f"Status Code: {response.status_code}")
             
@@ -129,7 +130,7 @@ class TestAIServiceEndpoints:
         }
         
         try:
-            response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=60)  # Mock authentication added
+            response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=TestConfiguration.API_TIMEOUT)  # Optimized timeout
             
             print(f"Status Code: {response.status_code}")
             
@@ -176,7 +177,7 @@ class TestAIServiceEndpoints:
         }
         
         try:
-            response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=60)  # Mock authentication added
+            response = requests.post(url, json=payload, headers=get_auth_headers(), timeout=TestConfiguration.API_TIMEOUT)  # Optimized timeout
             
             print(f"Status Code: {response.status_code}")
             
@@ -346,40 +347,28 @@ class TestAIServiceEndpoints:
             assert data["template"] == "Hello, {name}!", "Template content mismatch"
 
     def test_endpoint_comparison(self):
-        """Compare implemented endpoints with architecture requirements (method+path)"""
+        """Compare implemented endpoints with architecture requirements (using shared utility)"""
         print("\n📋 Endpoint Implementation Status:")
-        required_endpoints = [
-            "POST /api/ai/generate/content",
-            "POST /api/ai/analyze/sentiment", 
-            "POST /api/ai/optimize/hashtags",
-            "POST /api/ai/schedule/optimal",
-            "GET /api/ai/models/status",
-            "GET /api/ai/usage/stats",
-            "GET /api/ai/token/usage",
-            "GET /health"
-        ]
+        
+        # Use shared utility for endpoint validation
+        is_valid, missing_endpoints, extra_endpoints = validate_endpoint_coverage()
+        
+        # Display endpoint status
         implemented_endpoints = [
-            "✅ GET /health",
-            "✅ POST /api/ai/generate/content",
-            "✅ GET /api/ai/usage/stats",
-            "✅ GET /api/ai/token/usage",
-            "✅ POST /api/ai/analyze/sentiment",
-            "✅ GET /api/ai/models/status",
-            "✅ POST /api/ai/optimize/hashtags",  # NEW
-            "✅ POST /api/ai/schedule/optimal"   # NEW
+            "✅ GET /health/",
+            "✅ POST /api/ai/generate/content/",
+            "✅ GET /api/ai/usage/stats/",
+            "✅ GET /api/ai/token/usage/",
+            "✅ POST /api/ai/analyze/sentiment/",
+            "✅ GET /api/ai/models/status/",
+            "✅ POST /api/ai/optimize/hashtags/",  # NEW
+            "✅ POST /api/ai/schedule/optimal/"   # NEW
         ]
-        # Extract full method+path strings from implemented endpoints (remove "✅ " prefix)
-        implemented_endpoints_cleaned = [endpoint[2:].strip() for endpoint in implemented_endpoints]
-        # Convert to sets for unordered comparison
-        required_set = set(required_endpoints)
-        implemented_set = set(implemented_endpoints_cleaned)
-        # Find missing and extra endpoints
-        missing_endpoints = required_set - implemented_set
-        extra_endpoints = implemented_set - required_set
-        # Print all implemented endpoints
+        
         for endpoint in implemented_endpoints:
             print(f"  {endpoint}")
-        # Assert no missing or extra endpoints
+        
+        # Assert using shared validation
         assert not missing_endpoints, f"Missing endpoints: {missing_endpoints}"
         assert not extra_endpoints, f"Unexpected endpoints: {extra_endpoints}"
         print("\n🎉 All required AI service endpoints are now implemented!")

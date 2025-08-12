@@ -9,21 +9,22 @@ import requests
 import json
 import os
 from unittest.mock import patch
+from .test_utils import EndpointTestMixin, TestConfiguration, validate_endpoint_coverage
 
 
-class TestAIServiceEndpointsUnittest(unittest.TestCase):
+class TestAIServiceEndpointsUnittest(unittest.TestCase, EndpointTestMixin):
     """Proper unittest.TestCase for AI service endpoint testing"""
     
     @classmethod
     def setUpClass(cls):
         """Set up class-level test fixtures"""
-        cls.AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8005")
-        cls.auth_headers = {"Content-Type": "application/json"}
+        cls.AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", TestConfiguration.AI_SERVICE_URL)
+        cls.auth_headers = cls().get_auth_headers()
     
     def setUp(self):
         """Set up test fixtures before each test method"""
-        self.timeout = 60
-        self.short_timeout = 10
+        self.timeout = TestConfiguration.API_TIMEOUT  # Reduced from 60 to 10 seconds
+        self.short_timeout = TestConfiguration.HEALTH_TIMEOUT  # Reduced to 5 seconds
 
     def test_health_check_endpoint(self):
         """Test the health check endpoint"""
@@ -178,38 +179,11 @@ class TestAIServiceEndpointsUnittest(unittest.TestCase):
             self.assertIn('token_usage', data)
 
     def test_endpoint_coverage(self):
-        """Test that all required endpoints are implemented"""
-        required_endpoints = [
-            "POST /api/ai/generate/content",
-            "POST /api/ai/analyze/sentiment", 
-            "POST /api/ai/optimize/hashtags",
-            "POST /api/ai/schedule/optimal",
-            "GET /api/ai/models/status",
-            "GET /api/ai/usage/stats",
-            "GET /api/ai/token/usage",
-            "GET /health"
-        ]
-        
-        implemented_endpoints = [
-            "GET /health",
-            "POST /api/ai/generate/content",
-            "GET /api/ai/usage/stats",
-            "GET /api/ai/token/usage",
-            "POST /api/ai/analyze/sentiment",
-            "GET /api/ai/models/status",
-            "POST /api/ai/optimize/hashtags",
-            "POST /api/ai/schedule/optimal"
-        ]
-        
-        required_set = set(required_endpoints)
-        implemented_set = set(implemented_endpoints)
-        
-        missing_endpoints = required_set - implemented_set
-        extra_endpoints = implemented_set - required_set
-        
-        # Use proper unittest assertions
-        self.assertFalse(missing_endpoints, f"Missing endpoints: {missing_endpoints}")
-        self.assertFalse(extra_endpoints, f"Unexpected endpoints: {extra_endpoints}")
+        """Test that all required endpoints are implemented (using shared utility)"""
+        try:
+            self.assert_endpoint_coverage()
+        except AssertionError as e:
+            self.fail(str(e))
 
     @unittest.skipIf(os.getenv('SKIP_INTEGRATION_TESTS', 'false').lower() == 'true', 
                      "Integration tests skipped")
