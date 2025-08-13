@@ -57,9 +57,9 @@ WSGI_APPLICATION = 'notification_service.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('POSTGRES_DB', default='notification_db'),
-        'USER': config('POSTGRES_USER', default='notification_user'),
-        'PASSWORD': config('POSTGRES_PASSWORD', default='notification_pass'),
+        'NAME': config('POSTGRES_DB', default='client-nest'),
+        'USER': config('POSTGRES_USER', default='postgres'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='markCole256'),
         'HOST': config('POSTGRES_HOST', default='localhost'),
         'PORT': config('POSTGRES_PORT', default='5432'),
     }
