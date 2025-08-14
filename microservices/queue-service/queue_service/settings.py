@@ -32,10 +32,7 @@ INSTALLED_APPS = [
     'django_rq',
     
     # Local apps
-    'task_management',
-    'job_scheduling',
-    'message_broker',
-    'worker_management',
+
 ]
 
 MIDDLEWARE = [
@@ -77,7 +74,7 @@ DATABASES = {
         'USER': config('DB_USER', default='postgres'),
         'PASSWORD': config('DB_PASSWORD', default='password'),
         'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5436'),
+        'PORT': config('DB_PORT', default='5432'),
     }
 }
 
@@ -180,14 +177,7 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULE = {
-    'cleanup-expired-tasks': {
-        'task': 'task_management.tasks.cleanup_expired_tasks',
-        'schedule': 3600.0,  # Run every hour
-    },
-    'process-scheduled-jobs': {
-        'task': 'job_scheduling.tasks.process_scheduled_jobs',
-        'schedule': 60.0,  # Run every minute
-    },
+
 }
 
 # Queue Configuration
