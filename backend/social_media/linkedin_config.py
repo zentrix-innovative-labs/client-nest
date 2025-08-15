@@ -1,6 +1,0 @@
-import os
-
-LINKEDIN_CLIENT_ID = os.environ.get('LINKEDIN_CLIENT_ID')
-LINKEDIN_CLIENT_SECRET = os.environ.get('LINKEDIN_CLIENT_SECRET')
-LINKEDIN_REDIRECT_URI = os.environ.get('LINKEDIN_REDIRECT_URI')
-LINKEDIN_API_BASE_URL = 'https://api.linkedin.com/v2/' 
