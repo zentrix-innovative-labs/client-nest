@@ -1,0 +1,11 @@
+django-rq
+django-extensions
+django-cors-headers
+djangorestframework-simplejwt
+djangorestframework
+redis
+django>=4.0
+celery[redis]
+djangorestframework
+redis
+python-decouple

@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database for File Service
+  file-db:
+    image: postgres:15
+    container_name: clientnest-file-db
+    environment:
+      POSTGRES_DB: client-nest
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: markCole256
+    volumes:
+      - file_db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"  # Use a unique port for file-service
+    networks:
+      - clientnest-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # File Service Web (Django)
+  web:
+    build: .
+    command: gunicorn file_service.wsgi:application --bind 0.0.0.0:8000
+    container_name: clientnest-file-service
+    environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-file-service-key-change-in-production
+      - POSTGRES_DB_NAME=client-nest
+      - POSTGRES_DB_USER=postgres
+      - POSTGRES_DB_PASSWORD=markCole256
+      - POSTGRES_DB_HOST=file-db
+      - POSTGRES_DB_PORT=5432
+      - USE_SQLITE=False
+      - ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0,file-service
+    volumes:
+      - .:/app
+      - ./logs:/app/logs
+      - ./media:/app/media
+    ports:
+      - "8003:8000"
+    depends_on:
+      file-db:
+        condition: service_healthy
+    networks:
+      - clientnest-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for Celery/Queue (optional, add worker if needed)
+  redis:
+    image: redis:7
+    ports:
+      - "6380:6379"
+    networks:
+      - clientnest-network
+
+networks:
+  clientnest-network:
+    driver: bridge
+
+volumes:
+  file_db_data:
