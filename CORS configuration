@@ -1,0 +1,21 @@
+INSTALLED_APPS = [
+    # ...existing apps...
+    "corsheaders",
+]
+
+MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # Should be first
+    "django.middleware.common.CommonMiddleware",
+    # ...other middleware...
+]
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS = [
+    "https://clientnest.xyz",
+    "https://www.clientnest.xyz",
+    "https://www.api.clientnest.xyz",
+    "http://localhost:3000",
+    "https://frontend-client-nest.vercel.app",  # Add your Vercel domain if needed
+]
+
+CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions

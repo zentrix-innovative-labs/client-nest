@@ -35,9 +35,9 @@ load_dotenv()
 SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,clientnest.xyz,www.clientnest.xyz,api.clientnest.xyz').split(',')
 
 
 # Application definition
@@ -166,8 +166,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -244,7 +243,44 @@ DEEPSEEK_PRICING = {
 CORS_ALLOWED_ORIGINS = [
     "https://www.clientnest.xyz",
     "https://clientnest.xyz",
+    "https://api.clientnest.xyz",
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
+
+# Allow credentials for API calls
+CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS settings for production
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'False').lower() == 'true'
+
+# Trusted origins for CSRF
+CSRF_TRUSTED_ORIGINS = [
+    "https://www.clientnest.xyz",
+    "https://clientnest.xyz",
+    "https://api.clientnest.xyz",
+]
+<<<<<<< HEAD
+# =============================
+
+# ===== PRODUCTION SECURITY SETTINGS =====
+# HTTPS/SSL Settings
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'False').lower() == 'true'
+SECURE_HSTS_PRELOAD = os.environ.get('SECURE_HSTS_PRELOAD', 'False').lower() == 'true'
+
+# Cookie Security
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
+
+# Additional Security Headers
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+# ======================================
+
+=======
 CORS_ALLOW_CREDENTIALS = True  # For cookies/sessions
 # =============================
+>>>>>>> b4a3c4d96f585ba9479acffa4912bad6dc5b4082
