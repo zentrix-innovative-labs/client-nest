@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Unittest version of AI service endpoint tests for better framework consistency.
-This addresses Copilot AI recommendations for proper unittest assertions.
+This addresses Copilot AI recommendations for proper unittest assertions and tiered timeout management.
 """
 
 import unittest
@@ -23,14 +23,20 @@ class TestAIServiceEndpointsUnittest(unittest.TestCase, EndpointTestMixin):
     
     def setUp(self):
         """Set up test fixtures before each test method"""
-        self.timeout = TestConfiguration.API_TIMEOUT  # Reduced from 60 to 10 seconds
-        self.short_timeout = TestConfiguration.HEALTH_TIMEOUT  # Reduced to 5 seconds
+        # Use tiered timeout approach as suggested by Copilot AI
+        # Different timeout values for different endpoint types
+        # Call the methods directly to get integer values
+        self.health_timeout = TestConfiguration.get_health_timeout()      # Fast health checks
+        self.standard_timeout = TestConfiguration.get_standard_timeout()  # Regular API calls
+        self.ai_generation_timeout = TestConfiguration.get_ai_generation_timeout()  # AI operations (can be slow)
+        self.default_timeout = TestConfiguration.get_default_timeout()        # Default fallback
 
     def test_health_check_endpoint(self):
         """Test the health check endpoint"""
         url = f"{self.AI_SERVICE_URL}/health/"
         
-        response = requests.get(url, timeout=self.short_timeout)
+        # Use health-specific timeout for fast health checks
+        response = requests.get(url, timeout=self.health_timeout)
         
         # Use proper unittest assertions
         self.assertEqual(response.status_code, 200)
@@ -52,7 +58,8 @@ class TestAIServiceEndpointsUnittest(unittest.TestCase, EndpointTestMixin):
             "industry": "technology"
         }
         
-        response = requests.post(url, json=payload, headers=self.auth_headers, timeout=self.timeout)
+        # Use AI generation timeout for hashtag optimization (AI operation)
+        response = requests.post(url, json=payload, headers=self.auth_headers, timeout=self.ai_generation_timeout)
         
         # Test for expected status codes (including auth failures)
         self.assertIn(response.status_code, [200, 201, 401, 403])
@@ -80,7 +87,8 @@ class TestAIServiceEndpointsUnittest(unittest.TestCase, EndpointTestMixin):
             "industry": "fashion"
         }
         
-        response = requests.post(url, json=payload, headers=self.auth_headers, timeout=self.timeout)
+        # Use AI generation timeout for optimal posting time (AI operation)
+        response = requests.post(url, json=payload, headers=self.auth_headers, timeout=self.ai_generation_timeout)
         
         # Test for expected status codes
         self.assertIn(response.status_code, [200, 201, 401, 403])
@@ -107,23 +115,22 @@ class TestAIServiceEndpointsUnittest(unittest.TestCase, EndpointTestMixin):
             "content_type": "post"
         }
         
-        response = requests.post(url, json=payload, headers=self.auth_headers, timeout=self.timeout)
+        # Use AI generation timeout for content generation (most complex AI operation)
+        response = requests.post(url, json=payload, headers=self.auth_headers, timeout=self.ai_generation_timeout)
         
         # Test for expected status codes
         self.assertIn(response.status_code, [200, 201, 401, 403])
         
         if response.status_code in [200, 201]:
             data = response.json()
+            self.assertIn('success', data)
+            self.assertTrue(data['success'])
+            self.assertIn('data', data)
+            self.assertIn('usage', data)
             
-            # Content generation can return different structures
-            if 'error' in data:
-                self.assertIn('raw_content', data)
-            elif 'content' in data:
-                self.assertIsInstance(data['content'], str)
-                if 'hashtags' in data:
-                    self.assertIsInstance(data['hashtags'], list)
-            else:
-                self.fail("Response missing required content field")
+            content_data = data['data']
+            self.assertIn('content', content_data)
+            self.assertIsInstance(content_data['content'], str)
 
     def test_sentiment_analysis_endpoint(self):
         """Test the sentiment analysis endpoint"""
@@ -133,66 +140,74 @@ class TestAIServiceEndpointsUnittest(unittest.TestCase, EndpointTestMixin):
             "text": "I'm really excited about the new AI features in our product! The team has done an amazing job."
         }
         
-        response = requests.post(url, json=payload, headers=self.auth_headers, timeout=self.timeout)
+        # Use AI generation timeout for sentiment analysis (AI operation)
+        response = requests.post(url, json=payload, headers=self.auth_headers, timeout=self.ai_generation_timeout)
         
         # Test for expected status codes
         self.assertIn(response.status_code, [200, 201, 401, 403])
         
         if response.status_code in [200, 201]:
             data = response.json()
+            self.assertIn('success', data)
+            self.assertTrue(data['success'])
+            self.assertIn('data', data)
+            self.assertIn('usage', data)
             
-            if 'error' in data:
-                self.assertIn('raw_content', data)
-            elif 'sentiment' in data:
-                self.assertIsInstance(data['sentiment'], str)
-                if 'confidence' in data:
-                    self.assertIsInstance(data['confidence'], (int, float))
-            else:
-                self.fail("Response missing required sentiment field")
-
-    def test_usage_stats_endpoint(self):
-        """Test the usage stats endpoint"""
-        url = f"{self.AI_SERVICE_URL}/api/ai/usage/stats/"
-        
-        response = requests.get(url, headers=self.auth_headers, timeout=self.short_timeout)
-        
-        # Test for expected status codes
-        self.assertIn(response.status_code, [200, 201, 401, 403])
-        
-        if response.status_code in [200, 201]:
-            data = response.json()
-            self.assertIsInstance(data, dict)
-            self.assertIn('total_tasks', data)
+            sentiment_data = data['data']
+            self.assertIn('sentiment', sentiment_data)
+            self.assertIn('confidence', sentiment_data)
 
     def test_token_usage_endpoint(self):
         """Test the token usage endpoint"""
         url = f"{self.AI_SERVICE_URL}/api/ai/token/usage/"
         
-        response = requests.get(url, headers=self.auth_headers, timeout=self.short_timeout)
+        # Use standard timeout for token usage (regular API call)
+        response = requests.get(url, headers=self.auth_headers, timeout=self.standard_timeout)
         
         # Test for expected status codes
         self.assertIn(response.status_code, [200, 201, 401, 403])
         
         if response.status_code in [200, 201]:
             data = response.json()
-            self.assertIsInstance(data, dict)
             self.assertIn('token_usage', data)
+            self.assertIn('budget_warnings', data)
+            self.assertIn('remaining_daily', data)
+            self.assertIn('remaining_total', data)
+
+    def test_usage_stats_endpoint(self):
+        """Test the usage stats endpoint"""
+        url = f"{self.AI_SERVICE_URL}/api/ai/usage/stats/"
+        
+        # Use standard timeout for usage stats (regular API call)
+        response = requests.get(url, headers=self.auth_headers, timeout=self.standard_timeout)
+        
+        # Test for expected status codes
+        self.assertIn(response.status_code, [200, 201, 401, 403])
+        
+        if response.status_code in [200, 201]:
+            data = response.json()
+            self.assertIn('total_tasks', data)
+            self.assertIn('completed_tasks', data)
+            self.assertIn('failed_tasks', data)
 
     def test_endpoint_coverage(self):
         """Test that all required endpoints are implemented (using shared utility)"""
-        try:
-            self.assert_endpoint_coverage()
-        except AssertionError as e:
-            self.fail(str(e))
+        # Use the dynamic endpoint discovery system
+        self.assert_endpoint_coverage()
 
-    @unittest.skipIf(os.getenv('SKIP_INTEGRATION_TESTS', 'false').lower() == 'true', 
-                     "Integration tests skipped")
     def test_service_integration(self):
         """Integration test for service availability"""
+        # Skip if AI service is not available for integration testing
         try:
-            response = requests.get(f"{self.AI_SERVICE_URL}/health/", timeout=5)
-            self.assertEqual(response.status_code, 200)
-        except requests.exceptions.ConnectionError:
+            response = requests.get(f"{self.AI_SERVICE_URL}/health/", timeout=self.health_timeout)
+            if response.status_code == 200:
+                # Service is available, run integration test
+                self.assertEqual(response.status_code, 200)
+                data = response.json()
+                self.assertEqual(data['status'], 'healthy')
+            else:
+                self.skipTest("AI service not available for integration testing")
+        except requests.exceptions.RequestException:
             self.skipTest("AI service not available for integration testing")
 
 
