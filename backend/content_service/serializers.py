@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Post, Schedule, Comment, CommentLike
-from user_service.serializers import user_serviceerializer
+from user_service.serializers import UserSerializer  
 from django.db.models import F
 from django.db import transaction
 from .utils import toggle_comment_like
